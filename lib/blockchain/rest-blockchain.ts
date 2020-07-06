@@ -1,8 +1,10 @@
-import { Transaction } from 'bsv';
+import bsv from 'bsv';
 import { IUTXO, TxData, IAction } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import fetch from 'node-fetch';
+
+const { Transaction } = bsv;
 
 export class RestBlockchain extends Blockchain {
     private inflight = new Map<string, Promise<any>>();

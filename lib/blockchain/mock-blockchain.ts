@@ -1,4 +1,4 @@
-import {Transaction} from 'bsv';
+import bsv from 'bsv';
 import { Blockchain } from '.';
 import { IUTXO, TxData } from '../interfaces';
 import createError from 'http-errors';
@@ -79,7 +79,7 @@ export class MockBlockchain extends Blockchain {
         const txData = this.txns.get(txid);
         if (!txData) throw createError(404, 'Tx missing');
         if (asObject) return txData;
-        const tx = new Transaction(txData);
+        const tx = new bsv.Transaction(txData);
         tx.outputs.forEach((o: any, i) => {
             o.spentTxId = txData.spent[i]?.txid || null
             o.spentIndex = txData.spent[i]?.i || null
@@ -122,7 +122,7 @@ export class MockBlockchain extends Blockchain {
     }
 
     fund(address, satoshis) {
-        const tx = new Transaction()
+        const tx = new bsv.Transaction()
             .addData(Math.random().toString())
             .to(address, satoshis);
 
@@ -153,7 +153,7 @@ export class MockBlockchain extends Blockchain {
 
         if (totalFunds < 5000000 && utxos.length < 50) return;
 
-        const tx = new Transaction()
+        const tx = new bsv.Transaction()
             .from(utxos);
         let outputs = 0;
         let funds = 0;

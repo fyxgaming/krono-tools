@@ -1,20 +1,19 @@
-import { HDPrivateKey } from 'bsv';
+import bsv from 'bsv';
 import fetch from 'node-fetch';
 import minimist from 'minimist';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
 import { TimelockPurse } from '../lib/timelock-purse';
 import { Wallet } from '../lib/wallet';
-import Run from '../run/dist/run.node.min';
-
-
 import EventSource from 'eventsource';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
 
+const Run = require('../run/dist/run.node.min');
+
 const argv = minimist(process.argv.slice(2));
 const apiUrl = 'http://localhost:8082';
 
-const hdKey = HDPrivateKey.fromString(argv.xpriv);
+const hdKey = bsv.HDPrivateKey.fromString(argv.xpriv);
 const purse = hdKey.deriveChild('m/1').privateKey;
 const owner = hdKey.deriveChild('m/2').privateKey;
 

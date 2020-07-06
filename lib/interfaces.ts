@@ -1,4 +1,4 @@
-import { Transaction } from 'bsv';
+import bsv from 'bsv';
 
 export interface IAgent {
     agent: string;
@@ -56,8 +56,8 @@ export interface IStorage<T> {
     delete(key: string): Promise<void>;
 }
 
-export type TxData = Omit<Transaction, 'outputs'> & {
-    outputs: (Transaction.Output & {
+export type TxData = Omit<bsv.Transaction, 'outputs'> & {
+    outputs: (bsv.Transaction.Output & {
         spentTxId: string | null,
         spentIndex: number | null
         // time: number

@@ -1,4 +1,4 @@
-import { crypto, PublicKey } from 'bsv';
+import bsv from 'bsv';
 import { Blockchain } from '../blockchain';
 import { IAgent } from '../interfaces';
 
@@ -227,7 +227,7 @@ export default class Wallet {
     }
 
     randomBytes(size: number) {
-        return crypto.Random.getRandomBuffer(size).toString('hex');
+        return bsv.crypto.Random.getRandomBuffer(size).toString('hex');
     }
 
     async generateHashchain(key: string, size: number): Promise<string> {
@@ -253,7 +253,7 @@ export default class Wallet {
     }
 
     sha256(hex: string) {
-        return crypto.Hash.sha256(Buffer.from(hex, 'hex')).toString('hex');
+        return bsv.crypto.Hash.sha256(Buffer.from(hex, 'hex')).toString('hex');
     }
 
     sync() {

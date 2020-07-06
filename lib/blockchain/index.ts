@@ -1,4 +1,4 @@
-import { Script, Transaction } from 'bsv';
+import bsv from 'bsv';
 import { IUTXO, TxData } from '../interfaces';
 import { EventEmitter } from 'events';
 
@@ -61,7 +61,7 @@ export abstract class Blockchain extends EventEmitter {
     }
 
     validateInput(tx, i) {
-        const Interpreter = Script.Interpreter;
+        const Interpreter = bsv.Script.Interpreter;
         const flags = Interpreter.SCRIPT_VERIFY_STRICTENC |
             Interpreter.SCRIPT_VERIFY_DERSIG |
             Interpreter.SCRIPT_VERIFY_LOW_S |

@@ -1,9 +1,11 @@
-import { crypto, PrivateKey, Transaction } from 'bsv';
+import bsv from 'bsv';
 import * as secp from 'noble-secp256k1';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
+
+const { crypto, PrivateKey, Transaction } = bsv;
 
 export class Wallet extends EventEmitter {
     fetch = fetch;

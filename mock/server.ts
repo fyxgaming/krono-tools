@@ -1,4 +1,4 @@
-import { Transaction } from 'bsv';
+import bsv from 'bsv';
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import express from 'express';
@@ -6,7 +6,8 @@ import { HttpError, NotFound } from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
 import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
 import { MapStorage } from '../lib/storage/map-storage';
-import Run from '../run/dist/run.node.min';
+
+const Run = require('../run/dist/run.node.min');
 
 const deployer = 'mfmvYfB9pkYYnPe4nxzax99R4p8eemQtW9';
 const network = 'mock';
@@ -92,7 +93,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.post('/broadcast', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = new Transaction(req.body);
+        const tx = new bsv.Transaction(req.body);
         await blockchain.broadcast(tx);
 
         res.json(true);

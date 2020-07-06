@@ -1,7 +1,7 @@
 import bsv from 'bsv';
-import { LocalPurse } from '../run/dist/run.node.min';
+const Run = require('../run/dist/run.node.min');
 
-export class TimelockPurse extends LocalPurse {
+export class TimelockPurse extends Run.LocalPurse {
     private nLocktime = 0;
     private seqs = {};
     constructor(options: any) {

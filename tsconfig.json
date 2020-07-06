@@ -3,11 +3,16 @@
     "module": "commonjs",
     "target": "es2018",
     "outDir": "dist",
+    "allowJs": true,
     "declaration": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "lib": [
       "es2018"
+    ],
+    "typeRoots": [
+      "src/@types",
+      "node_modules/@types"
     ]
   },
   "include": [
