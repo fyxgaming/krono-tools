@@ -8,6 +8,7 @@
     "deploy:mock": "krono-deploy --app=kronoverse --src=. --env=mock --disableChainFiles",
     "deploy:dev": "krono-deploy --app=kronoverse --src=. --env=dev",
     "deploy:test": "krono-deploy --app=kronoverse --src=. --env=test",
+    "postinstall": "npm run build",
     "prepare": "npm run build",
     "start": "ts-node mock/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
