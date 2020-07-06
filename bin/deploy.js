@@ -1,6 +1,6 @@
 #!/usr/bin/env node
+
 const dotenv = require('dotenv');
-const bsv = require('bsv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
