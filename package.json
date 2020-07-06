@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
+    "deploy:mock": "krono-deploy --app=kronoverse --src=. --env=mock --disableChainFiles",
+    "deploy:dev": "krono-deploy --app=kronoverse --src=. --env=dev",
+    "deploy:test": "krono-deploy --app=kronoverse --src=. --env=test",
     "prepare": "npm run build",
     "start": "ts-node mock/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
