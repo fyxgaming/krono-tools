@@ -24,6 +24,7 @@ export class RestBlockchain extends Blockchain {
     }
 
     async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
+        console.log('Saving Tx:', JSON.stringify(tx.toObject()));
         const txid = tx.hash;
         return tx.outputs.map((o, vout) => o.script.isPublicKeyHashOut() && {
             _id: `${txid}_o${vout}`,
