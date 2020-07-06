@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -p .",
     "prepare": "npm run build",
-    "start": "ts-node server.ts",
+    "start": "ts-node mock/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -25,6 +25,7 @@
     "noble-secp256k1": "^1.0.3",
     "node-fetch": "^2.6.0",
     "simple-git": "^2.11.0",
+    "threads": "^1.6.3",
     "typescript": "^3.7.5"
   },
   "devDependencies": {
