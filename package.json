@@ -1,0 +1,47 @@
+{
+  "name": "kronoverse-tools",
+  "version": "0.1.0",
+  "description": "Tools for interacting with the Kronoverse Platform",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "prepare": "npm run build",
+    "start": "ts-node server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "krono-deploy": "./bin/deploy.js"
+  },
+  "dependencies": {
+    "@runonbitcoin/release": "file:run",
+    "body-parser": "^1.19.0",
+    "bsv": "^1.5.3",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "eventsource": "^1.0.7",
+    "express": "^4.17.1",
+    "http-errors": "^1.7.3",
+    "minimist": "^1.2.0",
+    "noble-secp256k1": "^1.0.3",
+    "node-fetch": "^2.6.0",
+    "simple-git": "^2.11.0",
+    "typescript": "^3.7.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.6",
+    "@types/eventsource": "^1.1.2",
+    "@types/express": "^4.17.2",
+    "@types/http-errors": "^1.6.3",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^13.5.2",
+    "@types/node-fetch": "^2.5.7",
+    "fs-extra": "^9.0.1",
+    "ts-node": "^8.6.2",
+    "tslint": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "author": "David Case",
+  "license": "MIT"
+}
