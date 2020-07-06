@@ -1,5 +1,3 @@
-import bsv from 'bsv';
-
 export interface IAgent {
     agent: string;
     location: string;
@@ -54,21 +52,6 @@ export interface IStorage<T> {
     get(key: string): Promise<T>;
     set(key: string, value: T): Promise<void>;
     delete(key: string): Promise<void>;
-}
-
-export type TxData = Omit<bsv.Transaction, 'outputs'> & {
-    outputs: (bsv.Transaction.Output & {
-        spentTxId: string | null,
-        spentIndex: number | null
-        // time: number
-    });
-
-    address: string;
-    loc: string;
-    seq: number;
-    spent: any;
-    time: number;
-    recipients?: string[];
 }
 
 export interface IAction {

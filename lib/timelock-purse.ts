@@ -1,4 +1,4 @@
-import bsv from 'bsv';
+const { Transaction } = require('bsv');
 const Run = require('../run/dist/run.node.min');
 
 export class TimelockPurse extends Run.LocalPurse {
@@ -9,7 +9,7 @@ export class TimelockPurse extends Run.LocalPurse {
     }
 
     pay(rawtx: string) {
-        const tx = new bsv.Transaction(rawtx);
+        const tx = new Transaction(rawtx);
         tx.inputs.forEach(i => {
             const loc = `${i.prevTxId.toString('hex')}_o${i.outputIndex}`;
             if (this.seqs[loc]) {

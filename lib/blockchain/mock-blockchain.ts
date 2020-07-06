@@ -1,8 +1,8 @@
-import bsv from 'bsv';
 import { Blockchain } from '.';
-import { IUTXO, TxData } from '../interfaces';
+import { IUTXO } from '../interfaces';
 import createError from 'http-errors';
 
+const { Transaction } = require('bsv');
 export class MockBlockchain extends Blockchain {
     protected apiUrl: string;
     protected cache = new Map<string, any>();
@@ -10,7 +10,7 @@ export class MockBlockchain extends Blockchain {
     txns = new Map<string, any>();
     unspent = new Map<string, IUTXO>();
     locks = new Map<string, number>();
-    channels = new Map<string, TxData>();
+    channels = new Map<string, any>();
 
     async validateTx(tx) {
         if (tx.inputs.length === 0) throw new Error('tx has no inputs');
@@ -79,7 +79,7 @@ export class MockBlockchain extends Blockchain {
         const txData = this.txns.get(txid);
         if (!txData) throw createError(404, 'Tx missing');
         if (asObject) return txData;
-        const tx = new bsv.Transaction(txData);
+        const tx = new Transaction(txData);
         tx.outputs.forEach((o: any, i) => {
             o.spentTxId = txData.spent[i]?.txid || null
             o.spentIndex = txData.spent[i]?.i || null
@@ -122,7 +122,7 @@ export class MockBlockchain extends Blockchain {
     }
 
     fund(address, satoshis) {
-        const tx = new bsv.Transaction()
+        const tx = new Transaction()
             .addData(Math.random().toString())
             .to(address, satoshis);
 
@@ -153,7 +153,7 @@ export class MockBlockchain extends Blockchain {
 
         if (totalFunds < 5000000 && utxos.length < 50) return;
 
-        const tx = new bsv.Transaction()
+        const tx = new Transaction()
             .from(utxos);
         let outputs = 0;
         let funds = 0;
@@ -167,7 +167,7 @@ export class MockBlockchain extends Blockchain {
         await this.broadcast(tx);
     }
 
-    async getChannel(loc: string): Promise<TxData> {
+    async getChannel(loc: string): Promise<any> {
         return this.channels.get(loc);
     }
 

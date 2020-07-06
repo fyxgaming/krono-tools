@@ -1,10 +1,9 @@
-import bsv from 'bsv';
-import { IUTXO, TxData, IAction } from '../interfaces';
+import { IUTXO, IAction } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import fetch from 'node-fetch';
 
-const { Transaction } = bsv;
+const { Transaction } = require('bsv');
 
 export class RestBlockchain extends Blockchain {
     private inflight = new Map<string, Promise<any>>();
@@ -97,7 +96,7 @@ export class RestBlockchain extends Blockchain {
         throw new Error('lockUtxo not implemented');
     };
 
-    async getChannel(loc: string, seq?: number): Promise<TxData> {
+    async getChannel(loc: string, seq?: number): Promise<any> {
         const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
         if (!resp.ok) throw new Error(await resp.text());
         return await resp.json();

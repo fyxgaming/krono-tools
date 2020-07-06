@@ -1,7 +1,7 @@
-import bsv from 'bsv';
 import { Blockchain } from '../blockchain';
 import { IAgent } from '../interfaces';
 
+const { crypto } = require('bsv');
 export default class Wallet {
     private agent: any;
     private agentDef: IAgent;
@@ -227,7 +227,7 @@ export default class Wallet {
     }
 
     randomBytes(size: number) {
-        return bsv.crypto.Random.getRandomBuffer(size).toString('hex');
+        return crypto.Random.getRandomBuffer(size).toString('hex');
     }
 
     async generateHashchain(key: string, size: number): Promise<string> {
@@ -253,7 +253,7 @@ export default class Wallet {
     }
 
     sha256(hex: string) {
-        return bsv.crypto.Hash.sha256(Buffer.from(hex, 'hex')).toString('hex');
+        return crypto.Hash.sha256(Buffer.from(hex, 'hex')).toString('hex');
     }
 
     sync() {

@@ -1,7 +1,7 @@
-import bsv from 'bsv';
-import { IUTXO, TxData } from '../interfaces';
+import { IUTXO } from '../interfaces';
 import { EventEmitter } from 'events';
 
+const { Script } = require('bsv');
 export abstract class Blockchain extends EventEmitter {
     constructor(public network: string) {
         super();
@@ -61,7 +61,7 @@ export abstract class Blockchain extends EventEmitter {
     }
 
     validateInput(tx, i) {
-        const Interpreter = bsv.Script.Interpreter;
+        const Interpreter = Script.Interpreter;
         const flags = Interpreter.SCRIPT_VERIFY_STRICTENC |
             Interpreter.SCRIPT_VERIFY_DERSIG |
             Interpreter.SCRIPT_VERIFY_LOW_S |
@@ -105,7 +105,7 @@ export abstract class Blockchain extends EventEmitter {
 
     abstract lockUtxo(address: string, expires: number, satoshis: number): Promise<IUTXO>;
 
-    async getChannel(loc: string): Promise<TxData> {
+    async getChannel(loc: string): Promise<any> {
         throw new Error('getChannel not implemented');
     }
 
