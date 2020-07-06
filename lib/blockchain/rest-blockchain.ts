@@ -25,8 +25,6 @@ export class RestBlockchain extends Blockchain {
 
     async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
         const txid = tx.hash;
-        // this.cache.set(txid, tx);
-
         return tx.outputs.map((o, vout) => o.script.isPublicKeyHashOut() && {
             _id: `${txid}_o${vout}`,
             address: o.script.toAddress(this.bsvNetwork).toString(),
