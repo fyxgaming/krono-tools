@@ -1,5 +1,5 @@
 import bsv from 'bsv';
-import { LocalPurse } from '@runonbitcoin/release';
+import { LocalPurse } from '../run/dist/run.node.min';
 
 export class TimelockPurse extends LocalPurse {
     private nLocktime = 0;

@@ -4,7 +4,7 @@ import minimist from 'minimist';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
 import { TimelockPurse } from '../lib/timelock-purse';
 import { Wallet } from '../lib/wallet';
-import Run from '@runonbitcoin/release';
+import Run from '../run/dist/run.node.min';
 
 
 import EventSource from 'eventsource';

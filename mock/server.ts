@@ -6,7 +6,7 @@ import { HttpError, NotFound } from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
 import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
 import { MapStorage } from '../lib/storage/map-storage';
-import Run from '@runonbitcoin/release';
+import Run from '../run/dist/run.node.min';
 
 const deployer = 'mfmvYfB9pkYYnPe4nxzax99R4p8eemQtW9';
 const network = 'mock';
