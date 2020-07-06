@@ -20,7 +20,7 @@ export class RestBlockchain extends Blockchain {
         });
         if (!resp.ok) throw new Error(await resp.text());
         console.timeEnd(`Broadcast: ${tx.hash}`);
-        return this.saveTx(await resp.json(), true);
+        return this.saveTx(tx, true);
     }
 
     async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
