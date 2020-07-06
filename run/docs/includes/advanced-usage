@@ -1,0 +1,301 @@
+<h1 id='advanced-usage'>Advanced Usage</h1><h2 id='advanced-usage-caller'>Caller</h2>
+<blockquote>
+<p>Storing the parent jig</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Child</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">parent</span> <span class="o">=</span> <span class="nx">caller</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<blockquote>
+<p>Enforcing a method may only be called by certain classes</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Database</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">rootUser</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">rootUser</span> <span class="o">=</span> <span class="nx">rootUser</span>
+  <span class="p">}</span>
+
+  <span class="nx">deleteAll</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">caller</span> <span class="o">!==</span> <span class="k">this</span><span class="p">.</span><span class="nx">rootUser</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">'only the root user may delete the database'</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">User</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">deleteDatabase</span><span class="p">(</span><span class="nx">database</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">database</span><span class="p">.</span><span class="nx">deleteAll</span><span class="p">()</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Within Jig code, there is a special <code>caller</code> variable that is available. This variable is the jig that called this jig&#39;s methods and <code>null</code> if the jig&#39;s method was invoked from application code.</p>
+
+<p>You can use <code>caller</code> to keep track of where a jig came from by storing the parent jig inside of a child jig. You can also enforce that a child jig is created by a specific parent, or enforce that certain methods can only be called by certain jigs.</p>
+<h2 id='advanced-usage-private-properties'>Private Properties</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Dragon</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_numberOfCrashLandings</span> <span class="o">=</span> <span class="mi">88</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">InsurancePolicy</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">dragon</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Throws an error !</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">dragon</span><span class="p">.</span><span class="nx">_numberOfCrashLandings</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">chargeMoreMoney</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Jigs may contain private variables and private methods. Private properties are available only to that jig, and by using them, you can better control the interface that users and other jigs interact with. Simply prefix your properties with an understore to hide them. Run enforces this for you too!</p>
+
+<p>Private variables may only be read inside a jig from one of its methods. If another kind of class attempts to read a private variable, Run will throw an error. Private variables may however be read externally in non-jig code, for example in the web Console. You can use that ability to help you debug and check the values of private properties while you&#39;re developing your app.</p>
+
+<p>Private methods are similar. They may only be called as helper methods from within the same jig or by another jig of the same class. However, unlike private variables, you cannot call a private method externally in the web Console. If you think about, that makes sense, because calling a private method externally would execute code with unintended consequences. Run keeps you safe.</p>
+
+<aside class="warning">
+<b>Warning:</b> Private properties are not encrypted. They are an <em>access control</em> feature, not a user privacy feature.
+</aside>
+<h2 id='advanced-usage-static-properties'>Static Properties</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">DigitalPet</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="nx">DigitalPet</span><span class="p">.</span><span class="nx">author</span> <span class="o">=</span> <span class="s1">'Maximus'</span>
+<span class="nx">DigitalPet</span><span class="p">.</span><span class="nx">license</span> <span class="o">=</span> <span class="s1">'MIT'</span>
+<span class="nx">DigitalPet</span><span class="p">.</span><span class="nx">icon</span> <span class="o">=</span> <span class="p">{</span> <span class="na">emoji</span><span class="p">:</span> <span class="s1">'🐉'</span> <span class="p">}</span>
+
+<span class="nx">run</span><span class="p">.</span><span class="nx">deploy</span><span class="p">(</span><span class="nx">DigitalPet</span><span class="p">)</span>
+</code></pre>
+<p>Classes and functions may have static properties as metadata. These properties are stored on-chain with the code definition itself when the code is uploaded. Any later downloads of that code will have these properties set. Class properties may be any kind of data that Run can <a href="#how-it-works-javascript-serialization">serialize</a>, including basic data types, jigs, and other classes or functions. Here are some recommended conventions:</p>
+
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>author</code></td>
+<td>string</td>
+<td>Name of the class&#39;s creator</td>
+</tr>
+<tr>
+<td><code>license</code></td>
+<td>string</td>
+<td>License for the code</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td>object { emoji: string }</td>
+<td>Icon to identify the class in block explorers. The <code>emoji</code> property should be a single emoji character.</td>
+</tr>
+<tr>
+<td><code>deps</code></td>
+<td>object</td>
+<td>Dependencies that are loaded as globals into the code sandbox.</td>
+</tr>
+</tbody></table>
+
+<p>When code is deployed, Run will set the <code>origin</code>, <code>location</code>, and <code>owner</code> properties on the class.</p>
+<h2 id='advanced-usage-code-presets'>Code Presets</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Dragon</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">set</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Use the deploy tool to deploy the Dragon class and generate these presets</span>
+
+<span class="nx">Dragon</span><span class="p">.</span><span class="nx">originMainnet</span> <span class="o">=</span> <span class="s1">'bee45c75c37a289517f33ebfa051601c9610ccc56fbddfbabc44413db5b0bc1b_o1'</span>
+<span class="nx">Dragon</span><span class="p">.</span><span class="nx">locationMainnet</span> <span class="o">=</span> <span class="s1">'bee45c75c37a289517f33ebfa051601c9610ccc56fbddfbabc44413db5b0bc1b_o1'</span>
+<span class="nx">Dragon</span><span class="p">.</span><span class="nx">ownerMainnet</span> <span class="o">=</span> <span class="s1">'13amCautaFqwbWV6MoC86xrh96W4fXGfDV'</span>
+</code></pre>
+<p>When you wish to create an instance of a jig from a class you&#39;ve already deployed, you have two options. Either you can load the class from the blockchain via <code>run.load</code> and then create an instance, or you can create an instance from a local class that has <em>presets</em> applied. When a local class has presets, Run doesn&#39;t have to download the code from the blockchain. Presets are a great way to share jig classes in NPM libraries too.</p>
+
+<p>You can use the <a href="#api-reference-deploy-tool">deploy tool</a> to generate presets. However, you can also create them manally. To do this, upload your code to each Bitcoin network you wish to support using <code>run.deploy</code> in a script. Then set the following static properties on the class itself before using or distributing it. Run will detect these presets and automatically use the origins and locations on the appropriate network.</p>
+
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>originMainnet</code></td>
+<td>string</td>
+<td>Mainnet origin for the uploaded class</td>
+</tr>
+<tr>
+<td><code>originTestnet</code></td>
+<td>string</td>
+<td>Testnet origin for the uploaded class</td>
+</tr>
+<tr>
+<td><code>originSTN</code></td>
+<td>string</td>
+<td>STN origin for the uploaded class</td>
+</tr>
+<tr>
+<td><code>originMocknet</code></td>
+<td>string</td>
+<td>Mocknet origin for the uploaded class</td>
+</tr>
+<tr>
+<td><code>locationMainnet</code></td>
+<td>string</td>
+<td>Mainnet location for the uploaded class</td>
+</tr>
+<tr>
+<td><code>locationTestnet</code></td>
+<td>string</td>
+<td>Testnet location for the uploaded class</td>
+</tr>
+<tr>
+<td><code>locationSTN</code></td>
+<td>string</td>
+<td>STN location for the uploaded class</td>
+</tr>
+<tr>
+<td><code>locationMocknet</code></td>
+<td>string</td>
+<td>Mocknet location for the uploaded class</td>
+</tr>
+<tr>
+<td><code>ownerMainnet</code></td>
+<td>string or Lock</td>
+<td>Optional mainnet owner for the uploaded class</td>
+</tr>
+<tr>
+<td><code>ownerTestnet</code></td>
+<td>string or Lock</td>
+<td>Optional testnet owner for the uploaded class</td>
+</tr>
+<tr>
+<td><code>ownerSTN</code></td>
+<td>string or Lock</td>
+<td>Optional STN owner for the uploaded class</td>
+</tr>
+<tr>
+<td><code>ownerMocknet</code></td>
+<td>string or Lock</td>
+<td>Optional mocknet owner for the uploaded class</td>
+</tr>
+</tbody></table>
+
+<aside class="warning">
+<b>Warning:</b> Run assumes that the class code matches the code that is stored on the blockchain. Only use class libraries from people you trust.
+</aside>
+<h2 id='advanced-usage-batch-transactions'>Batch Transactions</h2><pre class="highlight javascript tab-javascript"><code><span class="k">try</span> <span class="p">{</span>
+  <span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">begin</span><span class="p">()</span>
+  <span class="kr">const</span> <span class="nx">jig</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">CustomJig</span><span class="p">()</span>
+  <span class="nx">jig</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">to</span><span class="p">)</span>
+<span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+  <span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+<p>Multiple actions may be batched together into a single atomic Bitcoin transaction. In addition to making these actions all-or-nothing, batching also reduces fees. Any number of updates may be batched together from different jigs. Call <code>run.transaction.begin()</code> before performing updates and <code>run.transaction.end()</code> after. These may also be nested, and when the final <code>end()</code> is called, the transaction will be published on-chain.</p>
+<h2 id='advanced-usage-arbitrary-code'>Arbitrary Code</h2>
+<blockquote>
+<p>Loading a helper class</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Preconditions</span> <span class="p">{</span>
+  <span class="kr">static</span> <span class="nx">checkArgument</span><span class="p">(</span><span class="nx">check</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">check</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">()</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">PositiveNumber</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">$</span><span class="p">.</span><span class="nx">checkArgument</span><span class="p">(</span><span class="nx">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">PositiveNumber</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="na">$</span><span class="p">:</span> <span class="nx">Preconditions</span> <span class="p">}</span>
+</code></pre>
+<p>Run supports deploying and loading any arbitrary code from the blockchain, not just jigs. You can deploy helpers functions, helper classes, server code, views, and more. To do this, simply call <code>run.deploy()</code> with your function or class. It will be given a location that you can load later. You will also find it in your inventory: <code>run.inventory.code</code>.</p>
+
+<p>One difference between arbitrary classes and jig classes is that instances of arbitrary classes, called <em>arbitrary objects</em>, do not sync their state with the blockchain. If they are passed into jigs, they are passed by value. This can be very useful for passing data but it should not be treated the same as jigs whose state is guaranteed and recorded from its method calls.</p>
+
+<p>One popular use of arbitrary code is to write helper libraries like big integer math or cryptographic hashing. Another use case is to upgrade behavior of Jig classes. See <a href="#advanced-usage-upgrading-jigs">Upgrading Jigs</a> for more details.</p>
+
+<aside class="notice">
+<b>Note:</b> Unlike Jigs, arguments that are passed into arbitrary code functions may expose your global scope. Be careful.
+</aside>
+<h2 id='advanced-usage-berries'>Berries</h2>
+<blockquote>
+<p>Load a metanet node</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">txid</span> <span class="o">=</span> <span class="s1">'2f24d7edb8de0ef534d8e0bc2413eddda451b4accc481519a1647d7af79d8e88'</span>
+<span class="kr">const</span> <span class="nx">node</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">txid</span><span class="p">,</span> <span class="nx">MetanetNode</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>Define the MetanetNode Berry</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">MetanetNode</span> <span class="kr">extends</span> <span class="nx">Berry</span> <span class="p">{</span>
+  <span class="c1">// Its constructor can only be called by its pluck function. Run guarantees this.</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">pnode</span><span class="p">,</span> <span class="nx">parent</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">pnode</span> <span class="o">=</span> <span class="nx">pnode</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">parent</span> <span class="o">=</span> <span class="nx">parent</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Run calls this pluck function when you call run.load with a Berry class.</span>
+  <span class="kr">static</span> <span class="nx">async</span> <span class="nx">pluck</span><span class="p">(</span><span class="nx">location</span><span class="p">,</span> <span class="nx">fetch</span><span class="p">,</span> <span class="nx">pluck</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">txo</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s1</span> <span class="o">===</span> <span class="s1">'meta'</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">pnode</span> <span class="o">=</span> <span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s2</span>
+      <span class="kr">const</span> <span class="nx">txidParent</span> <span class="o">=</span> <span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s3</span>
+      <span class="kr">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s4</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">data</span> <span class="o">===</span> <span class="s1">'METANET_ROOT'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">MetanetNode</span><span class="p">(</span><span class="nx">pnode</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="kr">const</span> <span class="nx">parentNode</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">pluck</span><span class="p">(</span><span class="nx">txidParent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">MetanetNode</span><span class="p">(</span><span class="nx">pnode</span><span class="p">,</span> <span class="nx">parentNode</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Third-party protocols, like Twetch, B, and Metanet, may be used within Run with Berries. Berries are JavaScript objects representing arbitrary data on the blockchain. If you can write code to parse an OP_RETURN, you can create Berries. Berries are more than data though. They are objects. They can have methods, their types can be checked, they can be passed into jigs, stored as properties, cached, and more.</p>
+
+<p>To load berries for an existing Berry protocol, simply call <code>run.load</code> and pass in the Berry protocol as the second parameter. Run will be shipping with several built-in Berry protocols in the near future.</p>
+
+<p>To define a new Berry protocol, simply extend from the <a href="#api-reference-berry">Berry</a> class and implement the static <code>pluck</code> method. Run calls your <code>pluck</code> method to load data at that location into a JavaScript object. Run provides transaction data in the <a href="https://github.com/interplanaria/txo">txo format</a> from Planaria to easily parse <code>op_return</code> data. Berry classes get deployed on-chain too making them fully deterministic.</p>
+
+<p>Once loaded, berries have locations that are extended to include both their protocol location and data location in the form: `<berry_class_location>://<berry_data_location>. This is a unique identifier and allows them to be cached in the state cache.</p>
+
+<aside class="notice">
+<b>Note:</b> If this seems complex, don't worry! We expect most users will not have to write their own berries, and like plugins, there will be many berry protocols to choose from in the future. Stay tuned.
+</aside>
+<h2 id='advanced-usage-locks'>Locks</h2>
+<blockquote>
+<p>Send a token to a P2PK output script</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">PubkeyLock</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubkey</span> <span class="o">=</span> <span class="nx">pubkey</span> <span class="p">}</span>
+  <span class="nx">script</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">asm</span><span class="p">(</span><span class="s2">`</span><span class="p">${</span><span class="k">this</span><span class="p">.</span><span class="nx">pubkey</span><span class="p">}</span><span class="s2"> OP_CHECKSIG`</span><span class="p">)</span> <span class="p">}</span>
+  <span class="nx">domain</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">74</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">PubkeyLock</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">asm</span> <span class="p">}</span>
+
+<span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">new</span> <span class="nx">PubkeyLock</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">))</span>
+</code></pre>
+<blockquote>
+<p>A provably unspendable lock</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Unspendable</span> <span class="p">{</span>
+  <span class="nx">script</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">asm</span><span class="p">(</span><span class="s1">'OP_RETURN'</span><span class="p">)</span> <span class="p">}</span>
+  <span class="nx">domain</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">0</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">Unspendable</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">asm</span> <span class="p">}</span>
+</code></pre>
+<p>The default owner for a jig is a Bitcoin address. This is a great default, but sometimes you&#39;ll want more advanced ownership. For example, you may want a group to own a jig, so that no one party has exclusive control. Or you may wish for a jig to be provably owned by nobody. Both of these and more are possible with <em>locks</em>.</p>
+
+<p>A <em>lock</em> is an object that produces a Bitcoin output script. You can set one as the <code>owner</code> on your jigs. Run ships with a <a href="#api-reference-extras-grouplock">GroupLock</a> for multi-sig ownership, and you may also create your own locks by implementing the <a href="#api-reference-apis-lock">Lock API</a>. Your class will have two methods: <code>script()</code> and <code>domain()</code>. After implementing these methods, simply set the owner of a jig to an instance of your lock, and Run will produce an output with your script.</p>
+
+<p>You&#39;ll probably also want to unlock your jigs to update them. To do that, create a corresponding key by implementing the <a href="#api-reference-apis-owner">Owner API</a>. Your implemenentation of <code>Owner</code> will need to implement to methods: <code>sign()</code> and <code>owner()</code>.</p>
+
+<p><code>Locks</code> are deterministic, typed, and run in a sandbox environment. This means they can be safely used inside jigs. But this also means they can&#39;t use the <code>bsv</code> library or similar external code. Run provides an <a href="#api-reference-extras-asm">asm</a> helper function to fill the gap when building custom scripts inside Lock classes.</p>
+
+<aside class="notice">
+<b>Note:</b> If this seems complex, don't worry! There will be many types of locks to choose from in the future, and most users won't need to write their own. Stay tuned.
+</aside>

@@ -1,0 +1,165 @@
+<h1 id='jigs'>Jigs</h1>
+<p>Jigs are interactive objects on Bitcoin. You define a jig with a JavaScript class and that class determines exactly what the jig can do. Every instance of a jig is unique. Each one has an owner and only that owner can update the jig. How is that secured? Bitcoin! Let&#39;s explore how you create a jig.</p>
+<h2 id='jigs-creating'>Creating</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Post</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> 
+    <span class="nx">init</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="nx">message</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">new</span> <span class="nx">Post</span><span class="p">(</span><span class="s1">'Hello, world'</span><span class="p">)</span>
+</code></pre>
+<p>Let&#39;s create a new jig called <code>Post</code> that represents content on a message board. In JavaScript, your constructor is called <code>constructor</code> but for jigs, this method is called <code>init</code>. Think of them the same way. If <code>init</code> throws an exception, the jig will never be created, just like constructors. You create jigs by calling <code>new</code> as you would with normal JavaScript objects and they get deployed onto the Bitcoin network. Pretty cool.</p>
+<h2 id='jigs-updating'>Updating</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">EditablePost</span> <span class="kr">extends</span> <span class="nx">Post</span> <span class="p">{</span>
+    <span class="nx">edit</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="nx">message</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">editablePost</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EditablePost</span><span class="p">(</span><span class="s1">'Hello, world'</span><span class="p">)</span>
+
+<span class="nx">editablePost</span><span class="p">.</span><span class="nx">edit</span><span class="p">(</span><span class="s1">'Hello, BitCoin'</span><span class="p">)</span>
+</code></pre>
+<p>Jigs are updated by calling methods. In fact, that is the only way to update jigs, because if users could assign properties directly, then classes would become irrelevant. When you call a method, Run publishes a Bitcoin transaction with data in an <code>op_return</code> that includes the method name and its arguments. The state may be recomputed simply by playing back every update one-by-one. For more information about how it works, see <a href="#how-it-works">How It Works</a>.</p>
+<h2 id='jigs-sending'>Sending</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Dragon</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">send</span><span class="p">(</span><span class="nx">to</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">owner</span> <span class="o">=</span> <span class="nx">to</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">new</span> <span class="nx">Dragon</span><span class="p">().</span><span class="nx">send</span><span class="p">(</span><span class="nx">address</span><span class="p">)</span>
+</code></pre>
+<p>Jigs may be sent to someone else by changing the <code>owner</code> property of a jig. Simply set the owner to the new owner, which may be a Bitcoin address, public key, or custom <a href="#advanced-usage-locks">Lock</a>. The new owner will be able to update the jig.</p>
+<h2 id='jigs-syncing'>Syncing</h2>
+<blockquote>
+<p>Wait for updates to complete</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">LoyaltyCard</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+    <span class="nx">init</span><span class="p">()</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">stamps</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+    <span class="nx">stamp</span><span class="p">()</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">stamps</span> <span class="o">+=</span><span class="mi">1</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">card</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">LoyaltyCard</span><span class="p">()</span>
+<span class="nx">await</span> <span class="nx">card</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+
+<span class="nx">card</span><span class="p">.</span><span class="nx">stamp</span><span class="p">()</span>
+<span class="nx">await</span> <span class="nx">card</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+</code></pre>
+<blockquote>
+<p>Sync a jig from its origin to its latest state</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">card2</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">card</span><span class="p">.</span><span class="nx">origin</span><span class="p">)</span>
+<span class="nx">card2</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+</code></pre>
+<p>Run is asynchronous. When you create or update jigs, Run creates Bitcoin transactions for you in the background and broadcasts them to the network. As with any network request, the request may sometimes fail. Your connection may go down or a node on the network may reject your transaction for various reasons. Also, your jigs may be behind the latest state on the network. </p>
+
+<p>Run updates your jig&#39;s state with each method call you make. However, it does <em>not</em> continuously update your jigs. Because if it did, as a developer you&#39;d feel like you were on shifting sand. Instead, you&#39;ve got a reliable and steady state for each jig that you&#39;re working with. </p>
+
+<p>While only the <code>owner</code> can update a jig, depending on the app you&#39;ve built and actions of the owner of the jig, you might need to catch up a jig to its latest state because it could have been modified outside of your app.</p>
+
+<p>Every jig has <code>sync()</code> available to ensure your local state is the same as that on the network. Calling <code>jig.sync()</code> returns a promise that resolves after:</p>
+
+<ol>
+<li>All pending local transactions have been published successfully, and </li>
+<li>The jig has been caught up with any new transactions from the network.</li>
+</ol>
+
+<p>Any errors in validation or network requests will cause the promise to be rejected. </p>
+
+<p>For a development prototype or hackathon project, you won&#39;t need to call <code>sync()</code> very much. Run will happily execute method calls on jigs in their latest state. Unless you notice a problem, you don&#39;t need to worry about <code>sync()</code>. However, in a production app, the best practice is to call <code>sync()</code> after every method call to ensure that you catch errors early and handle them gracefully. Calling <code>sync()</code> will force any error to show up at that particular line in the code.</p>
+<h2 id='jigs-interactivity'>Interactivity</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Event</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">createTicket</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="nx">Ticket</span><span class="p">(</span><span class="k">this</span><span class="p">)</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">Ticket</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">event</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">Event</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">Ticket</span> <span class="p">}</span>
+</code></pre>
+<p>Jigs may create other jigs. Calling <code>new</code> to construct a jig within another jig&#39;s methods run will create a new output in the transaction. Sometimes you will create new jigs that are of the same class, but many times you will want to create jigs that are of a different class. Because by default Jig code runs in a sandbox without access to other code, you use the <code>Jig.deps</code> property to specify class dependencies.</p>
+
+<p>Jigs may store other jigs as properties too. Think of these as standard JavaScript object references that you may read or write. However, if stored jigs are updated, then their owners must also sign the Bitcoin transaction that updates their state. For more information on spending rules, see the section titled <a href="#how-it-works">How It Works</a>.</p>
+<h2 id='jigs-extending'>Extending</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">EditablePost</span> <span class="kr">extends</span> <span class="nx">Post</span> <span class="p">{</span>
+  <span class="nx">edit</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="nx">message</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Jig classes may be extended from other jig classes to add or alter behavior. This is a great way to build off of established jigs and even support modding communities. Class <code>super</code> calls work as expected, and there is no need to specify parents as dependencies because Run  will automatically detect them.</p>
+<h2 id='jigs-backing'>Backing</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Tip</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">message</span><span class="p">,</span> <span class="nx">pubkey</span><span class="p">,</span> <span class="nx">amount</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="nx">message</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">owner</span> <span class="o">=</span> <span class="nx">pubkey</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">satoshis</span> <span class="o">=</span> <span class="nx">amount</span>
+  <span class="p">}</span>
+
+  <span class="nx">withdraw</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">satoshis</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">new</span> <span class="nx">Tip</span><span class="p">(</span><span class="s1">'I like your videos'</span><span class="p">,</span> <span class="nx">pubkey</span><span class="p">,</span> <span class="mi">100000</span><span class="p">)</span>
+</code></pre>
+<p>Jigs may be backed by Bitcoins. When a jig is backed, it means that the output associated with that jig has a non-dust value in it. Backed jigs let users send money between each other and provide a baseline value for items. To back a jig, set the <code>satoshis</code> property to any non-negative number. Your purse will automatically deposit that amount into the jig. When the <code>satoshis</code> property is later decreased, those Bitcoins will be withdrawn to the jig owner&#39;s purse.</p>
+
+<p>It is important to remember that these are <em>backed</em> jigs and not smart contracts. The jig&#39;s owner may always melt the satoshis out of the jig and in doing so destroy the jig.</p>
+
+<aside class="notice">
+<b>Note:</b> All bitcoin outputs must have an amount at least the dust limit, currently 546 satoshis, to be accepted by the network. Run will choose the greater of the `satoshis` property and this dust limit when building outputs.
+</aside>
+<h2 id='jigs-parameter-validation'>Parameter Validation</h2>
+<blockquote>
+<p>Attaching an item</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Hat</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">Person</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">wear</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">item</span><span class="p">).</span><span class="nx">toBeInstanceOf</span><span class="p">(</span><span class="nx">Hat</span><span class="p">)</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">item</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">Person</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">Hat</span><span class="p">,</span> <span class="na">expect</span><span class="p">:</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">expect</span> <span class="p">}</span>
+</code></pre>
+<p>Because JavaScript is dynamically typed, Jigs should always validate their parameters. Of course you could write checks and throw Errors yourself, but to make life easy, Run provides the <code>expect</code> helper function. <code>expect</code> is like the assertions you might use in a Jest or Chai unit testing. It lets you to check if a jig is a certain class, if a number is greater than another number, and many other conditions. To get started, add <code>expect</code> as a dependency to your jig as seen to the right. Then, check out the full <a href="#api-reference-extras-expect">expect</a> documention to see what else you can do.</p>
+
+<p>Sometimes you may wish to check if a class is part of a changing set. For example, a game may have a list of item classes that may change over time. For that, see the <a href="#tips-and-tricks-dynamic-whitelists">Dynamic Whitelists</a> section.</p>
+
+<aside class="warning">
+<b>Warning:</b> Using `instanceof` today is not safe because anyone may extend a class and change its behavior. However, in the future, by default, only class authors will be able to extend classes, so you may plan for this security today. There will also be a way to allow any user to extend from classes.
+</aside>
+<h2 id='jigs-downloading-classes'>Downloading Classes</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Data</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Data</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="c1">// The location of the Data class is stored in Data.location</span>
+</code></pre>
+<blockquote>
+<p>Load the Data class from another instance</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">Data</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="s1">'&lt;class-location-goes-here&gt;'</span><span class="p">)</span>
+
+<span class="kr">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Data</span><span class="p">(</span><span class="s1">'abc'</span><span class="p">)</span>
+</code></pre>
+<p>You may wish to download existing code that has already been deployed, for example, to create more instances of a particular class. The <code>run.load</code> method, in addition to loading jigs, is also able to download, install and sandbox code from the blockchain.</p>
+<h2 id='jigs-fungible-tokens'>Fungible Tokens</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">USDCoin</span> <span class="kr">extends</span> <span class="nx">Token</span> <span class="p">{</span> <span class="p">}</span>
+<span class="nx">USDCoin</span><span class="p">.</span><span class="nx">backingBank</span> <span class="o">=</span> <span class="s1">'HSBC'</span>
+<span class="nx">USDCoin</span><span class="p">.</span><span class="nx">bankAccount</span> <span class="o">=</span> <span class="s1">'12345'</span>
+
+<span class="c1">// Mint a new coin. Only USDCoin.owner may do this</span>
+<span class="kr">const</span> <span class="nx">mintedCoin</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">USDCoin</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">mintedCoin</span><span class="p">.</span><span class="nx">amount</span><span class="p">)</span> <span class="c1">// 100</span>
+
+<span class="c1">// Send part of a coin to someone else and keep the change</span>
+<span class="kr">const</span> <span class="nx">changeCoin</span> <span class="o">=</span> <span class="nx">coinToSend</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+
+<span class="c1">// Combine two tokens together</span>
+<span class="kr">const</span> <span class="nx">combinedCoin</span> <span class="o">=</span> <span class="nx">USDCoin</span><span class="p">.</span><span class="nx">combine</span><span class="p">(</span><span class="nx">coin1</span><span class="p">,</span> <span class="nx">coin2</span><span class="p">)</span>
+</code></pre>
+<p>It is possible to create fungible tokens similar to ERC-20 with Run. Run provides a base <code>Token</code> class for this purpose. However unlike ERC-20 where multiple users interact through a single contract, in Run each user owns their own tokens. It is closer to Bitcoin UTXOs or SLP tokens. To create a new kind of token, simply extend the <code>Token</code> class with the name of your token. Then you can mint new tokens just by creating new instances. Only you will be able to mint new tokens, but coins you mint may be sent to others.</p>
+
+<p>See <a href="#api-reference-extras-token"><code>API Reference: Token</code></a> for more details.</p>

@@ -1,0 +1,121 @@
+Run 0.5.35 alpha
+----------------
+
+Thanks for evaluating this alpha version of Run. Please keep confidential.
+
+To give it a go, visit https://run.network for tutorials.
+
+Installation
+- run `npm install` to install node dependencies
+
+Contents
+- getting_started.html: Documentation portal and explorer
+- dist: Minified library builds and deploy tool
+- docs: Static HTML documentation
+- examples: Sample code
+
+Change Log
+----------
+0.5.25: Purse and Owner APIs use hex transactions
+0.5.0:  Berries: Use any OP_RETURN protocol in Run
+        Locks: Locking script owners
+        Code deploy tool
+        New example: Berries
+        New example: Locks
+        Owner API: For third-party wallets
+        GroupLock: For multi-sig owners
+        PayServer: Replaces StarPay
+        Inventory: Replaces run.owner.jigs/code
+        Support for Sets and Maps
+        Support for arbitrary objects
+        Support for circular objects
+        Support for $ properties
+        Address owners are the new default
+        Lower default fee rate to 0.5 sat/byte
+        Mattercloud API keys
+        Blockchain.utxos() takes a script
+        Smaller build, security improvements, bug fixes, better logging
+0.4.5:  Default to the new Run Connect API, replacing Star Query
+0.4.0:  Agoric SES used to sandbox code
+        Microsoft Edge support
+        UTXO splitting more reliable and efficient
+        Mock network works across Run instances
+        Purse.feePerKb
+        Run.purse may be changed at runtime
+        Update bsv library to 1.2
+        Bug fixes, performance improvements
+0.3.11: API change: State.set() is no longer called after every State.get()
+0.3.5:  Stability release - Bug fixes
+0.3.4:  New expect API - easily check arguments in jigs
+        New Transaction API - atomic swaps, state channels, inspect txns, and more
+        New State API - build a state server, persist jig states in a database, and more
+        Pass a logger into Run to capture its debug messages
+        API change: Move beginTransaction() and endTransaction() into Transaction API
+        API change: Move network into Blockchain API
+        Owner jigs no longer auto-load when Run is created
+        Security improvements, bug fixes, performance optimizations, better errors
+0.3.3:  Token.decimals
+        State cache for faster loading
+        Uint8Array support in jigs
+        Purse automatically splits utxos
+        Mockchain respects mempool chain limit
+        location may be read inside jigs
+        Bug fixes, protocol improvements
+0.3.2:  Redesign Token class and example
+        Cache owner's jigs and code in `run.owner.jigs` and `run.owner.code`
+        Remove run.jigs() and run.code()
+        Call run.sync() to update owner's jigs and code
+        New `caller` global to access the calling jig within a Jig Callers must now be spent when a jig is updated
+        BitIndex spent API is online and used in Run
+        Bug fixes
+0.3.1:  Application ID to distinguish run transactions
+        Bug fixes, performance improvements
+0.3.0:  Non-spending reads
+        Global Jig not tied to a particular Run instance
+        run.activate() to switch between Run instances
+        Class.owner
+        `op_false op_return` protocol prefix
+0.2.9:  Class lists: Pass and store classes into jigs
+        Upgradable behavior: Deploy, pass, and store functions as code
+        Make methods and variables private using _ prefix
+        run.downloadCode() -> run.load() (loads classes too)
+        run.uploadCode() -> run.deploy()
+        run.classes() -> run.code()
+        Store code as static class properties
+        Bug fixes, security improvements, protocol optimizations
+0.2.8:  Rename run.wallet to run.purse
+        Locations and origins use underscore separators
+        jig.sync() updates forward to the latest state
+        purse.balance() and purse.utxos() methods
+        Introducing the Purse API for new payment methods
+        Bug fix to support using same owner and wallet keys
+0.2.7:  Run Connect, a new blockchain API
+        Create jig libraries using originMainnet and originTestnet
+        Testnet explorer
+        Bug fixes, improved logging
+0.2.6:  Fungible tokens (ie. ERC-20)
+        Class properties
+        Jig icon support for explorers
+        New examples for backed jigs and tokens
+        Improved network caching
+0.2.5:  Jigs backed by satoshis
+        Performance improvements to jigs and mockchain
+        Run.owner.pubkey is a bsv.PublicKey now
+        Reading origin inside a jig is supported
+        Bug fixes, security improvements, and better messages
+0.2.4:  Include website
+0.2.3:  Fetch time of transactions
+0.2.2:  Read-only mode
+0.2.1:  Owned classes
+0.2.0:  Full verification, arrays, whatsonchain api, bug fixes
+0.1.10: Prevent loading non-tokens
+0.1.9:  Enforce min fees on mockchain
+0.1.8:  Batch transaction bug fix
+0.1.7:  JavaScript library sandboxing
+0.1.6:  Upload code bug fix
+0.1.5:  Custom Blockchain API support
+0.1.4:  Support node 8-10
+0.1.3:  Improve error messages
+0.1.2:  Reduce build size
+0.1.1:  Separate node and browser builds
+0.1.0:  Initial alpha release

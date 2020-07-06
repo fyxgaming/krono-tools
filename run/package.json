@@ -1,0 +1,10 @@
+{
+  "name": "@runonbitcoin/release",
+  "version": "0.5.35-alpha",
+  "main": "dist/run.node.min.js",
+  "browser": "dist/run.browser.min.js",
+  "dependencies": {
+    "bsv": "^1.5.2"
+  },
+  "repository": "git://github.com/runonbitcoin/release.git"
+}

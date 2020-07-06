@@ -1,4 +1,4 @@
-import { PrivateKey, Transaction } from 'bsv';
+import { Transaction } from 'bsv';
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import express from 'express';
@@ -8,10 +8,7 @@ import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
 import { MapStorage } from '../lib/storage/map-storage';
 import Run from '@runonbitcoin/release';
 
-const changePriv = new PrivateKey('cQPYHhGkCMex2hXnfPu2h36p2ocSq6gveHYZZGttCLVeU5pNej3p');
-const pursePriv = new PrivateKey('cVgN66ZDzggUCqzbpL7CWL8iBTdUQChBDm9GY5qDN7d3sq3EHnMM');
-
-const change = changePriv.toAddress().toString();
+const deployer = 'mfmvYfB9pkYYnPe4nxzax99R4p8eemQtW9';
 const network = 'mock';
 
 const player = {
@@ -28,10 +25,10 @@ const validator = {
 };
 const agents: any[] = [bot, player, validator];
 const blockchain = new MockBlockchain(network);
-blockchain.fund(change, 10000000000);
 blockchain.fund(bot.address, 100000000);
 blockchain.fund(player.address, 100000000);
 blockchain.fund(validator.address, 100000000);
+blockchain.fund(deployer, 100000000);
 const state = new MapStorage<any>();
 const run = new Run({
     network,
@@ -75,10 +72,6 @@ blockchain.on('txn', async (tx) => {
     }));
 });
 
-const initialized = (async () => {
-    await blockchain.change(changePriv, pursePriv.toAddress().toString());
-})();
-
 const app = express();
 app.enable('trust proxy');
 app.use(cors());
@@ -86,7 +79,6 @@ app.use(express.json());
 
 app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        await initialized;
         console.log('Req:', req.path);
         next();
     } catch (e) {
@@ -176,31 +168,6 @@ app.get('/jig/:loc', async (req: Request, res: Response, next: NextFunction) => 
     try {
         // const jig = await run.load(req.params.loc)
         res.json(jigs.find(jig => jig.location === req.params.loc));
-    } catch (e) {
-        next(e);
-    }
-});
-
-app.post('/pay', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const LOCKTIME = 3600000;
-        const txData = req.body;
-        await blockchain.populatePreviousOutputs(txData);
-        const tx = new Transaction(txData);
-        const utxo = await blockchain.lockUtxo(
-            pursePriv.toAddress().toString(),
-            Date.now() + LOCKTIME,
-            100000
-        );
-
-        if (!utxo) {
-            throw new Error('Insufficient Funds');
-        }
-
-        tx.from(new Transaction.UnspentOutput(utxo));
-        tx.change(change);
-        tx.sign(pursePriv);
-        res.json(tx.toObject());
     } catch (e) {
         next(e);
     }

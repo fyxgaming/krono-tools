@@ -1,0 +1,132 @@
+<h1 id='how-it-works'>How It Works</h1><h2 id='how-it-works-overview'>Overview</h2>
+<p>A jig is a JavaScript object that Run syncs with the blockchain. All of its code and method calls are stored on-chain in <code>op_return</code> outputs, enabling its state to be reconstructed by loading the code and replaying every method call. Every jig is paired with a Bitcoin output and only the owner of that output can make changes to the jig. All updates taken together form a transaction chain that enables consensus through user verification. This design is similar to other UTXO-based token systems because miners don&#39;t verify what is published. If anyone publishes an incorrect update however, it not only destroys the jig but also leaves an immutable record.</p>
+<h2 id='how-it-works-transaction-format'>Transaction Format</h2>
+<blockquote>
+<p>Sample code for a transaction</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Dragon</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">dragon</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dragon</span><span class="p">()</span>
+</code></pre>
+<p>The Run protocol for storing jigs and code is in development but will be well-documented, stable, and open in the future. Here is an example Bitcoin transaction.</p>
+
+<table><thead>
+<tr>
+<th>Inputs</th>
+<th>Outputs</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1. payment</td>
+<td>1. op-return</td>
+</tr>
+<tr>
+<td></td>
+<td>2. p2pkh: Dragon Class</td>
+</tr>
+<tr>
+<td></td>
+<td>3. p2pkh: dragon jig instance</td>
+</tr>
+<tr>
+<td></td>
+<td>4. change output for payment</td>
+</tr>
+</tbody></table>
+<h3 id='how-it-works-transaction-format-op_return-protocol'>op_return protocol</h3>
+<p>The following script is used for the first output of all Run transactions: </p>
+
+<p><code>[op_false] [op_return] &#39;run&#39; 0x00 &#39;&lt;app-id&gt;&#39; &#39;&lt;json-payload&gt;&#39; [debug-info]</code></p>
+
+<ul>
+<li>Each data field starts with an op_push specifying its length.</li>
+<li>The second push data is the protocol version.</li>
+<li>The app-id field enables applications to identify their Run transactions.</li>
+<li>Strings are UTF-8 encoded.</li>
+<li><code>[op_false] [op_return]</code> is standard on Bitcoin SV since the Quasar hard fork.</li>
+<li>The JSON payload is currently encrypted. This encryption will be removed before launch.</li>
+</ul>
+<h3 id='how-it-works-transaction-format-json-payload'>json payload</h3>
+<p><code>{</code></p>
+
+<p><code>actions: [{ def: &quot;_o1&quot;, method: &quot;init&quot;, args: [], owner: &quot;&lt;pubkey&gt;&quot; }]</code>,</p>
+
+<p><code>defs: [{ code: &quot;class Dragon extends Jig { }&quot;, owner: &quot;&lt;pubkey&gt;&quot; }],</code></p>
+
+<p><code>jigs: 1</code></p>
+
+<p><code>}</code></p>
+<h2 id='how-it-works-inputs-and-outputs'>Inputs and Outputs</h2>
+<p>Within a jig transaction, the inputs are the jigs which were updated from the transaction, and the outputs are the updated or newly created jigs. There may also be class and payment inputs and outputs. The jig or class for each output is determined by evaluating the updates in the <code>op_return</code>, and the resulting order is roughly the class outputs followed by the jig outputs in their order they were updated.</p>
+<h2 id='how-it-works-javascript-serialization'>JavaScript Serialization</h2>
+<blockquote>
+<p>Pass an arbitrary object in by value</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Person</span> <span class="p">{</span>
+    <span class="nx">constructor</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">creationDate</span><span class="p">,</span> <span class="nx">profilePicture</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">creationDate</span> <span class="o">=</span> <span class="nx">creationDate</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">profilePicture</span> <span class="o">=</span> <span class="nx">profilePicture</span>
+    <span class="p">}</span>
+
+    <span class="nx">valid</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">SocialGroup</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+    <span class="nx">constructor</span><span class="p">()</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">members</span> <span class="o">=</span> <span class="p">[]</span> <span class="p">}</span>
+
+    <span class="nx">add</span><span class="p">(</span><span class="nx">person</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">expect</span><span class="p">(</span><span class="nx">person</span><span class="p">).</span><span class="nx">toBeInstanceOf</span><span class="p">(</span><span class="nx">Person</span><span class="p">)</span>
+        <span class="nx">expect</span><span class="p">(</span><span class="nx">person</span><span class="p">.</span><span class="nx">valid</span><span class="p">()).</span><span class="nx">toBe</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+
+        <span class="k">this</span><span class="p">.</span><span class="nx">members</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">person</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">SocialGroup</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">Person</span><span class="p">,</span> <span class="nx">expect</span> <span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">group</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">SocialGroup</span><span class="p">()</span>
+
+<span class="nx">group</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">Person</span><span class="p">(</span><span class="s1">'Li'</span><span class="p">,</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(),</span> <span class="kc">null</span><span class="p">))</span>
+</code></pre>
+<p>Every state of a jig, every argument to a method, and every static property of a class, must be serialized so that it can be restored later. Run uses a custom serialization format that is similar to JSON. The details are not important for these docs, but it is important to know that only the following data types are supported:</p>
+
+<ul>
+<li>Numbers</li>
+<li>Strings</li>
+<li>Booleans</li>
+<li>Objects (Basic and Arbitrary)</li>
+<li>Null and Undefined</li>
+<li>Arrays</li>
+<li>Uint8Arrays</li>
+<li>Maps</li>
+<li>Sets</li>
+<li>Jigs</li>
+<li>Classes</li>
+<li>Functions</li>
+<li>Berries</li>
+</ul>
+
+<p><em>Arbitrary objects</em> are also supported. You may think of these as JavaScript objects that are <em>not</em> jigs. Whereas jigs have a blockchain locations and owner, and Run enforces that their state progresses from their method calls, arbitrary objects are much simpler. Arbitrary objects are stored by-value in their current state. In effect, they are data blobs with methods. The only protection is that Run <em>will</em> guarantee that methods of the class are not overriden by object properties, allowing you to call methods and getters securely called on the object.</p>
+
+<p>All JavaScript IEEE 754 numbers types are supported, including Infinity, NaN, and -0. Auxiliary properties may be safely set on Sets, Maps, and Arrays, including any of the above types. Circular references are OK. </p>
+
+<p>Symbols are not serializable and will not be supported. Other JavaScript objects that are not currently supported include Date, WeakMap, Promise, Error, Float32Array, and BigInt.</p>
+<h2 id='how-it-works-privacy'>Privacy</h2>
+<p>All jigs and jig code are stored on-chain and are open for everyone to read. This enables anyone to reconstruct the state of any jig. Privacy is achieved similar to Bitcoin UTXOs. For maximum privacy, public keys should not be re-used. In the future, we will introduce <em>private jigs</em> that are visible only to the current owners, but by their nature, they will not work as well with explorers, analytics and other services.</p>
+<h2 id='how-it-works-security'>Security</h2>
+<p>Every jig&#39;s code is sandboxed so that it does not have access to the global state which includes your funds. That provides security and also determinism when replaying a jig&#39;s history. A jig should evaluate the same in every environment. Run uses <a href="https://github.com/Agoric/ses-shim">Agoric SES</a> library, the gold standard in secure JavaScript evalution, combined with the <code>vm</code> library in node and hidden <code>iframes</code> in the browser. Despite this, it is recommended you avoid running untrusted code, because there are stil vulnerabilities at this time.</p>
+
+<p>Because of this sandboxing, Jigs must specify their dependencies manually by setting the <code>deps</code> property on the class. Upon creating an instance of that jig, Run will load each dependency into its own sandbox and link them together.</p>
+
+<p>Run also protects you from performing updates on your jigs that will not be validated by others. For example, Run will throw an error if you try to change a property on a jig directly rather than call a method, or if you attempt to set a function as a property on a jig. Only top-level method calls may change a jig&#39;s state which is also enforced by Run.</p>
+<h2 id='how-it-works-signing-rules'>Signing Rules</h2>
+<p>The rules to determine which jigs must be spent in a Bitcoin transaction and therefore which owners are required to sign off are the following:</p>
+
+<ol>
+<li>If a method reads jigs and does not change state, then no spends are required.</li>
+<li>If there are any changes to a jig&#39;s state, then all jigs written are spent.</li>
+<li>If a jig changes any other jig&#39;s state or creates a new jig, then it is spent.</li>
+</ol>
+
+<p>Jigs that are only read but not written do not require their owners to sign off. They are called references, and recorded by their location for future replay. Read references must plausibly be in their latest state when read. Reads of immutable properties however are not counted as reads by Run. Reads are only counted if the property is <em>mutable state</em> because <em>immutable state</em> would be the same for every <code>location</code> in the past.</p>

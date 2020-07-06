@@ -1,0 +1,1375 @@
+<h1 id='api-reference'>API Reference</h1><h2 id='api-reference-run'>Run</h2>
+<p><code>class Run { ... }</code></p>
+
+<p>The Run class is the main coordinator between the user&#39;s application and the blockchain. You always create a Run instance when you use Run. This objects will create and sign transactions, load jigs and code, connect to Bitcoin Bitcion network, securely sandbox code, keep an inventory of jigs, keep a cache for fast loads, and more.</p>
+<h3 id='api-reference-run-constructor-options'>constructor(options)</h3>
+<blockquote>
+<p>Create a Run instance on Mocknet. The purse will be auto-funded.</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">network</span><span class="p">:</span> <span class="s1">'mock'</span> <span class="p">})</span>
+</code></pre>
+<blockquote>
+<p>Create a run instance on Testnet</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="c1">// Create a run instance on testnet</span>
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span>
+  <span class="na">network</span><span class="p">:</span> <span class="s1">'test'</span><span class="p">,</span>
+  <span class="na">owner</span><span class="p">:</span> <span class="s1">'cTMHbJULREfbsUFsuJLMrNbJ7VrASgWeYfFF6EgJMy49ARnNed3d'</span><span class="p">,</span>
+  <span class="na">purse</span><span class="p">:</span> <span class="s1">'cQP1h2zumWrCr2zxciuNeho61QUGtQ4zBKWFauk7WEhFb8kvjRTh'</span>
+<span class="p">})</span>
+</code></pre>
+<p><code>constructor(options: object): Run</code></p>
+
+<p>You usually create a <code>Run</code> instance with a private key, but you may also pass a public key, an address or a custom class as the owner. If you set the <code>owner</code> property to a private key, then new Jigs and classes may be created using it. However, if you set <code>owner</code> to a public key or address, then the Run instance will be in read-only mode and you won&#39;t be able to create new objects.</p>
+
+<p>The <code>owner</code> is different from the <code>purse</code>. The purse also has a private key but whereas the owner is used to update jigs, the purse is used to pay for transactions. It is recommended that these be separate keys so that the bitcoin outputs are distinct. That helps both for performance and reducing the risk of another wallet not being aware that certain outputs were for jigs and accidentally destroying them.</p>
+
+<p>Creating a new <code>Run</code> instance will automatically activate it. See <code>run.activate()</code> for more information.</p>
+<h4 id='api-reference-run-constructor-options-options'>Options</h4>
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>network</code></td>
+<td>string</td>
+<td>Bitcoin network, either <code>main</code>, <code>test</code>, <code>stn</code>, or <code>mock</code>.</td>
+<td><code>main</code></td>
+</tr>
+<tr>
+<td><code>api</code></td>
+<td>string</td>
+<td>One of &#39;run&#39;, &#39;mattercloud&#39;, or &#39;whatsonchain&#39;</td>
+<td>&#39;run&#39;</td>
+</tr>
+<tr>
+<td><code>apiKey</code></td>
+<td>string</td>
+<td>Blockchain API key. Currently, only MatterCloud supports this option.</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>string or <code>Owner</code></td>
+<td>Private key, public key, address, or <a href="#advanced-usage-locks">custom lock</a> used to own jigs and sign transactions</td>
+<td>Randomly generated <code>LocalOwner</code></td>
+</tr>
+<tr>
+<td><code>purse</code></td>
+<td>string or <code>Purse</code></td>
+<td>Private key or <code>Purse</code> API used to pay for transactions. On the mock network, the purse will be funded automatically. For other networks, the user must fund the purse.</td>
+<td>Randomly generated <code>LocalPurse</code></td>
+</tr>
+<tr>
+<td><code>wallet</code></td>
+<td><code>Owner</code> and <code>Purse</code></td>
+<td>A shorthand for a single object that implements both <code>Owner</code> and <code>Purse</code>. If specified, then <code>owner</code> and <code>purse</code> are ignored.</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td><code>blockchain</code></td>
+<td><code>Blockchain</code></td>
+<td>Blockchain implementation for interacting with the Bitcoin network. If specified, then <code>network</code>, <code>api</code>, and <code>apiKey</code> are ignored.</td>
+<td>BlockchainApi</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code>State</code></td>
+<td>A state API implementation that Run will use instead of the default <code>StateCache</code></td>
+<td><code>new StateCache()</code></td>
+</tr>
+<tr>
+<td><code>logger</code></td>
+<td><code>Logger</code></td>
+<td>Logging object for internal run messages. If <code>logger</code> is null, then nothing will be logged. You may pass <code>console</code> as the logger to log everything.</td>
+<td>Logs warnings and errors to the console</td>
+</tr>
+<tr>
+<td><code>app</code></td>
+<td>string</td>
+<td>Application id to distinguish Run transactions. See <a href="#how-it-works">How It Works</a>.</td>
+<td>Empty string</td>
+</tr>
+</tbody></table>
+<h3 id='api-reference-run-load-location-berryclass'>load(location, BerryClass)</h3>
+<blockquote>
+<p>Load a particular jig</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">ticketLocation</span> <span class="o">=</span> <span class="s1">'afc557ef2970af0b5fb8bc1a70a320af425c7a45ca5d40eac78475109563c5f8_o1'</span>
+<span class="kr">const</span> <span class="nx">ticket</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">ticketLocation</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>Load a Jig class</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">classLocation</span> <span class="o">=</span> <span class="s1">'e4a9618d3a187448feeb95ff30f7ec6381a025316cdcae2cdf388ad3de7fab6f_o2'</span>
+<span class="kr">const</span> <span class="nx">MyClass</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">classLocation</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">object</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyClass</span><span class="p">()</span>
+</code></pre>
+<p><code>load(location: string, BerryClass: ?function): Promise&lt;object|function&gt;</code></p>
+
+<p>Universal load method to load any kind of resource including jigs, jig classes, arbitrary code, berries, and more. You pass in an on-chain <code>location</code>. The <code>location</code> is a transaction id and output index pair. This string should usually be the jig&#39;s or class&#39;s last known <code>location</code> property. However, it is also possible to load jigs at any state in the past using other <code>location</code>s, although these will be read-only. Downloaded code will be safely sandboxed before being returned.</p>
+
+<p>If you pass a BerryClass, then Run will load the berry at the location using its plucker. If none is specified, then Run loads the blockchain item using its own loader.</p>
+<h3 id='api-reference-run-deploy-code'>deploy(code)</h3>
+<blockquote>
+<p>Upload a BigInteger class to the blockchain</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">BigInteger</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+<span class="p">}</span>
+<span class="kr">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">deploy</span><span class="p">(</span><span class="nx">BigInteger</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'BigInteger blockchain location'</span><span class="p">,</span> <span class="nx">location</span><span class="p">)</span>
+</code></pre>
+<p><code>deploy(T: function): Promise&lt;string&gt;</code></p>
+
+<p>Uploads code to the blockchain. Once deployment completes, the class or function will be assigned a <code>location</code> so that it may be downloaded later. It will also be assigned an <code>origin</code> and <code>owner</code>. <code>deploy</code> returns its new location in a promise. If a transaction is in progress via <code>begin</code> however, then this method will return a resolved promise, but it will not contain the location, because the location will not be known until after the transaction is complete. Code uploaded does not necessarily need to be a Jig class — any class or function will work.</p>
+<h3 id='api-reference-run-sync'>sync()</h3>
+<blockquote>
+<p>Wait for all jigs to deploy and classes to upload before continuing</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">MyClass</span> <span class="p">{</span> <span class="p">}</span>
+<span class="nx">run</span><span class="p">.</span><span class="nx">upload</span><span class="p">(</span><span class="nx">MyClass</span><span class="p">)</span>
+
+<span class="kr">class</span> <span class="nx">MyObject</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> <span class="p">}</span>
+<span class="kr">const</span> <span class="nx">jig</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyObject</span><span class="p">()</span>
+
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'jig origin'</span><span class="p">,</span> <span class="nx">jig</span><span class="p">.</span><span class="nx">origin</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'class origin'</span><span class="p">,</span> <span class="nx">MyClass</span><span class="p">.</span><span class="nx">origin</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">run</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">jigs</span><span class="p">)</span> <span class="c1">// [jig]</span>
+</code></pre>
+<p><code>sync(): Promise&lt;void&gt;</code></p>
+
+<p>Returns a promise that completes when all pending transactions are published and the owner&#39;s jigs and code are updated. After this completes, all jigs and classes will be assigned <code>location</code>s.</p>
+
+<aside class="notice">
+<b>Note:</b> If a pending transaction fails to publish, that transaction and all subsequent transactions are reverted and the Promise is rejected.
+</aside>
+<h3 id='api-reference-run-owner'>owner</h3>
+<p><code>owner: Owner</code></p>
+
+<p>The owner object used to update jigs and approve transactions. See the <a href="#api-reference-apis-owner">Owner</a> API.</p>
+<h3 id='api-reference-run-purse'>purse</h3>
+<p><code>purse: Purse</code></p>
+
+<p>The purse used to pay for transactions. In the current version of Run, you should not change the purse after the Run instance is loaded.</p>
+<h3 id='api-reference-run-blockchain'>blockchain</h3>
+<blockquote>
+<p>Download a transaction from the blockchain</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">txid</span> <span class="o">=</span> <span class="s1">'afc557ef2970af0b5fb8bc1a70a320af425c7a45ca5d40eac78475109563c5f8'</span>
+<span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">blockchain</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="nx">txid</span><span class="p">)</span>
+</code></pre>
+<p><code>blockchain: Blockchain</code></p>
+
+<p>Blockchain API to access the bitcoin network. See the <a href="#api-reference-apis-blockchain">Blockchain</a> API.</p>
+<h3 id='api-reference-run-inventory-jigs'>inventory.jigs</h3>
+<blockquote>
+<p>Load all jigs that are tickets</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="c1">// Update the owner's jigs</span>
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+
+<span class="c1">// Find the ticket</span>
+<span class="kr">const</span> <span class="nx">ticketClassOrigin</span> <span class="o">=</span> <span class="s1">'e4a9618d3a187448feeb95ff30f7ec6381a025316cdcae2cdf388ad3de7fab6f_o1'</span>
+<span class="kr">const</span> <span class="nx">ticket</span> <span class="o">=</span> <span class="nx">run</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">jigs</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">jig</span><span class="p">.</span><span class="nx">constructor</span><span class="p">.</span><span class="nx">origin</span> <span class="o">===</span> <span class="nx">ticketClassOrigin</span><span class="p">)</span>
+</code></pre>
+<p><code>jigs: Array&lt;Jig&gt;</code></p>
+
+<p>Returns an array of all jigs owned by the Run owner. This array is cached. To update it, call <code>run.sync()</code>.</p>
+<h3 id='api-reference-run-inventory-code'>inventory.code</h3>
+<blockquote>
+<p>Load the user&#39;s jig classes and instantiates the first one</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="c1">// Update the owner's code</span>
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+
+<span class="c1">// Find a particular class</span>
+<span class="kr">const</span> <span class="nx">MyJigClass</span> <span class="o">=</span> <span class="nx">run</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">code</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">code</span> <span class="o">=&gt;</span> <span class="nx">code</span><span class="p">.</span><span class="nx">name</span> <span class="o">===</span> <span class="s1">'MyJigClass'</span><span class="p">)</span>
+</code></pre>
+<p><code>code: Array&lt;function&gt;</code></p>
+
+<p>An array of all jig classes and other code owned by the Run owner. This array is cached. To update it, call <code>run.sync()</code>.</p>
+<h3 id='api-reference-run-transaction'>transaction</h3>
+<p><code>transaction: Transaction</code></p>
+
+<p>The transaction API used to build, inspect, import, and export Run bitcoin transactions. See the <a href="#api-reference-transaction">Transaction</a> API.</p>
+<h3 id='api-reference-run-app'>app</h3>
+<p><code>app: string</code></p>
+
+<p>An application ID to distinguish Run transactions. Application developers may wish to set this in <code>Run</code>&#39;s constructor in order to find their specific transactions in third-party tools and analytics, like <a href="https://trends.cash">trends.cash</a> or <a href="https://www.whatsonchain.com">WhatsOnChain</a>. This string will be UTF-8 encoded and stored in the 5th chunk of the <code>op_return</code> script. For more details about the protocol, see <a href="#how-it-works">How It Works</a>.</p>
+
+<aside class="warning">
+<b>Warning:</b> Anyone may set the <code>app</code> string to anything, so it is not a secure way to find only your app's transactions.
+</aside>
+<h3 id='api-reference-run-activate'>activate()</h3>
+<p><code>activate()</code></p>
+
+<p>Sets this instance to <code>Run.instance</code>, the active <code>Run</code> instance. All jig instantiations, updates, and class deployments will occur on the active run instance. The owner of that instance will sign transactions and its blockchain and purse are the ones which will be used. <code>activate()</code> will also assign <code>bsv.Networks.defaultNetwork</code> to be the active Run&#39;s network configuration. </p>
+<h3 id='api-reference-run-static'>static</h3>
+<p>Static properties on the Run class itself.</p>
+<h4 id='api-reference-run-static-configure-env-network'>configure(env, network)</h4>
+<blockquote>
+<p>Configure Run from the command line</p>
+</blockquote>
+<pre class="highlight plaintext"><code>Run.configure(process.env)
+</code></pre>
+<p><code>static configure(env: object, network: ?string)</code></p>
+
+<p>Configures Run&#39;s defaults with the provided environment object. This is typically <code>process.env</code>. This provides an easy way for apps to setup dynamically Run from the shell. When a Run is instantiated, it will use these settings.</p>
+
+<p>The network parameter is optional. If specified, it overrides the value in the environment variables. Run will pick the <code>PURSE</code> and <code>OWNER</code> keys for that specific network.</p>
+<h5 id='api-reference-run-static-configure-env-network-environment-variables'>Environment variables</h5>
+<table><thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Possible Values</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>APP</strong></td>
+<td>App string provided to Run</td>
+<td>your app string</td>
+<td><code>&#39;&#39;</code></td>
+</tr>
+<tr>
+<td><strong>LOGGER</strong></td>
+<td>Whether to log internal messages to the console</td>
+<td><code>true</code>, <code>false</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><strong>NETWORK</strong></td>
+<td>Network string</td>
+<td><code>mock</code>, <code>main</code>, <code>test</code>, <code>stn</code></td>
+<td><code>mock</code></td>
+</tr>
+<tr>
+<td><strong>PURSE</strong></td>
+<td>Purse key used</td>
+<td>your string privkey</td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><strong>PURSE_[network]</strong></td>
+<td>Purse key used on a specific network</td>
+<td>your string privkey</td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><strong>OWNER</strong></td>
+<td>Owner key used</td>
+<td>your string privkey</td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><strong>OWNER_[network]</strong></td>
+<td>Owner key used on a specific network</td>
+<td>your string privkey</td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><strong>API</strong></td>
+<td>Blockchain API when using mainnet or testnet</td>
+<td><code>run</code>, <code>mattercloud</code>, <code>whatsonchain</code></td>
+<td><code>run</code></td>
+</tr>
+<tr>
+<td><strong>APIKEY</strong></td>
+<td>API key for the blockchain API</td>
+<td>your string api key</td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><strong>APIKEY_[api]</strong></td>
+<td>API key used with a specific API</td>
+<td>your string api key</td>
+<td><code>undefined</code></td>
+</tr>
+</tbody></table>
+<h4 id='api-reference-run-static-instance'>instance</h4>
+<p><code>static instance: Run</code></p>
+
+<p>The currently active <code>Run</code> instance. All jig instantiations, updates, and class deployments will occur on the active run instance. The owner of that instance will sign transactions and its blockchain and purse are the ones which will be used. You may change the active Run instance either by calling <code>run.activate()</code> or by creating a new <code>Run</code> instance.</p>
+<h4 id='api-reference-run-static-version'>version</h4>
+<p><code>static version: string</code></p>
+
+<p>Version of the Run library</p>
+<h4 id='api-reference-run-static-jig'>Jig</h4>
+<blockquote>
+<p>Create a custom jig that extends the Jig base class</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">MyObject</span> <span class="kr">extends</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">Jig</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>static Jig: Jig</code></p>
+
+<p><code>Jig</code> class that is common for all <code>Run</code> instances. It is set as <code>Jig</code> at the global scope. You must extend from this base class to create a jig. See <a href="#api-reference-jig">Jig</a>.</p>
+<h4 id='api-reference-run-static-berry'>Berry</h4>
+<p><code>static Berry: Berry</code></p>
+
+<p><code>Berry</code> class used to define custom protocols. See <a href="#api-reference-berry">Berry</a>.</p>
+<h4 id='api-reference-run-static-token'>Token</h4>
+<p><code>static Token: Token</code></p>
+
+<p><code>Token</code> class that is common for all <code>Run</code> instances. It is set as <code>Token</code> at the global scope. See <a href="#api-reference-token">Token</a>.</p>
+<h4 id='api-reference-run-static-asm'>asm</h4>
+<p><code>static asm: function</code></p>
+
+<p><code>asm</code> function that may be used to generate Bitcoin scripts easily for custom owners within jigs. See <a href="#api-reference-extras-asm">asm</a>.</p>
+<h4 id='api-reference-run-static-blockchainapi'>BlockchainApi</h4>
+<p><code>static BlockchainApi: BlockchainApi</code></p>
+
+<p>A REST API to connect to the Bitcoin network. See <a href="#api-reference-modules-blockchainapi">BlockchainApi</a>.</p>
+<h4 id='api-reference-run-static-expect'>expect</h4>
+<p><code>static expect: expect</code></p>
+
+<p><code>expect</code> function that may be used as a dependency in Jigs to check parameters. It is is global for all <code>Run</code> instances. See <a href="#api-reference-extras-expect">expect</a>.</p>
+<h4 id='api-reference-run-static-grouplock'>GroupLock</h4>
+<p><code>static GroupLock: GroupLock</code></p>
+
+<p>A lock for jigs used owned by multiple users. See <a href="#api-reference-extras-grouplock">GroupLock</a>.</p>
+<h4 id='api-reference-run-static-localowner'>LocalOwner</h4>
+<p><code>static LocalOwner: LocalOwner</code></p>
+
+<p>See <a href="#api-reference-modules-localowner">LocalOwner</a>.</p>
+<h4 id='api-reference-run-static-localpurse'>LocalPurse</h4>
+<p><code>static LocalPurse: LocalPurse</code></p>
+
+<p>See <a href="#api-reference-modules-localpurse">LocalPurse</a>.</p>
+<h4 id='api-reference-run-static-mockchain'>Mockchain</h4>
+<p><code>static Mockchain: Mockchain</code></p>
+
+<p>See <a href="#api-reference-modules-mockchain">Mockchain</a>.</p>
+<h4 id='api-reference-run-static-payserver'>PayServer</h4>
+<p><code>static PayServer: PayServer</code></p>
+
+<p>See <a href="#api-reference-modules-payserver">PayServer</a>.</p>
+<h4 id='api-reference-run-static-standardlock'>StandardLock</h4>
+<p><code>static StandardLock: StandardLock</code></p>
+
+<p>A P2PKH lock used for jigs when their owners are address or public key strings. See <a href="#api-reference-extras-standardlock">StandardLock</a>.</p>
+<h4 id='api-reference-run-static-statecache'>StateCache</h4>
+<p><code>static StateCache: StateCache</code></p>
+
+<p>See <a href="#api-reference-modules-statecache">StateCache</a>.</p>
+<h4 id='api-reference-run-static-viewer'>Viewer</h4>
+<p><code>static Viewer: Viewer</code></p>
+
+<p>See <a href="#api-reference-modules-viewer">Viewer</a>.</p>
+<h4 id='api-reference-run-static-apis'>apis</h4>
+<p><code>static apis: object</code></p>
+
+<p>An object that contains all plug-in APIs that a user may implement. See <a href="#api-reference-apis">APIs</a>.</p>
+<h2 id='api-reference-jig'>Jig</h2>
+<p><code>class Jig { ... }</code></p>
+<h3 id='api-reference-jig-init'>init()</h3>
+<blockquote>
+<p>Simple jig that takes two parameters in its constructor</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">SimpleStore</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">a</span> <span class="o">=</span> <span class="nx">a</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">b</span> <span class="o">=</span> <span class="nx">b</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kr">const</span> <span class="nx">store</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">SimpleStore</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">store</span><span class="p">.</span><span class="nx">b</span><span class="p">)</span> <span class="c1">// prints 2</span>
+</code></pre>
+<p><code>init(): Jig</code></p>
+
+<p><code>init()</code> is equivalent in jigs to <code>constructor()</code> for regular classes. The user may pass parameters to it and call <code>super.init()</code> to call parent constructors. <code>init()</code> may not be called directly by users because Run will call it automatically when the class is instantiated. Also, jigs are not allowed to have a <code>constructor()</code> method because <code>init()</code> is used instead.</p>
+<h3 id='api-reference-jig-sync'>sync()</h3>
+<p><code>sync(options: ?object): Promise&lt;void&gt;</code></p>
+
+<p>Synchronizes this jig with the blockchain by waiting for all pending transactions to publish and updating the jig with any new transactions from the network. If you pass <code>{ forward: false }</code>, then only the pending transactions will be published and a new state won&#39;t need download. This may be useful for performance or if the Blockchain API does not support forward syncing, as is the case with WhatsOnChain.</p>
+<h3 id='api-reference-jig-origin'>origin</h3>
+<blockquote>
+<p>Two different tickets have different origins</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Ticket</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span> <span class="p">}</span>
+<span class="kr">const</span> <span class="nx">ticket1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Ticket</span><span class="p">()</span>
+<span class="kr">const</span> <span class="nx">ticket2</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Ticket</span><span class="p">()</span>
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+<span class="c1">// ticket1.origin !== ticket2.origin</span>
+</code></pre>
+<p><code>origin: string</code></p>
+
+<p>The unique blockchain location where the jig was initially deployed distinguishing the jig from all others. The format is <code>TXID_oN</code> where <code>TXID</code> is the bitcoin transaction ID where the jig was first deployed. <code>o</code> is shorthand for <em>output</em> and <code>N</code> is the zero-based index for the P2PKH output representing this jig. The origin is set automatically by Run after deploying the jig and it becomes read-only afterward. Jig methods may internally read the origin anytime after it is initially published.</p>
+<h3 id='api-reference-jig-location'>location</h3>
+<blockquote>
+<p>The value of <code>location</code> changes with every update</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Weapon</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">upgrade</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">upgraded</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="k">return</span> <span class="k">this</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kr">const</span> <span class="nx">weapon</span> <span class="o">=</span> <span class="nx">await</span> <span class="k">new</span> <span class="nx">Weapon</span><span class="p">().</span><span class="nx">sync</span><span class="p">()</span>
+<span class="c1">// weapon.origin === weapon.location</span>
+<span class="nx">await</span> <span class="nx">weapon</span><span class="p">.</span><span class="nx">uprade</span><span class="p">().</span><span class="nx">sync</span><span class="p">()</span>
+<span class="c1">// weapon.origin !== weapon.location</span>
+</code></pre>
+<p><code>location: string</code></p>
+
+<p>The blockchain location representing the current state of the jig. This is a P2PKH output and is in the same form as <code>origin</code>. However, unlike <code>origin</code>, <code>location</code> will update with every state change on the jig.</p>
+
+<p>When there is a pending change, reading <code>location</code> will throw an error. This is because the Bitcoin transaction id is not yet known. The user should call <code>sync</code> first to avoid this error. Finally, note that this is a read-only property that Run updates for you, and it may only be read outside of jig methods.</p>
+<h3 id='api-reference-jig-owner'>owner</h3>
+<blockquote>
+<p>Sending a jig to a new owner</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Item</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">send</span><span class="p">(</span><span class="nx">to</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">owner</span> <span class="o">=</span> <span class="nx">to</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kr">const</span> <span class="nx">item</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Item</span><span class="p">()</span>
+<span class="nx">item</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'0261b44db219de925b85e8f26cbfe551e31bf25678b8ff9512bca03aea218e9258'</span><span class="p">)</span>
+</code></pre>
+<p><code>owner: string|Lock</code></p>
+
+<p>The owner is either a Bitcoin address string, a public key in hex, or a custom <a href="#api-reference-apis-lock">Lock</a> that creates an output script. The jig may change this property to change owners, but it is read-only from outside the jig.</p>
+<h3 id='api-reference-jig-satoshis'>satoshis</h3>
+<blockquote>
+<p>Backing a jig with Bitcoin</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Item</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">back</span><span class="p">(</span><span class="nx">satoshis</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">this</span><span class="p">.</span><span class="nx">satoshis</span> <span class="o">=</span> <span class="nx">satoshis</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>satoshis: number</code></p>
+
+<p>This number represents the amount of Bitcoin in satoshis that are backing this jig. It may be increased or decreased but it may not be set below zero. Increasing this value will deposit Bitcoin into the output for the jig from the Run purse. Decreasing it will withdraw Bitcoin to the Run purse. It may only be changed from within a Jig. If the satoshi value in the output is less than the value in the jig, the jig is automatically invalidated.</p>
+<h3 id='api-reference-jig-static-deps'>static deps</h3>
+<p><code>static deps: ?object</code></p>
+
+<p>The jig class dependencies. By default, jigs execute in a secure sandbox that is isolated from other classes. However, these dependencies will be available in the global scope.</p>
+<h2 id='api-reference-berry'>Berry</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">TwetchPost</span> <span class="kr">extends</span> <span class="nx">Berry</span> <span class="p">{</span>
+    <span class="nx">init</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">text</span> <span class="o">=</span> <span class="nx">text</span>
+    <span class="p">}</span>
+
+    <span class="kr">static</span> <span class="nx">async</span> <span class="nx">pluck</span><span class="p">(</span><span class="nx">location</span><span class="p">,</span> <span class="nx">fetch</span><span class="p">,</span> <span class="nx">pluck</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">txo</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s2</span> <span class="o">===</span> <span class="s1">'19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut'</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// B protocol</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">TwetchPost</span><span class="p">(</span><span class="nx">txo</span><span class="p">.</span><span class="nx">out</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">s3</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>class Berry { ... }</code></p>
+
+<p>Berry base class that custom third-party protocols use. It is loaded using a protocol. Berries are stateless and frozen after they are loaded.</p>
+<h3 id='api-reference-berry-location'>location</h3>
+<p><code>location: string</code></p>
+
+<p>Berry location. This is automatically set by Run.</p>
+<h3 id='api-reference-berry-static-pluck-location-fetch-pluck'>static pluck(location, fetch, pluck)</h3>
+<p><code>pluck(location: string, fetch: function, pluck: function)</code></p>
+
+<p>Plucks a berry from the blockchain. The protocol should fetch the transaction using <code>async fetch()</code>. This will return a <code>txo</code> object in Planaria Corp&#39;s <a href="https://medium.com/@_unwriter/txo-2-0-fee049bc6795">txo format</a>. Then it should instantiate a new Berry of the appropriate type with the data fetched. If additional berries are required to build this one, they may be plucked recursively using <code>async pluck()</code></p>
+<h2 id='api-reference-token'>Token</h2>
+<p><code>class Token extends Jig { ... }</code></p>
+
+<p><code>Token</code> is a jig for fungible tokens similar to ERC-20 or SLP. It may be used for shares, loyalty points, gift cards, and more. Each <code>Token</code> instance defines a numerical amount held by its owner. You extend from <code>Token</code> to define a new kind of token. As the owner of this new token <em>class</em>, only you can mint new token instances. The token instances you mint though may be sent, owned, and even combined together by others.</p>
+
+<p><code>Token</code> supports integer amounts like ERC-20 in its <code>amount</code> field. However, oftentimes you may wish to display the token&#39;s amount with a decimal, like <code>1.50</code>. The <code>static decimals</code> property may be used to declare how the Token&#39;s amount is to be displayed, and the <code>value</code> property returns the amount shifted by the decimal places. In this example, <code>amount</code> would be 150 and <code>decimals</code> would be 2.</p>
+
+<p><code>Token</code> may be accessed via <code>Run.Token</code>.</p>
+<h3 id='api-reference-token-constructor-amount'>constructor(amount)</h3>
+<blockquote>
+<p>Minting a new token</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">MyCustomToken</span> <span class="kr">extends</span> <span class="nx">Token</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">token</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyCustomToken</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</code></pre>
+<p><code>init(amount: number): Token</code></p>
+
+<p><code>init()</code> mints a new token with a specified amount. Only the owner of the extended token class is able to call this method.</p>
+<h3 id='api-reference-token-send-to-amount'>send(to, amount)</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">token</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyCustomToken</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="kr">const</span> <span class="nx">change</span> <span class="o">=</span> <span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">token</span><span class="p">.</span><span class="nx">amount</span><span class="p">)</span> <span class="c1">// 20</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">change</span><span class="p">.</span><span class="nx">amount</span><span class="p">)</span> <span class="c1">// 80</span>
+</code></pre>
+<p><code>send(to: string, amount: ?number): Token</code></p>
+
+<p>Sends this token to another user. If the <code>amount</code> specified is less than the <code>amount</code> in the token, then a change token will be returned back to the current owner. If the <code>amount</code> is not specified, then the entire token is sent and the return value is <code>null</code>.</p>
+<h3 id='api-reference-token-amount'>amount</h3>
+<p><code>amount: number</code></p>
+
+<p>The integer value held within this token. The meaning of <code>amount</code> depends on the token.</p>
+<h3 id='api-reference-token-value'>value</h3>
+<p><code>value: number</code></p>
+
+<p>The amount contained in this token shifted by <code>Token.decimals</code>.</p>
+<h3 id='api-reference-token-static-combine-tokens'>static combine(...tokens)</h3>
+<blockquote>
+<p>Combining three tokens newly minted</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">token1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyCustomToken</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">token2</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyCustomToken</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">token3</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyCustomToken</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="kr">const</span> <span class="nx">combined</span> <span class="o">=</span> <span class="nx">MyCustomToken</span><span class="p">.</span><span class="nx">combine</span><span class="p">(</span><span class="nx">token1</span><span class="p">,</span> <span class="nx">token2</span><span class="p">,</span> <span class="nx">token3</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">combine</span><span class="p">.</span><span class="nx">amount</span><span class="p">)</span> <span class="c1">// 60</span>
+</code></pre>
+<blockquote>
+<p>Combining and sending tokens in a single transaction</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">begin</span><span class="p">()</span>
+
+<span class="kr">const</span> <span class="nx">tokens</span> <span class="o">=</span> <span class="nx">run</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">jigs</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">jig</span> <span class="o">=&gt;</span> <span class="nx">jig</span> <span class="k">instanceof</span> <span class="nx">MyCustomToken</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">combined</span> <span class="o">=</span> <span class="nx">MyCustomToken</span><span class="p">.</span><span class="nx">combine</span><span class="p">(...</span><span class="nx">tokens</span><span class="p">)</span>
+
+<span class="nx">combined</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">,</span> <span class="nx">amount</span><span class="p">)</span>
+
+<span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span>
+</code></pre>
+<p><code>static combine(...tokens: Token): Token</code></p>
+
+<p><code>combine</code> will merge the multiple tokens into a single token that has the the combined amount. The tokens to combine must all be the same kind and the returned token object will be an instance of that same class too.</p>
+
+<p>Tokens are like Bitcoin outputs. Every time you send some tokens, you split off an amount into a new output. Just like Bitcoins, you may later want to merge them back together. It is often useful to do this right before sending your tokens so that you can send their full amount. The example on the right shows how to combine and send tokens in a single transaction.</p>
+<h3 id='api-reference-token-static-decimals'>static decimals</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">USDToken</span> <span class="kr">extends</span> <span class="nx">Token</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="nx">USDToken</span><span class="p">.</span><span class="nx">decimals</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="kr">const</span> <span class="nx">dollars</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">USDToken</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dollars</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span> <span class="c1">// 1.00</span>
+</code></pre>
+<p><code>static decimals: number</code></p>
+
+<p>The number of decimal places to shift the <code>amount</code> when displaying it. <code>Token</code> uses integers by default for precision, just like ERC-20, but often times you will want to specify a decimals value to indicate a unit for display to the user. For example, a US Dollar coin might set decimals to 2 so that the base amount is cents but the display value is dollars. The <code>value</code> property will return <code>amount</code> shifted by this number of decimals.</p>
+<h2 id='api-reference-transaction'>Transaction</h2>
+<p><code>class Transaction { ... }</code></p>
+
+<p>The Transaction API allows you to manipulate the current Bitcoin transaction being built by Run. This class is instantiated automatically for you with each Run instance, and it is accessible via <code>run.transaction</code>. It allows you to:</p>
+
+<ul>
+<li>Batch many jig updates together</li>
+<li>Load and inspect transactions</li>
+<li>Export transactions for others to co-sign</li>
+<li>Sign transactions involving your jigs</li>
+<li>Propose atomic swaps and other updates that involve multiple parties</li>
+</ul>
+
+<p>Normally, when you are updating a jig that you own, Run will begin a transaction for you automatically. However, you can take control of this process by calling <code>begin</code> yourself. This starts a new transaction, and any updates you perform after <code>begin</code> will not be broadcasted until you call <code>end</code>. Alternatively, you may cancel the updates by calling <code>rollback</code> or export the Bitcoin transaction by calling <code>export</code>.</p>
+
+<p>Other parties may load your exported transaction by calling <code>import</code> and then inspect its contents using <code>actions</code>. If they approve of the updates to their jigs, they may call <code>sign</code> and then <code>end</code> to broadcast the transaction.</p>
+<h3 id='api-reference-transaction-begin'>begin()</h3>
+<blockquote>
+<p>Create a counter and increment it twice in one transaction</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">begin</span><span class="p">()</span>
+<span class="kr">const</span> <span class="nx">counter</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Counter</span><span class="p">()</span>
+<span class="nx">counter</span><span class="p">.</span><span class="nx">inc</span><span class="p">()</span>
+<span class="nx">counter</span><span class="p">.</span><span class="nx">inc</span><span class="p">()</span>
+<span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span>
+</code></pre>
+<p><code>begin()</code></p>
+
+<p>Begins a batch transaction. All jig instantiations and updates will be delayed until <code>end</code> is called, at which point a single transaction that combines all previous actions will be published. Using batch transactions will reduce transaction size and per-action cost when there are multiple actions. Transactions may also be nested and only when the final <code>end</code> is called will the transaction be published.</p>
+
+<aside class="notice">
+<b>Note:</b> If the transaction fails to post, then all actions in the batch are reverted.
+</aside>
+<h3 id='api-reference-transaction-end'>end()</h3>
+<p><code>end()</code></p>
+
+<p>Ends a previous batch transaction started with <code>begin</code> and adds it to a background queue to submit to the blockchain.</p>
+<h3 id='api-reference-transaction-export'>export()</h3>
+<p><code>export(): bsv.Transaction</code></p>
+
+<p>Exports the in-progress transaction created via <code>begin()</code> or loaded via `import().</p>
+<h3 id='api-reference-transaction-import'>import()</h3>
+<p><code>import(tx: bsv.Transaction): Promise&lt;void&gt;</code></p>
+
+<p>Imports a transaction into Run to be updated or broadcasted. If the transaction is not a valid Run transaction, then this method will throw an error.</p>
+<h3 id='api-reference-transaction-rollback'>rollback()</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Store</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">set</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">store</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Store</span><span class="p">()</span>
+
+<span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">begin</span><span class="p">()</span>
+
+<span class="nx">store</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">'Hello, world'</span><span class="p">)</span>
+
+<span class="nx">run</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">rollback</span><span class="p">()</span>
+
+<span class="c1">// store.value is undefined again</span>
+</code></pre>
+<p><code>rollback()</code></p>
+
+<p>Reverts all updates in the current transaction which must be started with <code>begin</code> or loaded with <code>import</code>. Any classes to be deployed will have their origins and locations cleared, and any jigs to be updated will revert to their prior state. Any jigs that are deployed for their first time will be reverted to an invalid state where they may no longer be used. If no transaction is in progress, then this method throws an error. You cannot roll back actions that were not part of a transaction created with <code>begin</code> or <code>import</code>.</p>
+<h3 id='api-reference-transaction-pay'>pay()</h3>
+<p><code>pay(): Promise&lt;void&gt;</code></p>
+
+<p>Pays for the current transaction. This is performed automatically when <code>end()</code> is called, but if the transaction is exported, then the user must explicitely call <code>pay()</code> before signing the transaction. If any additional updates are made to the transaction, including calling jig methods or deploying new code, then the transaction must be paid for again.</p>
+<h3 id='api-reference-transaction-sign'>sign()</h3>
+<p><code>sign(): Promise&lt;void&gt;</code></p>
+
+<p>Signs all updates involved in the current transaction using the current Run owner. The transaction should only be signed after all updates are made, and the transaction has been paid for via <code>pay()</code>. After all required signatures are added, then the transaction may be broadcasted, and if the transaction requires signatures from multiple different owners, then it must exported and imported by other parties to be signed. If any additional updates are made to the transaction, including calling jig methods or deploying new code, then the signatures are reset and the transaction must be paid for again and re-signed by all parties.</p>
+<h3 id='api-reference-transaction-actions'>actions</h3>
+<p><code>actions: Array&lt;{ target: Jig, method: string, args: Array&lt;any&gt; }&gt;</code></p>
+
+<p>The jig updates performed in this transaction.</p>
+<h2 id='api-reference-modules'>Modules</h2><h3 id='api-reference-modules-blockchainapi'>BlockchainApi</h3>
+<blockquote>
+<p>Connect to MatterCloud with a 1 second timeout</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">blockchain</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">BlockchainApi</span><span class="p">({</span>
+  <span class="na">api</span><span class="p">:</span> <span class="s1">'mattercloud'</span><span class="p">,</span>
+  <span class="na">apiKey</span><span class="p">:</span> <span class="nx">myApiKey</span><span class="p">,</span>
+  <span class="na">timeout</span><span class="p">:</span> <span class="mi">1000</span>
+<span class="p">})</span>
+
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="nx">blockchain</span> <span class="p">})</span>
+</code></pre>
+<p><code>class BlockchainApi implements Blockchain { ... }</code></p>
+
+<p>A <a href="#api-reference-apis-blockchain">Blockchain</a> implementation that connects to a remote REST API server. This class supports three blockchain APIs by default: MatterCloud, WhatsOnChain, and Run&#39;s which is the default. When you create a <code>Run</code> instance on mainnet or testnet, Run will automatically create a <code>BlockchainApi</code> for you, but you may wish to create one yourself to customize its settings.</p>
+
+<p><code>BlockchainApi</code> may be accessed via <code>Run.BlockchainApi</code>.</p>
+<h4 id='api-reference-modules-blockchainapi-constructor-options'>constructor(options)</h4>
+<p><code>constructor(options: object): BlockchainApi</code></p>
+
+<p>Creates a <code>BlockchainApi</code> with the provided configuration.</p>
+<h5 id='api-reference-modules-blockchainapi-constructor-options-options'>Options</h5>
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>network</code></td>
+<td>string</td>
+<td>Either main or test</td>
+<td>main</td>
+</tr>
+<tr>
+<td><code>api</code></td>
+<td>string</td>
+<td>One of mattercloud, whatsonchain, or run</td>
+<td>run</td>
+</tr>
+<tr>
+<td><code>apiKey</code></td>
+<td>string</td>
+<td>API key to use. Currently, only MatterCloud API supports this option.</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>number</td>
+<td>Timeout in milliseconds for network requests</td>
+<td>10000</td>
+</tr>
+</tbody></table>
+<h3 id='api-reference-modules-localowner'>LocalOwner</h3>
+<p><code>class LocalOwner implements Owner { ... }</code></p>
+
+<p>The default <a href="#api-reference-apis-owner">Owner</a> implementation that uses a local private key to sign transactions. It is able to sign both standard locks (including addresses and public key strings) as well as group locks.</p>
+
+<p><code>LocalOwner</code> may be accessed via <code>Run.LocalOwner</code>.</p>
+<h4 id='api-reference-modules-localowner-constructor-options'>constructor(options)</h4>
+<p><code>constructor(options: object): LocalOwner</code></p>
+
+<p>Creates a <code>LocalOwner</code> with the provided configuration.</p>
+<h5 id='api-reference-modules-localowner-constructor-options-options'>Options</h5>
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>privkey</code></td>
+<td>string or bsv.PrivateKey</td>
+<td>Private key used to own jigs and other resources</td>
+<td>Randomly generated</td>
+</tr>
+<tr>
+<td><code>blockchain</code></td>
+<td><code>Blockchain</code></td>
+<td>Blockchain used to query UTXOs. If none is specified, then the inventory will not be synced.</td>
+<td>None</td>
+</tr>
+</tbody></table>
+<h3 id='api-reference-modules-localpurse'>LocalPurse</h3>
+<p><code>class LocalPurse implements Purse { ... }</code></p>
+
+<p>The purse that Run uses by default to pay for transactions using a local wallet. This is an implementation of the <code>Purse</code> API.</p>
+
+<p><code>LocalPurse</code> may be accessed via <code>Run.LocalPurse</code>.</p>
+<h4 id='api-reference-modules-localpurse-constructor-options'>constructor(options)</h4>
+<p><code>constructor(options: object): LocalPurse</code></p>
+
+<p>Creates a <code>LocalPurse</code> with the provided configuration.</p>
+<h5 id='api-reference-modules-localpurse-constructor-options-options'>Options</h5>
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>privkey</code></td>
+<td>string or bsv.PrivateKey</td>
+<td>Private key used to own jigs and other resources</td>
+<td><strong>Required</strong></td>
+</tr>
+<tr>
+<td><code>blockchain</code></td>
+<td><code>Blockchain</code></td>
+<td>Blockchain used to query UTXOs</td>
+<td><strong>Required</strong></td>
+</tr>
+<tr>
+<td><code>splits</code></td>
+<td>number</td>
+<td>Number of UTXO splits to reduce mempool chain issues</td>
+<td>10</td>
+</tr>
+<tr>
+<td><code>feePerKb</code></td>
+<td>number</td>
+<td>Transaction fee in satoshis per kilobyte</td>
+<td>1000</td>
+</tr>
+</tbody></table>
+<h4 id='api-reference-modules-localpurse-privkey'>privkey</h4>
+<p><code>privkey: string</code></p>
+
+<p>Private key used to sign the transaction.</p>
+<h4 id='api-reference-modules-localpurse-address'>address</h4>
+<p><code>address: string</code></p>
+
+<p>Address used to find UTXOs and receive payments.</p>
+<h4 id='api-reference-modules-localpurse-splits'>splits</h4>
+<blockquote>
+<p>Change the number of purse UTXO splits</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">run</span><span class="p">.</span><span class="nx">purse</span><span class="p">.</span><span class="nx">splits</span> <span class="o">=</span> <span class="mi">100</span>
+</code></pre>
+<p><code>splits: number</code></p>
+
+<p>The minimum number of UTXOs that the purse must have. If the number of UTXOs is less than this value, then Run will automatically split your UTXOs the next time a Run transaction is generated. The default value for <code>splits</code> is 10.</p>
+
+<p>Increasing this value may avoid the <code>too-long-mempool-chain</code> error. For more information, see <a href="#advanced-usage-debugging-tips">Debugging Tips</a>.</p>
+<h4 id='api-reference-modules-localpurse-balance'>balance()</h4>
+<blockquote>
+<p>Querying the current balance</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Satoshis'</span><span class="p">,</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">purse</span><span class="p">.</span><span class="nx">balance</span><span class="p">())</span>
+</code></pre>
+<p><code>balance(): Promise&lt;number&gt;</code></p>
+
+<p>Returns a promise that resolves to the current balance in satoshis of this purse. This is the sum of all satoshis in this purse&#39;s unspent outputs.</p>
+<h4 id='api-reference-modules-localpurse-utxos'>utxos()</h4>
+<blockquote>
+<p>Building a transaction using the purse</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">utxos</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">purse</span><span class="p">.</span><span class="nx">utxos</span><span class="p">()</span>
+<span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">().</span><span class="nx">from</span><span class="p">(</span><span class="nx">utxos</span><span class="p">).</span><span class="nx">change</span><span class="p">(</span><span class="nx">run</span><span class="p">.</span><span class="nx">purse</span><span class="p">.</span><span class="nx">address</span><span class="p">).</span><span class="nx">sign</span><span class="p">(</span><span class="nx">run</span><span class="p">.</span><span class="nx">purse</span><span class="p">.</span><span class="nx">privateKey</span><span class="p">)</span>
+</code></pre>
+<p><code>utxos(): Promise&lt;{txid: string, vout: number, script: bsv.Script, satoshis: number}&gt;</code></p>
+
+<p>Returns a promise that resolves to the current UTXOs of this purse.</p>
+<h3 id='api-reference-modules-mockchain'>Mockchain</h3>
+<blockquote>
+<p>Getting the mockchain from a run instance</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">network</span><span class="p">:</span> <span class="s1">'mock'</span> <span class="p">})</span>
+
+<span class="kr">const</span> <span class="nx">mockchain</span> <span class="o">=</span> <span class="nx">run</span><span class="p">.</span><span class="nx">blockchain</span>
+</code></pre>
+<blockquote>
+<p>Creating a mockchain manually and passing it into <code>Run</code></p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">mockchain</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">Mockchain</span><span class="p">()</span>
+
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">blockchain</span><span class="p">:</span> <span class="nx">mockchain</span> <span class="p">})</span>
+</code></pre>
+<p><code>class Mockchain implements Blockchain { ... }</code></p>
+
+<p>The <em>mockchain</em> is a local simulation of a blockchain that stored entirely in memory. It accepts and validates real Bitcoin transactions using testnet settings. The mockchain simulates many aspects of a real Bitcoin API, including the 25 chained mempool limit, but everything happens locally.</p>
+
+<p>We recommend using the mockchain during development and unit testing. The mockchain lets you simulate Run without requiring network connectivity and without spending real bitcoins. Note that when the program closes however, all mockchain data is lost, so it is not a substitute for a real network.</p>
+
+<p>The class is accessible via <code>Run.Mockchain</code>, or as an instance in <code>run.blockchain</code> after setting the network to <code>mock</code>.</p>
+<h4 id='api-reference-modules-mockchain-constructor'>constructor()</h4>
+<p><code>constructor()</code></p>
+
+<p>Creates a new mockchain. There are no parameters.</p>
+<h4 id='api-reference-modules-mockchain-fund-address-satoshis'>fund(address, satoshis)</h4>
+<p><code>fund(address: string, satoshis: number)</code></p>
+
+<p>Directly funds an address with an amount of satoshis without requiring the spending of any inputs. The Run class will automatically fund the initial purse, but you may fund additional addresses using this method.</p>
+<h4 id='api-reference-modules-mockchain-block'>block()</h4>
+<p><code>block()</code></p>
+
+<p>Creates a new simulated block. This is useful when the 25 chained mempool limit is hit.</p>
+<h3 id='api-reference-modules-payserver'>PayServer</h3>
+<blockquote>
+<p>Create Run and use the testnet pay server</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">apiKey</span> <span class="o">=</span> <span class="s1">'&lt;your-api-key&gt;'</span>
+<span class="kr">const</span> <span class="nx">payServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">PayServer</span><span class="p">(</span><span class="nx">apiKey</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">network</span><span class="p">:</span> <span class="s1">'test'</span><span class="p">,</span> <span class="na">purse</span><span class="p">:</span> <span class="nx">payServer</span> <span class="p">})</span>
+</code></pre>
+<p><code>class PayServer implements Purse { ... }</code></p>
+
+<p>A Purse implementation that uses the Run Pay Server to pay for transactions.</p>
+
+<p><code>PayServer</code> may be accessed via <code>Run.PayServer</code>.</p>
+<h4 id='api-reference-modules-payserver-constructor-apikey'>constructor(apiKey)</h4>
+<p><code>constructor(apiKey: string)</code></p>
+
+<p>Creates the PayServer with a given API key. The API key may be generated via <code>https://api.run.network/v1/test/pay/generate</code>. Only testnet is supported today.</p>
+<h3 id='api-reference-modules-statecache'>StateCache</h3>
+<p><code>class StateCache implements State { ... }</code></p>
+
+<p>The default implementation of the <code>State</code> API. The <code>Run</code> class will create one automatically if no state class is provided. The <code>StateCache</code> stores jig state data in an LRU cache in local memory. The default size is 10MB.</p>
+
+<p><code>StateCache</code> may be accessed via <code>Run.StateCache</code>.</p>
+<h4 id='api-reference-modules-statecache-constructor-options'>constructor(options)</h4>
+<p><code>constructor(options: ?object)</code></p>
+
+<p>Creates the state cache. The options object may be used to configure the cache.</p>
+<h5 id='api-reference-modules-statecache-constructor-options-options'>Options</h5>
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>maxSizeMB</code></td>
+<td>number</td>
+<td>Max size in megabytes (MB) of the state data stored in memory</td>
+<td>10 (10MB)</td>
+</tr>
+</tbody></table>
+<h3 id='api-reference-modules-viewer'>Viewer</h3>
+<blockquote>
+<p>Load the jigs owned by another user</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">viewer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">Viewer</span><span class="p">(</span><span class="nx">customLock</span><span class="p">)</span>
+
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">owner</span><span class="p">:</span> <span class="nx">viewer</span> <span class="p">})</span>
+
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+
+<span class="c1">// run.owner.jigs will contain their jigs</span>
+</code></pre>
+<p><code>class Viewer implements Owner</code></p>
+
+<p>An Owner implementation for loading another user&#39;s jigs.</p>
+
+<p>These resources will be read-only and this owner will not be able to sign for any updates.</p>
+
+<p><code>Viewer</code> may be accessed via <code>Run.Viewer</code>.</p>
+<h4 id='api-reference-modules-viewer-constructor-owner'>constructor(owner)</h4>
+<p><code>constructor(owner: string|Lock)</code></p>
+
+<p>Creates a new viewer.</p>
+<h2 id='api-reference-extras'>Extras</h2><h3 id='api-reference-extras-asm'>asm</h3>
+<blockquote>
+<p>Create a custom R-puzzle output script</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">asm</span><span class="p">(</span><span class="s2">`OP_DUP OP_3 OP_SPLIT OP_NIP OP_1 OP_SPLIT OP_SWAP OP_SPLIT OP_DROP OP_HASH160 </span><span class="p">${</span><span class="nx">rhash</span><span class="p">}</span><span class="s2"> OP_EQUALVERIFY OP_OVER OP_CHECKSIGVERIFY OP_CHECKSIG`</span><span class="p">)</span>
+</code></pre>
+<p><code>function asm(s: string): Uint8Array</code></p>
+
+<p>Converts a Bitcoin script string in ASM notation into a Uint8Array. This code is deterministic and safe to use within Jigs. It is often useful when creating <a href="#advanced-usage-locks">custom owner locks</a>.</p>
+
+<p><code>asm</code> may be accessed via <code>Run.asm</code>.</p>
+<h3 id='api-reference-extras-expect'>expect</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">Post</span> <span class="kr">extends</span> <span class="nx">Jig</span> <span class="p">{</span>
+  <span class="nx">init</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">message</span><span class="p">).</span><span class="nx">toBeString</span><span class="p">()</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="nx">message</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">Post</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="na">expect</span><span class="p">:</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">expect</span> <span class="p">}</span>
+</code></pre>
+<p><code>function expect(subject) { ... }</code></p>
+
+<p>The <code>expect</code> function is arbitrary code to help you check with parameters in Jigs. It is similar to Jest or Chai assertions. <code>expect</code> takes a single argument, <em>subject</em>, and then lets you execute one of its assertion methods on ithe subject. If the assertion passes, then nothing happens, but if it fails, an Error is thrown.</p>
+
+<p>Each method takes an optional last parameter <em>message</em> that is the error message to throw. If none is specified, then a default error message will be created.</p>
+
+<p><code>expect</code> may be accessed via <code>Run.expect</code>.</p>
+<h4 id='api-reference-extras-expect-not'>.not</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">name</span><span class="p">).</span><span class="nx">not</span><span class="p">.</span><span class="nx">toBeNumber</span><span class="p">()</span>
+</code></pre>
+<p><code>.not</code></p>
+
+<p>The <code>not</code> property reverses the condition of any methods that follow.</p>
+<h4 id='api-reference-extras-expect-tobe'>.toBe()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">power</span> <span class="o">&gt;</span> <span class="mi">9999</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</code></pre>
+<p><code>.toBe(value: any, message: ?string)</code></p>
+
+<p>Checks that the <em>subject</em> is equal to the <em>value</em>, using the javascript === operator. This does not, however, deeply compare values of an object, so for deep object comparison we recommend <code>toEqual</code>.</p>
+<h4 id='api-reference-extras-expect-toequal'>.toEqual()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">names</span><span class="p">).</span><span class="nx">toBe</span><span class="p">([</span><span class="s1">'Stevie'</span><span class="p">,</span> <span class="s1">'Wonder'</span><span class="p">])</span>
+</code></pre>
+<p><code>.toEqual(value: any, message: ?string)</code></p>
+
+<p>Deeply compares the <em>subject</em> to a <em>value</em>, which involves recursively traversing through every sub-property of objects to compare whether they are the same primitive values.</p>
+<h4 id='api-reference-extras-expect-tobeinstanceof'>.toBeInstanceOf()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">dragon</span><span class="p">).</span><span class="nx">toBeInstanceOf</span><span class="p">(</span><span class="nx">Dragon</span><span class="p">)</span>
+</code></pre>
+<p><code>.toBeInstanceOf(Class: Class, message: ?string)</code></p>
+
+<p>Checks that an object is an instance of a class or one of its parents.</p>
+<h4 id='api-reference-extras-expect-tobedefined'>.toBeDefined()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">message</span><span class="p">).</span><span class="nx">toBeDefined</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeDefined(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is not undefined.</p>
+<h4 id='api-reference-extras-expect-tobenull'>.toBeNull()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">hat</span><span class="p">).</span><span class="nx">not</span><span class="p">.</span><span class="nx">toBeNull</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeNull(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is null. Often this is paired with <code>not</code> to check that a value is not null, as seen on the right.</p>
+<h4 id='api-reference-extras-expect-tobenumber'>.toBeNumber()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">health</span><span class="p">).</span><span class="nx">toBeNumber</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeNumber(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a numerical type. Numbers including all integers, floating point numbers, NaN, and Infinity.</p>
+<h4 id='api-reference-extras-expect-tobeinteger'>.toBeInteger()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">amount</span><span class="p">).</span><span class="nx">toBeInteger</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeInteger(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is an integer number and does not have a decimal point.</p>
+<h4 id='api-reference-extras-expect-tobelessthan'>.toBeLessThan()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">damage</span><span class="p">).</span><span class="nx">toBeLessThan</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+</code></pre>
+<p><code>.toBeLessThan(value: number, message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a number less than a particular number.</p>
+<h4 id='api-reference-extras-expect-tobelessthanorequalto'>.toBeLessThanOrEqualTo()</h4>
+<p><code>.toBeLessThanOrEqualTo(value: number, message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a number less than or equal to a particular number.</p>
+<h4 id='api-reference-extras-expect-tobegreaterthan'>.toBeGreaterThan()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">name</span><span class="p">.</span><span class="nx">length</span><span class="p">).</span><span class="nx">toBeGreaterThan</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre>
+<p><code>.toBeGreaterThan(value: number, message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a number greater than a particular number.</p>
+<h4 id='api-reference-extras-expect-tobegreaterthanorequalto'>.toBeGreaterThanOrEqualTo()</h4>
+<p><code>.toBeGreaterThanOrEqualTo(value: number, message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a number greater than or equal to a particular number.</p>
+<h4 id='api-reference-extras-expect-tobeboolean'>.toBeBoolean()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">weaponsEnabled</span><span class="p">).</span><span class="nx">toBeBoolean</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeBoolean(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is either true or false.</p>
+<h4 id='api-reference-extras-expect-tobestring'>.toBeString()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">name</span><span class="p">).</span><span class="nx">toBeString</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeString(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a string. It may still be the empty string however.</p>
+<h4 id='api-reference-extras-expect-tobeobject'>.toBeObject()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">properties</span><span class="p">).</span><span class="nx">toBeObject</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeObject(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is a non-null object or an Array. </p>
+<h4 id='api-reference-extras-expect-tobearray'>.toBeArray()</h4><pre class="highlight plaintext"><code>expect(tokens).toBeArray()
+</code></pre>
+<p><code>.toBeArray(message: ?string)</code></p>
+
+<p>Checks that a <em>value</em> is an array and is not null. It may however be empty.</p>
+<h4 id='api-reference-extras-expect-tobeclass'>.toBeClass()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">Dragon</span><span class="p">).</span><span class="nx">toBeClass</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeClass(message: ?string)</code></p>
+
+<p>Checks that a type is a class.</p>
+<h4 id='api-reference-extras-expect-tobefunction'>.toBeFunction()</h4><pre class="highlight javascript tab-javascript"><code><span class="nx">expect</span><span class="p">(</span><span class="nx">calculateDamage</span><span class="p">).</span><span class="nx">toBeFunction</span><span class="p">()</span>
+</code></pre>
+<p><code>.toBeFunction(message: ?string)</code></p>
+
+<p>Checks that a type is a function. Classes are not considered functions for this assert.</p>
+<h3 id='api-reference-extras-grouplock'>GroupLock</h3>
+<blockquote>
+<p>Create and then sign a 2-2 multi-sig</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="c1">// Create a token owned by a 2-3 multi-sig</span>
+<span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">new</span> <span class="nx">GroupLock</span><span class="p">([</span><span class="nx">pubkey1</span><span class="p">,</span> <span class="nx">pubkey2</span><span class="p">,</span> <span class="nx">pubkey3</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span>
+
+<span class="c1">// Begin a transaction to spend it and sign with key #1</span>
+<span class="kr">const</span> <span class="nx">run1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">owner</span><span class="p">:</span> <span class="nx">privkey1</span> <span class="p">})</span>
+<span class="nx">run1</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">begin</span><span class="p">()</span>
+<span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">address</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="nx">await</span> <span class="nx">run1</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">pay</span><span class="p">()</span>
+<span class="nx">await</span> <span class="nx">run1</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">()</span>
+<span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="nx">run1</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="kr">export</span><span class="p">()</span>
+<span class="nx">run1</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">rollback</span><span class="p">()</span>
+
+<span class="c1">// On another machine, import the transaction and co-sign with key #2</span>
+<span class="kr">const</span> <span class="nx">run2</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">owner</span><span class="p">:</span> <span class="nx">privkey2</span> <span class="p">})</span>
+<span class="nx">await</span> <span class="nx">run2</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span>
+<span class="nx">run2</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">end</span><span class="p">()</span>
+</code></pre>
+<p><code>class GroupLock implements Lock { ... }</code></p>
+
+<p>A group lock is a m-of-n multi-sig output used to have more than one user own a resource. Combined with the <code>LocalOwner</code> and <code>TransactionAPI</code>, Run is able to sign group locks using its default <code>LocalOwner</code>. See the example to the right.</p>
+
+<p>A <code>GroupLock</code> is as secure as bitcoins themselves. If some parties can update a jig, they can also destroy the jig.</p>
+
+<p><code>GroupLock</code> may be accessed via <code>Run.GroupLock</code>.</p>
+<h4 id='api-reference-extras-grouplock-constructor-pubkeys-m'>constructor(pubkeys, m)</h4>
+<p><code>constructor(pubkeys: Array&lt;string&gt;, m: number): GroupLock</code></p>
+
+<p>Creates a m-of-n <code>GroupLock</code> for the set of public keys.</p>
+<h4 id='api-reference-extras-grouplock-pubkeys-array'>pubkeys: Array<string></h4>
+<p>Array of public keys that are partial owners. There can be no more than 16 and they must be hex strings.</p>
+<h4 id='api-reference-extras-grouplock-m-number'>m: number</h4>
+<p>Number of signatures required to unlock the output. This is the m in m-of-n multi-sig.</p>
+<h3 id='api-reference-extras-standardlock'>StandardLock</h3>
+<blockquote>
+<p>Send a token to a P2PKH address</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">new</span> <span class="nx">StandardLock</span><span class="p">(</span><span class="nx">address</span><span class="p">))</span>
+</code></pre>
+<p><code>class StandardLock implements Lock { ... }</code></p>
+
+<p>The <code>StandardLock</code> is the lock generated by Run when you specify an address or public key string as a resource&#39;s owner. This creates a standard P2PKH output for the jig or code.</p>
+
+<p><code>StandardLock</code> may be accessed via <code>Run.StandardLock</code>.</p>
+<h4 id='api-reference-extras-standardlock-constructor-address'>constructor(address)</h4>
+<p><code>constructor(address: string): StandardLock</code></p>
+
+<p>Creates a <code>StandardLock</code> for a specific address.</p>
+<h4 id='api-reference-extras-standardlock-address'>address</h4>
+<p><code>address: string</code></p>
+
+<p>The address string for this lock.</p>
+<h2 id='api-reference-apis'>APIs</h2>
+<blockquote>
+<p>Check if a custom owner implementation will be accepted by Run</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">MyOwner</span> <span class="p">{</span> <span class="cm">/* implementation */</span> <span class="p">}</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">new</span> <span class="nx">MyOwner</span><span class="p">()</span> <span class="k">instanceof</span> <span class="nx">Run</span><span class="p">.</span><span class="nx">api</span><span class="p">.</span><span class="nx">Owner</span><span class="p">)</span>
+</code></pre>
+<p>The APIs described here are interfaces that developers may implement to customize Run. You can think of them as plug-ins. Each API is available via <code>Run.api</code>. Developers may check that their implementation conforms to the interface by using <code>instanceof</code>. You do not have to extend from these base classes for an implementation to be valid.</p>
+<h3 id='api-reference-apis-blockchain'>Blockchain</h3>
+<p><code>class Blockchain { ... }</code></p>
+
+<p>The interface run uses to communicate with the Bitcoin network. Run ships with two implementations: The <a href="#api-reference-modules-blockchain-api">BlockchainApi</a> and the <a href="#api-reference-modules-mockchain">Mockchain</a>. Developers may implement <code>Blockchain</code> to connect to the Bitcoin network in custom ways.</p>
+<h4 id='api-reference-apis-blockchain-network'>network</h4>
+<p><code>network: string</code></p>
+
+<p>The general kind of network that Run connects to. One of <code>main</code>, <code>test</code>, <code>stn</code>, or <code>mock</code>.</p>
+<h4 id='api-reference-apis-blockchain-broadcast-tx'>broadcast(tx)</h4>
+<blockquote>
+<p>Create and broadcast a simple transaction</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">().</span><span class="nx">from</span><span class="p">(</span><span class="nx">utxo</span><span class="p">).</span><span class="nx">to</span><span class="p">(</span><span class="nx">address</span><span class="p">,</span> <span class="nx">amount</span><span class="p">).</span><span class="nx">sign</span><span class="p">(</span><span class="nx">privateKey</span><span class="p">)</span>
+<span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">blockchain</span><span class="p">.</span><span class="nx">broadcast</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span>
+</code></pre>
+<p><code>broadcast(tx: bsv.Transaction): Promise&lt;void&gt;</code></p>
+
+<p>Submits a transaction to the network. A promise is returned that will resolve if the transaction was accepted or rejected with the error if the network did not accept the transaction.</p>
+
+<p>The base class method throws an unimplemented error, so this must be overridden in derived blockchain classes.</p>
+<h4 id='api-reference-apis-blockchain-fetch-txid'>fetch(txid)</h4>
+<blockquote>
+<p>Downloads a transaction from the network</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">txid</span> <span class="o">=</span> <span class="s1">'afc557ef2970af0b5fb8bc1a70a320af425c7a45ca5d40eac78475109563c5f8'</span>
+<span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">blockchain</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="nx">txid</span><span class="p">)</span>
+</code></pre>
+<p><code>fetch(txid: string, force: ?boolean): Promise&lt;bsv.Transaction&gt;</code></p>
+
+<p>Downloads a transaction from the network. A promise is returned that will resolve with the transaction parsed using the <code>bsv</code> library or reject with the error if the transaction could not be returned. The optional <code>force</code> parameter requests that <code>fetch</code> re-query the blockchain and not return a cached copy. The returned transaction should also have additional properties set:</p>
+
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>time</code></td>
+<td>number</td>
+<td>yes</td>
+<td>The time in milliseconds when the transaction was accepted by a miner or included in a block.</td>
+</tr>
+<tr>
+<td><code>blocktime</code></td>
+<td>number</td>
+<td>no</td>
+<td>The time in milliseconds when the transaction was included in a block.</td>
+</tr>
+<tr>
+<td><code>confirmations</code></td>
+<td>number</td>
+<td>no</td>
+<td>The number of block confirmations for this transaction</td>
+</tr>
+<tr>
+<td><code>blockhash</code></td>
+<td>string</td>
+<td>no</td>
+<td>The hash of the block this transaction was included in</td>
+</tr>
+<tr>
+<td><code>blockheight</code></td>
+<td>number</td>
+<td>no</td>
+<td>The height of the block this transaction was included in, or -1 if the transaction is in the mempool.</td>
+</tr>
+<tr>
+<td><code>outputs[i].spentTxId</code></td>
+<td>string</td>
+<td>no</td>
+<td>The transaction id that spends this output, or null if unspent. This is required for forward syncing.</td>
+</tr>
+<tr>
+<td><code>outputs[i].spentIndex</code></td>
+<td>number</td>
+<td>no</td>
+<td>The input index in the transaction that spends this output, or null if unspent.</td>
+</tr>
+<tr>
+<td><code>outputs[i].spentHeight</code></td>
+<td>number</td>
+<td>no</td>
+<td>The block height of the transaction that spends this output, or -1 if the transaction is in the mempool.</td>
+</tr>
+</tbody></table>
+
+<p>The base class method throws an unimplemented error, so this must be overridden in derived blockchain classes.</p>
+<h4 id='api-reference-apis-blockchain-utxos-script'>utxos(script)</h4>
+<blockquote>
+<p>Downloads the current UTXOs for a given address</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">address</span> <span class="o">=</span> <span class="s1">'mpBU73vq9ajhkXknP1sNGe6wjXH7QtwmWm'</span>
+<span class="kr">const</span> <span class="nx">script</span> <span class="o">=</span> <span class="nx">Script</span><span class="p">.</span><span class="nx">fromAddress</span><span class="p">(</span><span class="nx">address</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">utxos</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">run</span><span class="p">.</span><span class="nx">blockchain</span><span class="p">.</span><span class="nx">utxos</span><span class="p">(</span><span class="nx">script</span><span class="p">)</span>
+<span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">().</span><span class="nx">from</span><span class="p">(</span><span class="nx">utxos</span><span class="p">).</span><span class="nx">change</span><span class="p">(</span><span class="nx">address</span><span class="p">)</span>
+</code></pre>
+<p><code>utxos(script: bsv.Script): Promise&lt;Array&lt;{txid: string, vout: number, script: bsv.Script, satoshis: number}&gt;&gt;</code></p>
+
+<p>Returns the unspent outputs for a given address. A promise is returned that will resolve with an array of UTXOs, which may be empty, or reject with an error. Each returned UTXO may be converted to a <code>bsv.Transaction.UnspentOutput</code> by passing into that constructor. The script passed into <code>utxos</code> will have a <code>hash</code> property available. You may use this to get a unique sha256d hash of the script for database or API queries.</p>
+<h3 id='api-reference-apis-lock'>Lock</h3>
+<blockquote>
+<p>Send a token to a P2PK output script</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">PayToPublicKeyLock</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubkey</span> <span class="o">=</span> <span class="nx">pubkey</span> <span class="p">}</span>
+  <span class="nx">script</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">asm</span><span class="p">(</span><span class="s2">`</span><span class="p">${</span><span class="k">this</span><span class="p">.</span><span class="nx">pubkey</span><span class="p">}</span><span class="s2"> OP_CHECKSIG`</span><span class="p">)</span> <span class="p">}</span>
+  <span class="nx">domain</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">74</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">PayToPublicKeyLock</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">asm</span> <span class="p">}</span>
+
+<span class="nx">token</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">new</span> <span class="nx">PayToPublicKeyLock</span><span class="p">(</span><span class="nx">pubkey</span><span class="p">))</span>
+</code></pre>
+<p><code>class Lock { ... }</code></p>
+
+<p>Locks are custom output scripts that may be assigned as owners to jigs and other resources. They are <a href="#how-it-works-javascript-serialization">arbitrary objects</a>, meaning they are actual typed objects with properties that are used to build an output script. This allows jig code to look for certain kinds of Locks. For example, perhaps a jig must be held by 3 people in a <a href="#api-reference-extras-grouplock">GroupLock</a> to it to be sent.</p>
+<h4 id='api-reference-apis-lock-script'>script()</h4>
+<p><code>script(): Uint8Array</code></p>
+
+<p>Returns the output script for the current lock as a Uint8Array.</p>
+
+<p>Run will call this method when building your transactions. Run provides the <a href="#api-reference-extras-asm">asm</a> utility function to more easily build these scripts. For best security, this function should always build the script when it&#39;s called and not cache the results.</p>
+<h4 id='api-reference-apis-lock-domain'>domain()</h4>
+<p><code>domain(): number</code></p>
+
+<p>Returns the maximum size of this lock&#39;s unlocking script in bytes. Run uses this value to improve fee estimation for signatures exist by creating placeholders in unlocking scripts that are of size <code>domain()</code>.</p>
+
+<p>Calculating the <code>domain</code> may depend on properties of the lock and it takes an understanding of Bitcoin script. As a rule of thumb, Bitcoin signatures are at most 74 bytes in script, and public keys when compressed are 34 bytes in script. It is best to err on the conservative side.</p>
+
+<p>This method is named <em>domain</em> because locking scripts are predicate functions and their domains are the possible inputs scripts, whose maximum length is returned by this function.</p>
+<h3 id='api-reference-apis-logger'>Logger</h3>
+<blockquote>
+<p>Write info, warn, and error messages to a file</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">FileLogger</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">stream</span> <span class="o">=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">createWriteStream</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span> <span class="p">{</span> <span class="na">flags</span><span class="p">:</span> <span class="s1">'a'</span> <span class="p">})</span> <span class="p">}</span>
+
+  <span class="nx">info</span><span class="p">(...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'INFO'</span><span class="p">,</span> <span class="p">...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">}</span>
+  <span class="nx">warn</span><span class="p">(...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'WARN'</span><span class="p">,</span> <span class="p">...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">}</span>
+  <span class="nx">error</span><span class="p">(...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'ERROR'</span><span class="p">,</span> <span class="p">...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="nx">log</span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="p">...</span><span class="nx">messages</span><span class="p">)</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">stream</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s2">`</span><span class="p">${</span><span class="nx">type</span><span class="p">}</span><span class="s2"> </span><span class="p">${</span><span class="nx">messages</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)}</span><span class="s2"> \n`</span><span class="p">)</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">logger</span><span class="p">:</span> <span class="k">new</span> <span class="nx">FileLogger</span><span class="p">(</span><span class="s1">'log.txt'</span><span class="p">)</span> <span class="p">})</span>
+</code></pre>
+<p><code>class Logger { ... }</code></p>
+
+<p>A custom logger API that may be used to intercept Run logs and report them to a more desirable output. By default, Run will log errors and warnings to the console, but you may wish to log them to a custom file, or enable the info and debug logs too. It is not necessary to implement all methods below; whichever methods are implemented, Run will call.</p>
+<h4 id='api-reference-apis-logger-info-messages'>info(...messages)</h4>
+<p><code>info(...messages)</code></p>
+
+<p>Called when Run is performing a major action, such as loading a jig, or querying a REST API.</p>
+<h4 id='api-reference-apis-logger-error-messages'>error(...messages)</h4>
+<p><code>error(...messages)</code></p>
+
+<p>Called when Run detects an error. These are recommended for production logs.</p>
+<h4 id='api-reference-apis-logger-warn-messages'>warn(...messages)</h4>
+<p><code>warn(...messages)</code></p>
+
+<p>Called when Run detects a possible error. These are recommended for production logs.</p>
+<h4 id='api-reference-apis-logger-debug-messages'>debug(...messages)</h4>
+<p><code>debug(...messages)</code></p>
+
+<p>Called when Run creates debug messages. These will be more verbose than you would typically desire in production logs.</p>
+<h3 id='api-reference-apis-owner'>Owner</h3>
+<blockquote>
+<p>An owner that runs on a REST server</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">RemoteWallet</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">host</span><span class="p">,</span> <span class="nx">address</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">host</span> <span class="o">=</span> <span class="nx">host</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">address</span> <span class="o">=</span> <span class="nx">address</span>
+  <span class="p">}</span>
+
+  <span class="nx">owner</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">address</span> <span class="p">}</span>
+
+  <span class="nx">async</span> <span class="nx">sign</span><span class="p">(</span><span class="nx">txhex</span><span class="p">,</span> <span class="nx">locks</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="na">method</span><span class="p">:</span> <span class="s1">'POST'</span><span class="p">,</span>
+        <span class="na">headers</span><span class="p">:</span> <span class="p">{</span> <span class="s1">'Content-Type'</span><span class="p">:</span> <span class="s1">'application/json'</span> <span class="p">},</span>
+        <span class="na">body</span><span class="p">:</span> <span class="p">{</span> <span class="nx">txhex</span> <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kr">const</span> <span class="nx">json</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="s1">'/sign'</span><span class="p">,</span> <span class="nx">options</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">r</span> <span class="o">=&gt;</span> <span class="nx">r</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">(</span><span class="nx">json</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>class Owner { ... }</code></p>
+
+<p>An owner of jigs and other resources.</p>
+
+<p>Run calls this API to create new jigs and sign transactions for a user. It is different from the purse which is strictly for paying for transactions. This API supports both local and remote ownership with the <code>async</code> sign method.</p>
+<h4 id='api-reference-apis-owner-owner'>owner()</h4>
+<p><code>owner(): string|Lock|Array&lt;string|Lock&gt;</code></p>
+
+<p>The owner address, pubkey, or lock, used to assign to new jigs created.</p>
+
+<p>If this is an array, then the first entry is used for new jigs, and the rest are used only to sync the inventory.</p>
+<h4 id='api-reference-apis-owner-sign-txhex-locks'>sign(txhex, locks)</h4>
+<blockquote>
+<p>Sign all resources that are P2PK outputs</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">async</span> <span class="nx">sign</span><span class="p">(</span><span class="nx">txhex</span><span class="p">,</span> <span class="nx">locks</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">(</span><span class="nx">txhex</span><span class="p">)</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">inputs</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">locks</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="k">instanceof</span> <span class="nx">PayToPublicKeyLock</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">signature</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">privateKey</span><span class="p">)</span>
+
+      <span class="nx">tx</span><span class="p">.</span><span class="nx">inputs</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">setScript</span><span class="p">(</span><span class="nx">sig</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="s1">'hex'</span><span class="p">))</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="s1">'hex'</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>sign(txhex: string, locks: Array&lt;?Lock&gt;): Promise&lt;string&gt;</code></p>
+
+<p>Signs the transaction for the current owner.</p>
+
+<p>The locks array is the same size as the transaction&#39;s inputs, and contains a list of Locks that correspond to each resource&#39;s owner script, or undefined if the input is not a resource. The sign method may use these locks to determine which inputs to sign and how to sign them. If the resource&#39;s owner is an address or public key string, then the lock will be a <a href="#api-reference-extras-standardlock">StandardLock</a></p>
+
+<p>Run adds a <code>signature</code> method to the transaction object that may be used to generate a signature for certain input. See the example on the right.</p>
+<h3 id='api-reference-apis-purse'>Purse</h3>
+<p><code>class Purse { ... }</code></p>
+
+<p>The interface to pay for transactions and implement purse functionality in Run. The default <code>Purse</code> implementation is <a href="#api-reference-modules-localpurse">LocalPurse</a></p>
+<h4 id='api-reference-apis-purse-pay-txhex'>pay(txhex)</h4>
+<blockquote>
+<p>Pay for a transaction using specific UTXOs</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">PayWithUtxos</span> <span class="p">{</span>
+    <span class="nx">constructor</span><span class="p">(</span><span class="nx">utxos</span><span class="p">,</span> <span class="nx">privateKey</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">utxos</span> <span class="o">=</span> <span class="nx">utxos</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">privateKey</span> <span class="o">=</span> <span class="nx">privateKey</span>
+    <span class="p">}</span>
+
+    <span class="nx">async</span> <span class="nx">pay</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kr">const</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">bsv</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">(</span><span class="nx">txhex</span><span class="p">)</span>
+        <span class="nx">tx</span><span class="p">.</span><span class="nx">from</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">utxos</span><span class="p">)</span>
+        <span class="nx">tx</span><span class="p">.</span><span class="nx">change</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">privateKey</span><span class="p">.</span><span class="nx">toAddress</span><span class="p">())</span>
+        <span class="nx">tx</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">privateKey</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="s1">'hex'</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">run</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Run</span><span class="p">({</span> <span class="na">purse</span><span class="p">:</span> <span class="k">new</span> <span class="nx">PayWithUtxos</span><span class="p">(</span><span class="nx">utxos</span><span class="p">,</span> <span class="nx">privateKey</span><span class="p">)</span> <span class="p">})</span>
+</code></pre>
+<p><code>pay(txhex: string): Promise&lt;string&gt;</code></p>
+
+<p>Adds payment inputs and outputs so that a Jig transaction will be accepted by miners. This is an asynchronous call that returns a promise. If an error is thrown, then state of all jigs in the current transaction will be reverted and the transaction will not be broadcasted.</p>
+
+<p>This method may optionally sign the transaction, or it may sign in the <code>sign</code> method if it exists.</p>
+
+<p>A third-party wallet may want to check that there are no non-dust outputs. This may happen if there are backed jigs.</p>
+<h4 id='api-reference-apis-purse-broadcast-txhex'>broadcast(txhex)</h4>
+<p><code>broadcast(txhex: string): Promise&lt;&gt;</code></p>
+
+<p>A notification for purses when a transaction is about to be broadcast.</p>
+
+<p>This method is optional but will be called for wallets to update their UTXOs. Wallets that choose to broadcast the transaction themselves should be prepared that the transaction might already been broadcasted by Run.</p>
+<h3 id='api-reference-apis-state'>State</h3>
+<blockquote>
+<p>A state implementation that stores jig state in the browser&#39;s local storage</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">class</span> <span class="nx">LocalStorageCache</span> <span class="p">{</span>
+  <span class="nx">async</span> <span class="nx">get</span><span class="p">(</span><span class="nx">loc</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">x</span> <span class="o">=</span> <span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="nx">loc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="k">return</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="nx">async</span> <span class="nx">set</span><span class="p">(</span><span class="nx">loc</span><span class="p">,</span> <span class="nx">val</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">localStorage</span><span class="p">.</span><span class="nx">setItem</span><span class="p">(</span><span class="nx">loc</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">val</span><span class="p">))</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>class State { ... }</code></p>
+
+<p>The interface for Run&#39;s state cache. The state cache is responsible for storing intermediate jig states so that they do not need to be recomputed from their history each time they are loaded. This API also enables third-party state servers to exist that provide intermediate state for jigs.</p>
+<h4 id='api-reference-apis-state-get-location'>get(location)</h4>
+<p><code>get(location: string): Promise&lt;?object&gt;</code></p>
+
+<p>Gets the state for a particular location. Run will call this when loading jigs to see if it can short-circuit its loading. If a state exists and is valid, its state object should be returned. The state object is custom and should never be created from scratch. Instead, values should come from previous <code>set</code> calls to the State API. This method is asyncronous to allow for third-party network calls.</p>
+<h4 id='api-reference-apis-state-set-location-state'>set(location, state)</h4>
+<p><code>set(location: string, state: object): Promise&lt;void&gt;</code></p>
+
+<p>Sets a state for a particular location. Run will call this whenever a new transaction is published and also when a jig is loaded. The State API should store and return the state in future <code>get</code> calls. This method is asyncronous to allow for third-party network calls.</p>
