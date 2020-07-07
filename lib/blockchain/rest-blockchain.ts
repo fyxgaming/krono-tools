@@ -111,4 +111,10 @@ export class RestBlockchain extends Blockchain {
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     }
+
+    async fund(address) {
+        const resp = await fetch(`${this.apiUrl}/fund/${address}`);
+        if (!resp.ok) throw new Error(await resp.text());
+        return await resp.json();
+    }
 }
