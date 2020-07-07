@@ -2,8 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2018",
-    "outDir": "dist",
-    "allowJs": true,
+    "allowJs": false,
     "declaration": true,
     "esModuleInterop": true,
     "sourceMap": true,
