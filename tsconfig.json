@@ -8,10 +8,6 @@
     "sourceMap": true,
     "lib": [
       "es2018"
-    ],
-    "typeRoots": [
-      "src/@types",
-      "node_modules/@types"
     ]
   },
   "include": [

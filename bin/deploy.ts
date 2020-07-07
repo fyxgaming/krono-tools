@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
-const request = require('request-promise-native');
+const fetch = require('node-fetch');
 const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
 const { Deployer } = require('../lib/deployer');
 
@@ -83,11 +83,10 @@ dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;
-        await request({
-            uri: `${blockchainUrl}/agents/${realm}/${agentId}`,
+        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
-            body: { loc: dep.location },
-            json: true
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ loc: (dep as any).location })
         });
     }
     console.log('Deployed');
