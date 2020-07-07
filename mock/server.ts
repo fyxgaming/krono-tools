@@ -60,8 +60,8 @@ blockchain.on('txn', async (tx) => {
 });
 
 let initialized;
-export function setInitializer(promise) {
-    initialized = promise;
+export async function setInitializer(initializer) {
+    initialized = await initializer;
 }
 
 export const app = express();
