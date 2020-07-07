@@ -58,7 +58,7 @@ blockchain.on('txn', async (tx) => {
     }));
 });
 
-const app = express();
+export const app = express();
 app.enable('trust proxy');
 app.use(cors());
 app.use(express.json());
@@ -377,6 +377,4 @@ app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
-
-module.exports = app;
 
