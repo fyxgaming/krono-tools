@@ -230,7 +230,7 @@ app.get('/jigs/:address', async (req: Request, res: Response, next: NextFunction
     try {
         const { address } = req.params;
         const utxos: any[] = await blockchain.utxos(address);
-        res.json(utxos.map(utxo => jigs.find(jig => jig.location == utxo._id)));
+        res.json(jigs.filter(jig => utxos.find(utxo => utxo._id == jig.location)));
     } catch (e) {
         next(e);
     }
