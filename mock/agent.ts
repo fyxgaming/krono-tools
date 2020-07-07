@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import fetch from 'node-fetch';
 import minimist from 'minimist';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
