@@ -24,7 +24,7 @@ const run = new Run({
 });
 run.owner.next = () => run.owner.pubkey;
 
-const events = new EventEmitter();
+export const events = new EventEmitter();
 const jigs = [];
 const actions = [];
 const channels = [];
