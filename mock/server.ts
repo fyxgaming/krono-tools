@@ -59,6 +59,11 @@ blockchain.on('txn', async (tx) => {
     }));
 });
 
+let initialized;
+export function setInitializer(promise) {
+    initialized = promise;
+}
+
 export const app = express();
 app.enable('trust proxy');
 app.use(cors());
@@ -74,7 +79,16 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.get('/', (req: Request, res: Response) => {
-    res.sendFile(`${__dirname}/index.html`);
+    res.json(true);
+});
+
+app.get('/initialize', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await initialized;
+        next();
+    } catch (e) {
+        next(e);
+    }
 });
 
 app.post('/broadcast', async (req: Request, res: Response, next: NextFunction) => {
