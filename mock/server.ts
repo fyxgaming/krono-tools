@@ -85,6 +85,7 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/initialize', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await initialized;
+        res.json(true);
         next();
     } catch (e) {
         next(e);
