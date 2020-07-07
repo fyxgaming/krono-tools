@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import express from 'express';
@@ -12,24 +14,8 @@ const Run = require('../run/dist/run.node.min');
 const deployer = 'mfmvYfB9pkYYnPe4nxzax99R4p8eemQtW9';
 const network = 'mock';
 
-const player = {
-    agentId: 'io.kronoverse.cryptofights',
-    address: 'mofVA17A6iX1FHdov1hZ9Lf6rDavnnRE8u'
-}
-const bot = {
-    agentId: 'io.kronoverse.cryptofights.bot',
-    address: 'mz1mxcyd5nZYEr2ereWuevsBuuQZnP1aM4'
-};
-const validator = {
-    agentId: 'io.kronoverse.cryptofights.validator',
-    address: 'mvmE2veSx1wzjfxRDN82Xi64hp2N8jrMp4'
-};
-const agents: any[] = [bot, player, validator];
+const agents: any[] = [];
 const blockchain = new MockBlockchain(network);
-blockchain.fund(bot.address, 100000000);
-blockchain.fund(player.address, 100000000);
-blockchain.fund(validator.address, 100000000);
-blockchain.fund(deployer, 100000000);
 const state = new MapStorage<any>();
 const run = new Run({
     network,
@@ -130,6 +116,15 @@ app.get('/utxos/:loc/spent', async (req: Request, res: Response, next: NextFunct
     }
 });
 
+app.get('/fund/:address', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        blockchain.fund(req.params.address, 100000000);
+        res.json(true);
+    } catch (e) {
+        next(e);
+    }
+});
+
 function notify(res: Response, eventName: string, id: string | number, data: string) {
     res.write(`id: ${id}\n`);
     res.write(`event: ${eventName}\n`);
@@ -195,13 +190,14 @@ app.get('/agents/:agentId', async (req: Request, res: Response, next: NextFuncti
 
 app.put('/agents/:realm/:agentId', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { loc } = req.body;
+        const { loc, address } = req.body;
         const { agentId } = req.params;
         let agent = agents.find(agent => agent.agentId === agentId);
         if (!agent) {
             agent = {
                 agentId,
-                location: loc
+                location: loc,
+                address
             }
             agents.push(agent);
         }
@@ -251,7 +247,6 @@ app.post('/jigs/origin/:origin', async (req: Request, res: Response, next: NextF
         next(e);
     }
 });
-
 
 app.get('/notify/:address', async (req: Request, res: Response, next: NextFunction) => {
     try {

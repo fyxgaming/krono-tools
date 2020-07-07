@@ -3,6 +3,7 @@ import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
+import { Notifier } from './notifier';
 
 const { crypto, PrivateKey, Transaction } = require('bsv');
 
@@ -24,7 +25,8 @@ export class Wallet extends EventEmitter {
     constructor(
         private run: any,
         private apiUrl: string,
-        private storage?: IStorage<any>
+        private storage?: IStorage<any>,
+        private notifier?: Notifier
     ) {
         super();
 
@@ -50,6 +52,12 @@ export class Wallet extends EventEmitter {
         console.log('AGENT:', location);
         const Agent = await this.run.load(location);
         this.agent = new Agent(this, this.blockchain, this.handlers, this.channelHandlers);
+        if(this.notifier) {
+            this.notifier.listenAddress(this.address);
+            this.notifier.on('utxo', (loc) => this.onUtxo(loc));
+            this.notifier.on('channel', (loc) => this.onChannel(loc));
+            this.notifier.on('act', (action) => this.handleEvent(action.name, action));
+        }
         await this.agent.initialize();
     }
 

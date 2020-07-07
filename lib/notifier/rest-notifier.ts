@@ -18,6 +18,9 @@ export class RestNotifier extends Notifier {
         sse.addEventListener('channel', async (e: any) => {
             this.emit('channel', e.data);
         });
+        sse.addEventListener('act', async (e: any) => {
+            this.emit('act', JSON.parse(e.data));
+        });
     }
 
     async listenJigs() {
