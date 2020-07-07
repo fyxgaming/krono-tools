@@ -226,6 +226,15 @@ app.post('/:agentId/submit', async (req: Request, res: Response, next: NextFunct
     }
 });
 
+app.get('/jigs/:address', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { address } = req.params;
+        const utxos: any[] = await blockchain.utxos(address);
+        res.json(utxos.map(utxo => jigs.find(jig => jig.location == utxo._id)));
+    } catch (e) {
+        next(e);
+    }
+});
 
 app.post('/jigs/kind/:kind', async (req: Request, res: Response, next: NextFunction) => {
     try {
