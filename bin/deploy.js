@@ -5,8 +5,8 @@ const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 const request = require('request-promise-native');
-const { RestBlockchain } = require('kronoverse-server/dist/lib/blockchain/rest-blockchain');
-const { Deployer } = require('./dist/deployer');
+const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
+const { Deployer } = require('../lib/deployer');
 
 const Run = require('../run/dist/run.node.min');
 
