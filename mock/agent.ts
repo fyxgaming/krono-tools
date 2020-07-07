@@ -9,14 +9,24 @@ import EventSource from 'eventsource';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
 import { RestNotifier } from '../lib/notifier/rest-notifier';
+import { isMainThread, workerData } from 'worker_threads';
 
 const { HDPrivateKey } = require('bsv');
 const Run = require('../run/dist/run.node.min');
+let xpriv, agent;
 
-const argv = minimist(process.argv.slice(2));
+if (isMainThread) {
+    const argv = minimist(process.argv.slice(2));
+    xpriv = argv.xpriv || process.env.XPRIV;
+    agent = argv.agent || process.env.AGENT;
+} else {
+    xpriv = workerData.xpriv;
+    agent = workerData.agent;
+}
+
 const apiUrl = 'http://localhost:8082';
 
-const hdKey = HDPrivateKey.fromString(argv.xpriv);
+const hdKey = HDPrivateKey.fromString(xpriv);
 const purse = hdKey.deriveChild('m/1').privateKey;
 const owner = hdKey.deriveChild('m/2').privateKey;
 
@@ -30,7 +40,7 @@ const owner = hdKey.deriveChild('m/2').privateKey;
         state: new LRUCache(100000000)
     });
     run.owner.owner = () => run.owner.pubkey;
-    const resp = await fetch(`${apiUrl}/agents/${argv.agent}`);
+    const resp = await fetch(`${apiUrl}/agents/${agent}`);
     if (!resp.ok) throw new Error(await resp.text());
     const agentDef = await resp.json();
     class Storage implements IStorage<any> {
