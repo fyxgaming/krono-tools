@@ -9,28 +9,15 @@ import EventSource from 'eventsource';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
 import { RestNotifier } from '../lib/notifier/rest-notifier';
-import { isMainThread, workerData } from 'worker_threads';
 
 const { HDPrivateKey } = require('bsv');
 const Run = require('../run/dist/run.node.min');
-let xpriv, agent;
 
-if (isMainThread) {
-    const argv = minimist(process.argv.slice(2));
-    xpriv = argv.xpriv || process.env.XPRIV;
-    agent = argv.agent || process.env.AGENT;
-} else {
-    xpriv = workerData.xpriv;
-    agent = workerData.agent;
-}
+export async function initializeAgent(apiUrl, agent, xpriv) {
+    const hdKey = HDPrivateKey.fromString(xpriv);
+    const purse = hdKey.deriveChild('m/1').privateKey;
+    const owner = hdKey.deriveChild('m/2').privateKey;
 
-const apiUrl = 'http://localhost:8082';
-
-const hdKey = HDPrivateKey.fromString(xpriv);
-const purse = hdKey.deriveChild('m/1').privateKey;
-const owner = hdKey.deriveChild('m/2').privateKey;
-
-(async () => {
     const blockchain = new RestBlockchain(apiUrl, 'mock');
     const run = new Run({
         network: 'mock',
@@ -94,8 +81,4 @@ const owner = hdKey.deriveChild('m/2').privateKey;
             console.error('CHANNEL error', e.message, e.stack);
         }
     });
-
-})().catch((err) => {
-    console.error(err);
-    process.exit();
-});
+};
