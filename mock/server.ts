@@ -7,6 +7,7 @@ import { HttpError, NotFound } from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
 import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
 import { MapStorage } from '../lib/storage/map-storage';
+import { isMainThread, workerData } from 'worker_threads';
 
 const { Transaction } = require('bsv');
 const Run = require('../run/dist/run.node.min');
@@ -371,7 +372,7 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
     res.status(err.statusCode || 500).send(err.message);
 });
 
-const PORT = process.env.PORT || 8082;
+const PORT = process.env.PORT || (!isMainThread && workerData.port) || 8082;
 
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
