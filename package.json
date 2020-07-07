@@ -15,7 +15,8 @@
   },
   "bin": {
     "krono-deploy": "./bin/deploy.js",
-    "krono-server": "./dist/mock/server.js"
+    "krono-server": "./dist/mock/server.js",
+    "krono-agent": "./dist/mock/agent.js"
   },
   "dependencies": {
     "body-parser": "^1.19.0",

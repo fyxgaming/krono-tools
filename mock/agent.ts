@@ -6,6 +6,7 @@ import { Wallet } from '../lib/wallet';
 import EventSource from 'eventsource';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
+import { RestNotifier } from '../lib/notifier/rest-notifier';
 
 const { HDPrivateKey } = require('bsv');
 const Run = require('../run/dist/run.node.min');
@@ -36,7 +37,7 @@ const owner = hdKey.deriveChild('m/2').privateKey;
         async set(key, value) { this.store.set(key, value) }
         async delete(key) { this.store.delete(key) }
     }
-    const wallet = new Wallet(run, apiUrl, new Storage());
+    const wallet = new Wallet(run, apiUrl, new Storage(), new RestNotifier(apiUrl));
     wallet.on('message', async message => {
         const resp = await fetch(`${apiUrl}/messages`, {
             method: 'POST',

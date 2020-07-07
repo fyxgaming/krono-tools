@@ -11,7 +11,6 @@ import { MapStorage } from '../lib/storage/map-storage';
 const { Transaction } = require('bsv');
 const Run = require('../run/dist/run.node.min');
 
-const deployer = 'mfmvYfB9pkYYnPe4nxzax99R4p8eemQtW9';
 const network = 'mock';
 
 const agents: any[] = [];
