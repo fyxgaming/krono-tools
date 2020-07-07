@@ -25,8 +25,7 @@ export class Wallet extends EventEmitter {
     constructor(
         private run: any,
         private apiUrl: string,
-        private storage?: IStorage<any>,
-        private notifier?: Notifier
+        private storage?: IStorage<any>
     ) {
         super();
 
@@ -52,12 +51,6 @@ export class Wallet extends EventEmitter {
         console.log('AGENT:', location);
         const Agent = await this.run.load(location);
         this.agent = new Agent(this, this.blockchain, this.handlers, this.channelHandlers);
-        if(this.notifier) {
-            this.notifier.listenAddress(this.address);
-            this.notifier.on('utxo', (loc) => this.onUtxo(loc));
-            this.notifier.on('channel', (loc) => this.onChannel(loc));
-            this.notifier.on('act', (action) => this.handleEvent(action.name, action));
-        }
         await this.agent.initialize();
     }
 

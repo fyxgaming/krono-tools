@@ -13,8 +13,9 @@ const Run = require('../run/dist/run.node.min');
 
 const network = 'mock';
 
-const agents: any[] = [];
-const blockchain = new MockBlockchain(network);
+export const agents: any[] = [];
+export const blockchain = new MockBlockchain(network);
+
 const state = new MapStorage<any>();
 const run = new Run({
     network,
