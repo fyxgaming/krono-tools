@@ -82,6 +82,10 @@ app.get('/', (req: Request, res: Response) => {
     res.json(true);
 });
 
+app.get('/_ah/stop', (req: Request, res: Response) => {
+    process.exit(0);
+});
+
 app.get('/initialize', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await initialized;
@@ -169,7 +173,9 @@ app.get('/utxos/:loc/spent', async (req: Request, res: Response, next: NextFunct
 app.get('/channel/:loc', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { loc } = req.params;
-        res.json(await blockchain.getChannel(loc));
+        const channel = await blockchain.getChannel(loc);
+        if(!channel) throw new NotFound();
+        res.json(channel);
     } catch (e) {
         next(e);
     }
@@ -303,7 +309,7 @@ app.get('/notify/:address', async (req: Request, res: Response, next: NextFuncti
             if (!channel.recipients.includes(address) || channel.address === address) return;
             notify(res, 'channel', channel.ts, channel.loc);
         }
-        // channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
+        channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
         blockchain.on('channel', writeChannel);
 
         res.on('close', () => {
