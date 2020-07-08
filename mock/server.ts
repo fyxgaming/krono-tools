@@ -72,19 +72,22 @@ app.enable('trust proxy');
 app.use(cors());
 app.use(express.json());
 
-io.on('connection', (socket) => {
-    console.log('SOCKET CONNECTION');
-    socket.on('listen', (address) => {
-        console.log('SOCKET:', address);
-        blockchain.on(address, (utxo) => {
-            socket.emit('utxo', utxo._id);
-        });
-        blockchain.on('channel', (channel) => {
-            if(!channel.recipients.includes(address)) return;
-            socket.emit('channel', channel.loc);
-        });
-    });
-})
+blockchain.on('utxo', (utxo) => io.emit('utxo', utxo));
+blockchain.on('channel', (channel) => io.emit('channel', channel));
+events.on('jig', (jig) => io.emit('jig', jig))
+// io.on('connection', (socket) => {
+//     console.log('SOCKET CONNECTION');
+//     socket.on('listen', (address) => {
+//         console.log('SOCKET:', address);
+//         blockchain.on(address, (utxo) => {
+//             socket.emit('utxo', utxo._id);
+//         });
+//         blockchain.on('channel', (channel) => {
+//             if(!channel.recipients.includes(address)) return;
+//             socket.emit('channel', channel.loc);
+//         });
+//     });
+// })
 
 // app.use(async (req: Request, res: Response, next: NextFunction) => {
 //     try {
@@ -166,11 +169,11 @@ app.get('/fund/:address', async (req: Request, res: Response, next: NextFunction
     }
 });
 
-function notify(res: Response, eventName: string, id: string | number, data: string) {
-    res.write(`id: ${id}\n`);
-    res.write(`event: ${eventName}\n`);
-    res.write(`data: ${data}\n\n`);
-}
+// function notify(res: Response, eventName: string, id: string | number, data: string) {
+//     res.write(`id: ${id}\n`);
+//     res.write(`event: ${eventName}\n`);
+//     res.write(`data: ${data}\n\n`);
+// }
 
 app.post('/utxos', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -300,117 +303,117 @@ app.post('/jigs/origin/:origin', async (req: Request, res: Response, next: NextF
     }
 });
 
-app.get('/notify/:address', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const address = req.params.address;
-        const lastTs = parseInt(req.get('Last-Event_ID') || '0', 10);
-        console.log('NOTIFY:', address);
+// app.get('/notify/:address', async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const address = req.params.address;
+//         const lastTs = parseInt(req.get('Last-Event_ID') || '0', 10);
+//         console.log('NOTIFY:', address);
 
-        const headers = {
-            'Content-Type': 'text/event-stream',
-            'Connection': 'keep-alive',
-            'Cache-Control': 'no-cache'
-        };
-        res.writeHead(200, headers);
+//         const headers = {
+//             'Content-Type': 'text/event-stream',
+//             'Connection': 'keep-alive',
+//             'Cache-Control': 'no-cache'
+//         };
+//         res.writeHead(200, headers);
 
-        function writeUtxo(utxo) {
-            notify(res, 'utxo', utxo.ts, utxo._id);
-        }
-        blockchain.on(address, writeUtxo);
-        // const utxos = await blockchain.utxos(address, lastTs);
-        // utxos.forEach(writeUtxo);
+//         function writeUtxo(utxo) {
+//             notify(res, 'utxo', utxo.ts, utxo._id);
+//         }
+//         blockchain.on(address, writeUtxo);
+//         // const utxos = await blockchain.utxos(address, lastTs);
+//         // utxos.forEach(writeUtxo);
 
-        function writeAct(action) {
-            if (action.address !== address) return;
-            notify(res, 'act', action.ts, JSON.stringify(action));
-        }
-        // actions.forEach((action) => action.ts > lastTs && writeAct(action));
-        events.on('act', writeAct);
+//         function writeAct(action) {
+//             if (action.address !== address) return;
+//             notify(res, 'act', action.ts, JSON.stringify(action));
+//         }
+//         // actions.forEach((action) => action.ts > lastTs && writeAct(action));
+//         events.on('act', writeAct);
 
-        function writeChannel(channel) {
-            console.log('CHANNEL:', address, JSON.stringify(channel));
-            if (!channel.recipients.includes(address) || channel.address === address) return;
-            notify(res, 'channel', channel.ts, channel.loc);
-        }
-        channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
-        blockchain.on('channel', writeChannel);
+//         function writeChannel(channel) {
+//             console.log('CHANNEL:', address, JSON.stringify(channel));
+//             if (!channel.recipients.includes(address) || channel.address === address) return;
+//             notify(res, 'channel', channel.ts, channel.loc);
+//         }
+//         channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
+//         blockchain.on('channel', writeChannel);
 
-        res.on('close', () => {
-            console.log('CLOSING STREAM:', address);
-            blockchain.off(address, writeUtxo);
-            events.off('act', writeAct);
-            blockchain.off('channel', writeChannel);
-        });
-    }
-    catch (e) {
-        next(e);
-    }
-});
+//         res.on('close', () => {
+//             console.log('CLOSING STREAM:', address);
+//             blockchain.off(address, writeUtxo);
+//             events.off('act', writeAct);
+//             blockchain.off('channel', writeChannel);
+//         });
+//     }
+//     catch (e) {
+//         next(e);
+//     }
+// });
 
-app.get('/notify/jigs/:ts?', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { kind, origin } = req.query;
-        const lastTs = parseInt(req.get('Last-Event_ID') || req.params.ts, 10) || 0;
-        const kinds = Array.isArray(kind) ? kind : (kind ? [kind] : []);
-        const origins = Array.isArray(origin) ? origin : (origin ? [origin] : []);
+// app.get('/notify/jigs/:ts?', async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { kind, origin } = req.query;
+//         const lastTs = parseInt(req.get('Last-Event_ID') || req.params.ts, 10) || 0;
+//         const kinds = Array.isArray(kind) ? kind : (kind ? [kind] : []);
+//         const origins = Array.isArray(origin) ? origin : (origin ? [origin] : []);
 
-        const headers = {
-            'Content-Type': 'text/event-stream',
-            'Connection': 'keep-alive',
-            'Cache-Control': 'no-cache'
-        };
-        res.writeHead(200, headers);
+//         const headers = {
+//             'Content-Type': 'text/event-stream',
+//             'Connection': 'keep-alive',
+//             'Cache-Control': 'no-cache'
+//         };
+//         res.writeHead(200, headers);
 
-        function handleJig(jig) {
-            if (kinds.includes(jig.kind)) {
-                notify(res, 'kind', jig.ts, jig.location);
-            }
-            if (origins.includes(jig.origin)) {
-                notify(res, 'origin', jig.ts, jig.location);
-            }
-        }
-        events.on('jig', handleJig);
-        for (let i = lastTs; i < jigs.length; i++) {
-            handleJig(jigs[i]);
-        }
+//         function handleJig(jig) {
+//             if (kinds.includes(jig.kind)) {
+//                 notify(res, 'kind', jig.ts, jig.location);
+//             }
+//             if (origins.includes(jig.origin)) {
+//                 notify(res, 'origin', jig.ts, jig.location);
+//             }
+//         }
+//         events.on('jig', handleJig);
+//         for (let i = lastTs; i < jigs.length; i++) {
+//             handleJig(jigs[i]);
+//         }
 
-        res.on('close', () => {
-            events.off('jig', handleJig);
-        });
-    }
-    catch (e) {
-        next(e);
-    }
-});
+//         res.on('close', () => {
+//             events.off('jig', handleJig);
+//         });
+//     }
+//     catch (e) {
+//         next(e);
+//     }
+// });
 
-app.get('/notify/channels/:ts?', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { channel } = req.query;
-        const lastTs = parseInt(req.get('Last-Event_ID') || req.params.ts, 10) || 0;
-        const channels: any[] = Array.isArray(channel) ? channel : (channel ? [channel] : []);
+// app.get('/notify/channels/:ts?', async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { channel } = req.query;
+//         const lastTs = parseInt(req.get('Last-Event_ID') || req.params.ts, 10) || 0;
+//         const channels: any[] = Array.isArray(channel) ? channel : (channel ? [channel] : []);
 
-        const headers = {
-            'Content-Type': 'text/event-stream',
-            'Connection': 'keep-alive',
-            'Cache-Control': 'no-cache'
-        };
-        res.writeHead(200, headers);
+//         const headers = {
+//             'Content-Type': 'text/event-stream',
+//             'Connection': 'keep-alive',
+//             'Cache-Control': 'no-cache'
+//         };
+//         res.writeHead(200, headers);
 
-        function writeChannel(channel) {
-            if (!channels.includes(channel.loc)) return;
-            notify(res, 'channel', channel.ts, channel.loc);
-        }
-        channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
-        blockchain.on('channel', writeChannel);
+//         function writeChannel(channel) {
+//             if (!channels.includes(channel.loc)) return;
+//             notify(res, 'channel', channel.ts, channel.loc);
+//         }
+//         channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
+//         blockchain.on('channel', writeChannel);
 
-        res.on('close', () => {
-            blockchain.off('channel', writeChannel);
-        });
-    }
-    catch (e) {
-        next(e);
-    }
-});
+//         res.on('close', () => {
+//             blockchain.off('channel', writeChannel);
+//         });
+//     }
+//     catch (e) {
+//         next(e);
+//     }
+// });
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
     console.error(err.message, err.statusCode !== 404 && err.stack);
