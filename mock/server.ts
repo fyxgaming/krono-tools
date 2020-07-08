@@ -24,9 +24,9 @@ const run = new Run({
 });
 run.owner.next = () => run.owner.pubkey;
 
+blockchain.setMaxListeners(100);
 export const events = new EventEmitter();
 const jigs = [];
-const actions = [];
 const channels = [];
 
 blockchain.on('txn', async (tx) => {
@@ -82,11 +82,16 @@ app.get('/', (req: Request, res: Response) => {
     res.json(true);
 });
 
+app.get('/_ah/warmup', (req, res) => {
+    res.json(true);
+});
+
 app.get('/_ah/stop', (req: Request, res: Response) => {
     process.exit(0);
 });
 
 app.get('/initialize', async (req: Request, res: Response, next: NextFunction) => {
+    res.set('Cache-Control', 'no-store')
     try {
         await initialized;
         res.json(true);
@@ -282,6 +287,7 @@ app.get('/notify/:address', async (req: Request, res: Response, next: NextFuncti
     try {
         const address = req.params.address;
         const lastTs = parseInt(req.get('Last-Event_ID') || '0', 10);
+        console.log('NOTIFY:', address);
 
         const headers = {
             'Content-Type': 'text/event-stream',
@@ -313,6 +319,7 @@ app.get('/notify/:address', async (req: Request, res: Response, next: NextFuncti
         blockchain.on('channel', writeChannel);
 
         res.on('close', () => {
+            console.log('CLOSING STREAM:', address);
             blockchain.off(address, writeUtxo);
             events.off('act', writeAct);
             blockchain.off('channel', writeChannel);
