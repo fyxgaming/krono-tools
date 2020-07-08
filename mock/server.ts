@@ -288,14 +288,14 @@ app.get('/notify/:address', async (req: Request, res: Response, next: NextFuncti
             notify(res, 'utxo', utxo.ts, utxo._id);
         }
         blockchain.on(address, writeUtxo);
-        const utxos = await blockchain.utxos(address, lastTs);
-        utxos.forEach(writeUtxo);
+        // const utxos = await blockchain.utxos(address, lastTs);
+        // utxos.forEach(writeUtxo);
 
         function writeAct(action) {
             if (action.address !== address) return;
             notify(res, 'act', action.ts, JSON.stringify(action));
         }
-        actions.forEach((action) => action.ts > lastTs && writeAct(action));
+        // actions.forEach((action) => action.ts > lastTs && writeAct(action));
         events.on('act', writeAct);
 
         function writeChannel(channel) {
@@ -303,7 +303,7 @@ app.get('/notify/:address', async (req: Request, res: Response, next: NextFuncti
             if (!channel.recipients.includes(address) || channel.address === address) return;
             notify(res, 'channel', channel.ts, channel.loc);
         }
-        channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
+        // channels.forEach((channel) => channel.ts > lastTs && writeChannel(channel));
         blockchain.on('channel', writeChannel);
 
         res.on('close', () => {
