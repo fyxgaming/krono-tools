@@ -3,6 +3,7 @@
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import express from 'express';
+import http from 'http';
 import { HttpError, NotFound } from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
 import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
@@ -65,9 +66,24 @@ export async function setInitializer(initializer) {
 }
 
 export const app = express();
+const server = http.createServer(app);
+const io = require('socket.io').listen(server);
 app.enable('trust proxy');
 app.use(cors());
 app.use(express.json());
+
+io.on('connection', (socket) => {
+    socket.on('listen', (address) => {
+        console.log('SOCKET:', address);
+        blockchain.on(address, (utxo) => {
+            socket.emit('utxo', utxo._id);
+        });
+        blockchain.on('channel', (channel) => {
+            if(!channel.recipients.includes(address)) return;
+            socket.emit('channel', channel.loc);
+        });
+    });
+})
 
 app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -402,7 +418,7 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
 
 const PORT = process.env.PORT || 8082;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
