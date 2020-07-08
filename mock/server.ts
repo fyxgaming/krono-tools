@@ -86,14 +86,14 @@ io.on('connection', (socket) => {
     });
 })
 
-app.use(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        console.log('Req:', req.path);
-        next();
-    } catch (e) {
-        next(e);
-    }
-});
+// app.use(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         console.log('Req:', req.path);
+//         next();
+//     } catch (e) {
+//         next(e);
+//     }
+// });
 
 app.get('/', (req: Request, res: Response) => {
     res.json(true);
