@@ -73,6 +73,7 @@ app.use(cors());
 app.use(express.json());
 
 io.on('connection', (socket) => {
+    console.log('SOCKET CONNECTION');
     socket.on('listen', (address) => {
         console.log('SOCKET:', address);
         blockchain.on(address, (utxo) => {
