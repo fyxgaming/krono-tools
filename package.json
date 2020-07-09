@@ -7,6 +7,7 @@
     "build": "tsc -p .",
     "deploy:dev": "ts-node ./bin/deploy.ts --app=kronoverse --src=jigs --env=dev",
     "deploy:test": "ts-node ./bin/deploy.ts --app=kronoverse --src=jigs --env=test",
+    "deploy:main": "ts-node ./bin/deploy.ts --app=kronoverse --src=jigs --env=main",
     "postinstall": "npm run build",
     "prepare": "npm run build",
     "start": "ts-node mock/server.ts",
