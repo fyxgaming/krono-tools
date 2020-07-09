@@ -1,8 +1,6 @@
 import { IStorage } from '../interfaces';
-// import request from 'request-promise-native';
 import fetch from 'node-fetch';
 import createError from 'http-errors';
-
 
 export class RestStateCache implements IStorage<any> {
     constructor(private apiUrl: string, public cache?: Map<string, any>) { }
