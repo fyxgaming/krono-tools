@@ -58,6 +58,7 @@ export class RestBlockchain extends Blockchain {
             const spends: any[] = await Promise.all(locs.map(async loc => {
                 let spend = await this.cache.get(`spend:${loc}`);
                 if (spend) return spend;
+                const {txid, index} = loc.split('_o');
                 const resp = await fetch(`${TXQ}/api/v1/txout/txid/${loc}`, { headers: { api_key: API_KEY } });
                 if (!resp.ok) return {};
                 spend = (await resp.json()).result;

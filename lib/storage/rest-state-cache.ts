@@ -10,7 +10,7 @@ export class RestStateCache implements IStorage<any> {
         let value = await this.cache.get(key);
         if (value) return value;
         try {
-            const resp = await fetch(`${this.apiUrl}/cache/${key}`);
+            const resp = await fetch(`${this.apiUrl}/cache/${encodeURI(key)}`);
             if(!resp.ok) {
                 if(resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
