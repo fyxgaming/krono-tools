@@ -19,10 +19,10 @@ export class RestBlockchain extends Blockchain {
         console.time(`Broadcast: ${tx.hash}`);
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
-            headers: { api_key: API_KEY, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx: tx.toString() })
         });
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         console.timeEnd(`Broadcast: ${tx.hash}`);
         await this.cache.set(`tx:${tx.hash}`, tx.toString());
         return tx.hash;
