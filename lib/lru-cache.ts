@@ -26,7 +26,7 @@ export class LRUCache implements IStorage<any> {
         if (this.cache.has(key)) {
             const value = this.cache.get(key);
             this.cache.delete(key);
-            this.set(key, value);
+            this.cache.set(key, value);
             return value && JSON.parse(value);
         }
     }

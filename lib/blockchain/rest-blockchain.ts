@@ -1,6 +1,7 @@
 import { IUTXO, IAction, IStorage } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
+import createError from 'http-errors';
 import fetch from 'node-fetch';
 
 const { Transaction } = require('bsv');
@@ -16,7 +17,6 @@ export class RestBlockchain extends Blockchain {
 
     async broadcast(tx) {
         console.time(`Broadcast: ${tx.hash}`);
-        console.log(tx.toString())
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { api_key: API_KEY, 'Content-Type': 'application/json' },
@@ -46,14 +46,14 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx:${txid}`);
             if (!rawtx) {
-                const url = `${this.apiUrl}/tx/${txid}`;
                 const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                if (resp.status === 404) return;
+                if(!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.json();
                 await this.cache.set(`tx:${txid}`, rawtx);
             }
 
-            const tx = new Transaction(rawtx);
+            // console.log(rawtx);
+            const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
             const spends: any[] = await Promise.all(locs.map(async loc => {
                 let spend = await this.cache.get(`spend:${loc}`);
