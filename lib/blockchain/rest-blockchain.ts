@@ -16,7 +16,7 @@ export class RestBlockchain extends Blockchain {
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tx.toObject())
+            body: JSON.stringify({rawtx: tx.toString()})
         });
         if (!resp.ok) throw new Error(await resp.text());
         console.timeEnd(`Broadcast: ${tx.hash}`);
@@ -38,28 +38,25 @@ export class RestBlockchain extends Blockchain {
     }
 
     async fetch(txid: string, force?: boolean) {
-        this.emit('fetch', txid);
         try {
-            let txData;
-            if (!force && this.cache.has(txid)) {
-                txData = this.cache.get(txid);
-            }
-            if (!txData) {
-                const url = `${this.apiUrl}/tx/${txid}`;
-                const resp = await fetch(url);
-                txData = await resp.json();
-                this.inflight.delete(txid);
-                this.cache.set(txid, txData);
-            }
-            const tx = new Transaction(txData);
+            const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+            const rawtx = await resp.json();
+            const tx = new Transaction(rawtx);
+            const spent: any[] = await Promise.all(tx.outputs.map(async (o, i) => {
+                const resp = await fetch(`${this.apiUrl}/utxos/${txid}_o${i}/spent`);
+                if(resp.status === 404) return {};
+                if (!resp.ok) throw new Error(resp.statusText);
+                return resp.json();
+            }));
+
             tx.outputs.forEach((o: any, i) => {
-                o.spentTxId = txData.spent[i]?.txid || null
-                o.spentIndex = txData.spent[i]?.i
+                o.spentTxId = spent[i].spent_txid || null;
+                o.spentIndex = spent[i].spent_index || null;
             });
-            (tx as any).time = txData.time;
+            // console.log('TX:', tx)
             return tx;
         } catch (e) {
-            console.log(txid, 'not found');
+            console.log(`Fetch error: ${txid} - ${e.message}`);
             throw e;
         }
     };
