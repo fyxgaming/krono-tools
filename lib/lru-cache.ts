@@ -1,33 +1,39 @@
-export class LRUCache extends Map<string, any> {
+import { IStorage } from './interfaces';
+export class LRUCache implements IStorage<any> {
+    protected cache = new Map<string, any>();
     public bytes = 0;
 
-    constructor(private maxBytes: number, private maxEntries?: number) {
-        super();
-    }
+    constructor(private maxBytes: number, private maxEntries?: number) {}
 
-    set(key: string, value: any): this {
+    async set(key: string, value: any) {
         const serialized = JSON.stringify(value);
         this.bytes += serialized?.length || 0;
-        super.set(key, serialized);
+        this.cache.set(key, serialized);
 
-        for (const delKey of Array.from(this.keys())) {
-            if ((!this.maxEntries || this.size <= this.maxEntries) &&
+        for (const delKey of Array.from(this.cache.keys())) {
+            if ((!this.maxEntries || this.cache.size <= this.maxEntries) &&
                 (!this.maxBytes || this.bytes <= this.maxBytes)
             ) break;
-            const delValue = super.get(delKey);
+            const delValue = this.cache.get(delKey);
             this.bytes -= delValue?.length || 0;
-            this.delete(delKey);
+            this.cache.delete(delKey);
         };
 
-        return this;
+        return;
     }
 
     get(key: string) {
-        if (this.has(key)) {
-            const value = super.get(key);
-            this.delete(key);
-            super.set(key, value);
+        if (this.cache.has(key)) {
+            const value = this.cache.get(key);
+            this.cache.delete(key);
+            this.set(key, value);
             return value && JSON.parse(value);
         }
+    }
+
+    async delete(key: string) {
+        const delValue = this.cache.get(key);
+        this.bytes -= delValue?.length || 0;
+        this.cache.delete(key);
     }
 }

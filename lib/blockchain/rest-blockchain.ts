@@ -1,29 +1,34 @@
-import { IUTXO, IAction } from '../interfaces';
+import { IUTXO, IAction, IStorage } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import fetch from 'node-fetch';
 
 const { Transaction } = require('bsv');
+// const { API_KEY, RUNNETWORK, TXQ } = process.env;
+const TXQ = 'https://kronoverse-testnet.txq-app.com';
+const API_KEY = '6YuabhPHKvydGVkSaVpdM2AivRNZ86Fva1DnxLen41BFosb84vF4EzPM8xJeDb3kcW';
 
+// const matter = mattercloudjs.instance({ api_key: API_KEY, network: RUNNETWORK });
 export class RestBlockchain extends Blockchain {
-    private inflight = new Map<string, Promise<any>>();
-    constructor(private apiUrl: string, network: string, public cache = new LRUCache(10000000)) {
+    constructor(private apiUrl: string, network: string, public cache: IStorage<any> = new LRUCache(10000000)) {
         super(network);
     }
 
     async broadcast(tx) {
         console.time(`Broadcast: ${tx.hash}`);
+        console.log(tx.toString())
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({rawtx: tx.toString()})
+            headers: { api_key: API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rawtx: tx.toString() })
         });
         if (!resp.ok) throw new Error(await resp.text());
         console.timeEnd(`Broadcast: ${tx.hash}`);
-        return this.saveTx(tx, true);
+        await this.cache.set(`tx:${tx.hash}`, tx.toString());
+        return tx.hash;
     }
 
-    async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
+    async saveTx(tx): Promise<IUTXO[]> {
         const txid = tx.hash;
         return tx.outputs.map((o, vout) => o.script.isPublicKeyHashOut() && {
             _id: `${txid}_o${vout}`,
@@ -37,23 +42,34 @@ export class RestBlockchain extends Blockchain {
         }).filter(utxo => utxo);
     }
 
-    async fetch(txid: string, force?: boolean) {
+    async fetch(txid: string) {
         try {
-            const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-            const rawtx = await resp.json();
+            let rawtx = await this.cache.get(`tx:${txid}`);
+            if (!rawtx) {
+                const url = `${this.apiUrl}/tx/${txid}`;
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                if (resp.status === 404) return;
+                rawtx = await resp.json();
+                await this.cache.set(`tx:${txid}`, rawtx);
+            }
+
             const tx = new Transaction(rawtx);
-            const spent: any[] = await Promise.all(tx.outputs.map(async (o, i) => {
-                const resp = await fetch(`${this.apiUrl}/utxos/${txid}_o${i}/spent`);
-                if(resp.status === 404) return {};
-                if (!resp.ok) throw new Error(resp.statusText);
-                return resp.json();
+            const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
+            const spends: any[] = await Promise.all(locs.map(async loc => {
+                let spend = await this.cache.get(`spend:${loc}`);
+                if (spend) return spend;
+                const resp = await fetch(`${TXQ}/api/v1/txout/txid/${loc}`, { headers: { api_key: API_KEY } });
+                if (!resp.ok) return {};
+                spend = (await resp.json()).result;
+                await this.cache.set(`spend:${loc}`, spend);
+                return spend;
             }));
 
             tx.outputs.forEach((o: any, i) => {
-                o.spentTxId = spent[i].spent_txid || null;
-                o.spentIndex = spent[i].spent_index || null;
+                o.spentTxId = spends[i].spent_txid || null;
+                o.spentIndex = spends[i].spent_index || null;
             });
-            // console.log('TX:', tx)
+
             return tx;
         } catch (e) {
             console.log(`Fetch error: ${txid} - ${e.message}`);
