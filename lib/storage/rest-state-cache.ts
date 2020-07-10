@@ -10,14 +10,14 @@ export class RestStateCache implements IStorage<any> {
         let value = await this.cache.get(key);
         if (value) return value;
         try {
-            const resp = await fetch(`${this.apiUrl}/cache/${encodeURI(key)}`);
+            const resp = await fetch(`${this.apiUrl}/cache/${encodeURIComponent(key)}`);
             if(!resp.ok) {
                 if(resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
             }
             value = await resp.json();
             if (this.cache) {
-                this.cache.set(key, value);
+                await this.cache.set(key, value);
             }
         } catch (e) {
             console.error('State Error', e.message);
@@ -28,10 +28,10 @@ export class RestStateCache implements IStorage<any> {
     }
 
     async set(key: string, value: any) {
-        this.cache.set(key, value);
+        await this.cache.set(key, value);
     }
 
     async delete(key: string) {
-        this.cache.delete(key);
+        await this.cache.delete(key);
     }
 }
