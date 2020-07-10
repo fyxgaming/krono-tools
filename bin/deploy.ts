@@ -6,6 +6,7 @@ const minimist = require('minimist');
 const path = require('path');
 const fetch = require('node-fetch');
 const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
+const { RestStateCache } = require('../lib/storage/rest-state-cache');
 const { Deployer } = require('../lib/deployer');
 
 const Run = require('../run/dist/run.node.min');
@@ -68,7 +69,8 @@ function renderUsage() {
         return;
     }
 
-    const blockchain = new RestBlockchain(blockchainUrl, network);
+    const cache = new RestStateCache(blockchainUrl);
+    const blockchain = new RestBlockchain(blockchainUrl, network, cache);
 
     const run = new Run({
         blockchain,
