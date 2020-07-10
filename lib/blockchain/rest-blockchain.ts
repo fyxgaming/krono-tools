@@ -60,7 +60,7 @@ export class RestBlockchain extends Blockchain {
                 if (spentTxId) return spentTxId;
                 const {txid, index} = loc.split('_o');
                 const resp = await fetch(`${TXQ}/api/v1/txout/txid/${txid}/${index}`, { headers: { api_key: API_KEY } });
-                if (!resp.ok) return {};
+                if (!resp.ok) return null;
                 spentTxId = (await resp.json()).result.spent_txid;
                 await this.cache.set(`spend://${loc}`, spentTxId);
                 return spentTxId;
