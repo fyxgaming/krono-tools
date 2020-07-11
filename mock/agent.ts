@@ -7,7 +7,7 @@ import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
 
 const { HDPrivateKey } = require('bsv');
-const Run = require('../run/dist/run.node.min');
+const Run = require('@runonbitcoin/release');
 
 export class Agent {
     private wallet: Wallet;

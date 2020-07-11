@@ -10,7 +10,7 @@ import { MockBlockchain } from '../lib/blockchain/mock-blockchain'
 import { MapStorage } from '../lib/storage/map-storage';
 
 const { Transaction } = require('bsv');
-const Run = require('../run/dist/run.node.min');
+const Run = require('@runonbitcoin/release');
 
 const network = 'mock';
 

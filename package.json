@@ -17,6 +17,7 @@
     "krono-deploy": "./bin/deploy.js"
   },
   "dependencies": {
+    "@runonbitcoin/release": "file:run",
     "body-parser": "^1.19.0",
     "bsv": "^1.5.3",
     "cors": "^2.8.5",
