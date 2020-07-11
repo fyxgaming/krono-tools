@@ -2,9 +2,12 @@ import { IUTXO, IAction, IStorage } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import createError from 'http-errors';
-import fetch from 'node-fetch';
+
+import 'isomorphic-fetch';
+// import fetch from 'node-fetch';
 
 const { Transaction } = require('bsv');
+
 
 export class RestBlockchain extends Blockchain {
     constructor(
