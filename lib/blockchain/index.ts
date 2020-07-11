@@ -1,7 +1,5 @@
-import { IUTXO } from '../interfaces';
 import { EventEmitter } from 'events';
 
-const { Script } = require('bsv');
 export abstract class Blockchain extends EventEmitter {
     constructor(public network: string) {
         super();
