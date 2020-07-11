@@ -2,7 +2,7 @@ import { Blockchain } from '.';
 import { IUTXO } from '../interfaces';
 import createError from 'http-errors';
 
-const { Transaction } = require('bsv');
+const { Script, Transaction } = require('bsv');
 export class MockBlockchain extends Blockchain {
     protected apiUrl: string;
     protected cache = new Map<string, any>();
@@ -50,6 +50,25 @@ export class MockBlockchain extends Blockchain {
             if (!utxo) throw new Error(`tx input ${i} missing or spent: ${loc}`);
             // if (!this.validateInput(tx, i, utxo)) throw new Error('Script Invalid');
         });
+    }
+
+    validateInput(tx, i) {
+        const Interpreter = Script.Interpreter;
+        const flags = Interpreter.SCRIPT_VERIFY_STRICTENC |
+            Interpreter.SCRIPT_VERIFY_DERSIG |
+            Interpreter.SCRIPT_VERIFY_LOW_S |
+            Interpreter.SCRIPT_VERIFY_NULLDUMMY |
+            Interpreter.SCRIPT_VERIFY_SIGPUSHONLY |
+            Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES |
+            Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+            Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID
+
+        const interpreter = new Interpreter();
+        const valid = interpreter.verify(
+            tx.inputs[i].script, tx.inputs[i].output.script, tx, i,
+            flags, tx.inputs[i].output.satoshisBN
+        );
+        return valid;
     }
 
     async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
