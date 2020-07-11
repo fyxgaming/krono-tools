@@ -3,12 +3,12 @@
 import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
 import { Deployer } from '../lib/deployer';
+import fetch from 'isomorphic-unfetch'
 
 const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
-const fetch = require('node-fetch');
 
 const Run = require('../run/dist/run.node.min');
 

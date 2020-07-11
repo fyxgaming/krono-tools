@@ -3,7 +3,8 @@ import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import createError from 'http-errors';
 
-const _fetch = (global as any).fetch || require('node-fetch');
+import fetch from 'isomorphic-unfetch'
+
 const { Transaction } = require('bsv');
 
 export class RestBlockchain extends Blockchain {

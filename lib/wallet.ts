@@ -2,8 +2,9 @@ import * as secp from 'noble-secp256k1';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { EventEmitter } from 'events';
-import fetch from 'node-fetch';
-import { Notifier } from './notifier';
+import fetch from 'isomorphic-unfetch'
+
+// import { Notifier } from './notifier';
 
 const { crypto, PrivateKey, Transaction } = require('bsv');
 
