@@ -2,7 +2,7 @@ import { IStorage } from '../interfaces';
 import createError from 'http-errors';
 import { LRUCache } from '../lru-cache';
 
-import fetch from 'isomorphic-fetch'
+import fetch from 'node-fetch'
 export class RestStateCache implements IStorage<any> {
     constructor(
         private apiUrl: string, 
