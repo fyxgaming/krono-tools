@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
+import { MapStorage } from "../lib/storage/map-storage";
+
 const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 const fetch = require('node-fetch');
 const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
-const { RestStateCache } = require('../lib/storage/rest-state-cache');
 const { Deployer } = require('../lib/deployer');
 
 const Run = require('../run/dist/run.node.min');
@@ -16,7 +17,7 @@ var argv = minimist(process.argv.slice(2));
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     dev: 'https://kronoverse-dev.appspot.com',
-    test: 'https://kronoverse-main.appspot.com',
+    test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
 };
 
@@ -64,13 +65,20 @@ function renderUsage() {
     const sourcePath = path.resolve(source, 'catalog.js');
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
+    console.log('CONFIG:', blockchainUrl, network, source);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
         return;
     }
 
-    const cache = new RestStateCache(blockchainUrl);
-    const blockchain = new RestBlockchain(blockchainUrl, network, cache);
+    const blockchain = new RestBlockchain(
+        blockchainUrl, 
+        network, 
+        new MapStorage<any>(), 
+        process.env.TXQ,
+        process.env.API_KEY,
+        true
+    );
 
     const run = new Run({
         blockchain,
