@@ -3,7 +3,7 @@
 import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
 import { Deployer } from '../lib/deployer';
-import fetch from 'isomorphic-unfetch'
+import fetch from 'isomorphic-fetch'
 
 const dotenv = require('dotenv');
 const fs = require('fs-extra');

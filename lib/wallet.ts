@@ -2,7 +2,7 @@ import * as secp from 'noble-secp256k1';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { EventEmitter } from 'events';
-import fetch from 'isomorphic-unfetch'
+import fetch from 'isomorphic-fetch'
 
 // import { Notifier } from './notifier';
 
