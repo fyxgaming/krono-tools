@@ -3,11 +3,8 @@ import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import createError from 'http-errors';
 
-import 'isomorphic-fetch';
-// import fetch from 'node-fetch';
-
+const _fetch = (global as any).fetch || require('node-fetch');
 const { Transaction } = require('bsv');
-
 
 export class RestBlockchain extends Blockchain {
     constructor(
@@ -23,7 +20,7 @@ export class RestBlockchain extends Blockchain {
 
     async broadcast(tx) {
         console.time(`Broadcast: ${tx.hash}`);
-        const resp = await fetch(`${this.apiUrl}/broadcast`, {
+        const resp = await _fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx: tx.toString() })
@@ -52,7 +49,7 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                const resp = await _fetch(`${this.apiUrl}/tx/${txid}`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.json();
                 await this.cache.set(`tx://${txid}`, rawtx);
@@ -63,7 +60,7 @@ export class RestBlockchain extends Blockchain {
 
             let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
             if (!spends) {
-                const resp = await fetch(`${this.apiUrl}/spent`, {
+                const resp = await _fetch(`${this.apiUrl}/spent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ locs })
@@ -89,40 +86,46 @@ export class RestBlockchain extends Blockchain {
         if (typeof address !== 'string') {
             address = address.toAddress(this.bsvNetwork).toString();
         }
-        const resp = await fetch(`${this.apiUrl}/utxos/${address}`);
+        const resp = await _fetch(`${this.apiUrl}/utxos/${address}`);
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     };
 
-    async isSpent(loc: string) {
-        const resp = await fetch(`${this.apiUrl}/utxos/${loc}/spent`);
-        if (!resp.ok) throw new Error(await resp.text());
-        return await resp.json();
+    async balance(address) {
+        const resp = await _fetch(`${this.apiUrl}/balance/${address}`);
+        if (!resp.ok) throw new Error(resp.statusText);
+        return resp.json();
     }
 
-    async utxosByLoc(locs: string[]): Promise<IUTXO[]> {
-        const resp = await fetch(`${this.apiUrl}/utxos`, {
+    async kindHistory(kind: string, query: any) {
+        const resp = await _fetch(`${this.apiUrl}/jigs/kind/${kind}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ locs }),
+            body: JSON.stringify(query)
         });
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw new Error(resp.statusText);
         return resp.json();
     }
 
-    async lockUtxo(address: string, expires: number, satoshis: number): Promise<IUTXO> {
-        throw new Error('lockUtxo not implemented');
-    };
+    async originHistory(origin: string, query: any) {
+        const resp = await _fetch(`${this.apiUrl}/jigs/origin/${origin}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        });
+        if (!resp.ok) throw new Error(resp.statusText);
+        return resp.json();
+    }
 
     async getChannel(loc: string, seq?: number): Promise<any> {
-        const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
+        const resp = await _fetch(`${this.apiUrl}/channel/${loc}`);
         if (!resp.ok) throw new Error(await resp.text());
         return await resp.json();
     }
 
     async submitAction(agentId: string, action: IAction) {
         console.log('submitting action:', agentId, JSON.stringify(action));
-        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
+        const resp = await _fetch(`${this.apiUrl}/${agentId}/submit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(action),
@@ -131,8 +134,8 @@ export class RestBlockchain extends Blockchain {
         return resp.json();
     }
 
-    async fund(address) {
-        const resp = await fetch(`${this.apiUrl}/fund/${address}`);
+    async fund(address, satoshis?: number) {
+        const resp = await _fetch(`${this.apiUrl}/fund/${address}`);
         if (!resp.ok) throw new Error(await resp.text());
         return await resp.json();
     }
