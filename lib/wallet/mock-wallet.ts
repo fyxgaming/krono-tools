@@ -180,7 +180,7 @@ export default class Wallet {
 
     async isSpent(loc: string) {
         const [txid, pos] = loc.split('_');
-        const tx = await this.blockchain.fetch(txid, true);
+        const tx = await this.blockchain.fetch(txid);
         const vout = parseInt(pos.substr(1), 10);
         return !!tx.outputs[vout].spentTxId;
     }
