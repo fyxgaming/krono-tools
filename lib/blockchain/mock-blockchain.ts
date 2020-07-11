@@ -12,6 +12,22 @@ export class MockBlockchain extends Blockchain {
     locks = new Map<string, number>();
     channels = new Map<string, any>();
 
+    async broadcast(tx) {
+        if (tx.getLockTime() > Date.now()) {
+            await this.validateTx(tx);
+            await this.updateChannel(tx);
+        }
+        else {
+            await this.validateTx(tx);
+            const utxos = await this.saveTx(tx, true);
+            this.emit('tx', tx.hash);
+            utxos.forEach(utxo => this.emit('utxo', utxo));
+            const spent = tx.inputs.map((i) => `${i.prevTxId.toString('hex')}_o${i.outputIndex}`);
+            spent.forEach(loc => this.emit('spent', loc));
+            return utxos;
+        }
+    }
+
     async validateTx(tx) {
         if (tx.inputs.length === 0) throw new Error('tx has no inputs');
         if (tx.outputs.length === 0) throw new Error('tx has no outputs');
