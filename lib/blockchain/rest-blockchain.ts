@@ -93,7 +93,7 @@ export class RestBlockchain extends Blockchain {
 
     async balance(address) {
         const resp = await _fetch(`${this.apiUrl}/balance/${address}`);
-        if (!resp.ok) throw new Error(resp.statusText);
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return resp.json();
     }
 
@@ -103,7 +103,7 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw new Error(resp.statusText);
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return resp.json();
     }
 
@@ -113,13 +113,22 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw new Error(resp.statusText);
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return resp.json();
+    }
+
+    async saveChannel(loc: string, rawTx: string) {
+        const resp = await _fetch(`${this.apiUrl}/channel/${loc}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rawTx })
+        });
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
     }
 
     async getChannel(loc: string, seq?: number): Promise<any> {
         const resp = await _fetch(`${this.apiUrl}/channel/${loc}`);
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return await resp.json();
     }
 
@@ -130,13 +139,13 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(action),
         });
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return resp.json();
     }
 
     async fund(address, satoshis?: number) {
         const resp = await _fetch(`${this.apiUrl}/fund/${address}`);
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
         return await resp.json();
     }
 }
