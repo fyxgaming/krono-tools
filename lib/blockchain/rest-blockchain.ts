@@ -11,9 +11,9 @@ export class RestBlockchain extends Blockchain {
         private apiUrl: string,
         network: string,
         public cache: IStorage<any> = new LRUCache(10000000),
-        private txq: string,
-        private apiKey: string,
-        private cacheSpends
+        // private txq: string,
+        // private apiKey: string,
+        private cacheSpends = false
     ) {
         super(network);
     }
@@ -49,7 +49,6 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                console.log('Fetch Tx:', txid);
                 const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.json();
@@ -58,41 +57,19 @@ export class RestBlockchain extends Blockchain {
 
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
-            let spends = [];
-            if (force) {
-                let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
-                if (!spends) {
-                    console.log('Fetch Spends:', txid);
-                    const resp = await fetch(
-                        `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
-                        { headers: { api_key: this.apiKey } }
-                    );
-                    if (!resp.ok) throw createError(resp.status, resp.statusText);
-                    const { result } = await resp.json();
-                    const spendTxIds = {};
-                    result.forEach((o) => spendTxIds[`${o.txid}_o${o.index}`] = o.spend_txid);
-                    spends = locs.map(loc => spendTxIds[loc] || null);
-                    // const resp = await fetch(`${this.apiUrl}/spent`, {
-                    //     method: 'POST',
-                    //     headers: { 'Content-Type': 'application/json' },
-                    //     body: JSON.stringify({ locs })
-                    // });
-                    // if (!resp.ok) throw createError(resp.status, resp.statusText);
-                    // spends = await resp.json();
 
-                    // const spends: any[] = await Promise.all(locs.map(async loc => {
-                    //     let spentTxId = await this.cache.get(`spend://${loc}`);
-                    //     if (spentTxId) return spentTxId;
-                    //     const {txid, index} = loc.split('_o');
-                    //     const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
-                    //     if (!resp.ok) return null;
-                    //     spentTxId = (await resp.json()).result.spent_txid;
-                    //     await this.cache.set(`spend://${loc}`, spentTxId);
-                    //     return spentTxId;
-                    // }));
-                    if (this.cacheSpends) await this.cache.set(`spends:${txid}`, spends);
-                }
+            let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
+            if (!spends) {
+                const resp = await fetch(`${this.apiUrl}/spent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ locs })
+                });
+                if (!resp.ok) throw createError(resp.status, resp.statusText);
+                spends = await resp.json();
+                if (this.cacheSpends) await this.cache.set(`spends:${txid}`, spends);
             }
+
             tx.outputs.forEach((o: any, i) => {
                 o.spentTxId = spends[i] || null;
                 o.spentIndex = null;

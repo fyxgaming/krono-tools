@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-import { MapStorage } from "../lib/storage/map-storage";
+import { MapStorage } from '../lib/storage/map-storage';
+import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
+import { Deployer } from '../lib/deployer';
 
 const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 const fetch = require('node-fetch');
-const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
-const { Deployer } = require('../lib/deployer');
 
 const Run = require('../run/dist/run.node.min');
 
@@ -74,10 +74,7 @@ function renderUsage() {
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        new MapStorage<any>(), 
-        process.env.TXQ,
-        process.env.API_KEY,
-        true
+        new MapStorage<any>()
     );
 
     const run = new Run({
@@ -98,8 +95,9 @@ function renderUsage() {
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ loc: (dep as any).location })
+            body: JSON.stringify({ location: (dep as any).location })
         });
+        if(!resp.ok) throw new Error(resp.statusText);
     }
     console.log('Deployed');
 })().catch(e => {

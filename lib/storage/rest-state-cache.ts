@@ -6,9 +6,7 @@ import { LRUCache } from '../lru-cache';
 export class RestStateCache implements IStorage<any> {
     constructor(
         private apiUrl: string, 
-        public cache: IStorage<any> = new LRUCache(10000000),
-        public postUpdates = false
-
+        public cache: IStorage<any> = new LRUCache(10000000)
     ) { }
 
     async get(key: string): Promise<any> {
@@ -34,13 +32,6 @@ export class RestStateCache implements IStorage<any> {
 
     async set(key: string, value: any) {
         await this.cache.set(key, value);
-        if(!this.postUpdates) return;
-        const resp = await fetch(`${this.apiUrl}/cache/${encodeURIComponent(key)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(value)
-        });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
     }
 
     async delete(key: string) {
