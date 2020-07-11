@@ -21,7 +21,7 @@ export class RestBlockchain extends Blockchain {
 
     async broadcast(tx) {
         console.time(`Broadcast: ${tx.hash}`);
-        const resp = await _fetch(`${this.apiUrl}/broadcast`, {
+        const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx: tx.toString() })
@@ -50,7 +50,7 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await _fetch(`${this.apiUrl}/tx/${txid}`);
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.json();
                 await this.cache.set(`tx://${txid}`, rawtx);
@@ -61,7 +61,7 @@ export class RestBlockchain extends Blockchain {
 
             let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
             if (!spends) {
-                const resp = await _fetch(`${this.apiUrl}/spent`, {
+                const resp = await fetch(`${this.apiUrl}/spent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ locs })
@@ -87,19 +87,19 @@ export class RestBlockchain extends Blockchain {
         if (typeof address !== 'string') {
             address = address.toAddress(this.bsvNetwork).toString();
         }
-        const resp = await _fetch(`${this.apiUrl}/utxos/${address}`);
+        const resp = await fetch(`${this.apiUrl}/utxos/${address}`);
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     };
 
     async balance(address) {
-        const resp = await _fetch(`${this.apiUrl}/balance/${address}`);
+        const resp = await fetch(`${this.apiUrl}/balance/${address}`);
         if (!resp.ok) throw createError(resp.status, resp.statusText);
         return resp.json();
     }
 
     async kindHistory(kind: string, query: any) {
-        const resp = await _fetch(`${this.apiUrl}/jigs/kind/${kind}`, {
+        const resp = await fetch(`${this.apiUrl}/jigs/kind/${kind}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
@@ -109,7 +109,7 @@ export class RestBlockchain extends Blockchain {
     }
 
     async originHistory(origin: string, query: any) {
-        const resp = await _fetch(`${this.apiUrl}/jigs/origin/${origin}`, {
+        const resp = await fetch(`${this.apiUrl}/jigs/origin/${origin}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
@@ -119,7 +119,7 @@ export class RestBlockchain extends Blockchain {
     }
 
     async saveChannel(loc: string, rawTx: string) {
-        const resp = await _fetch(`${this.apiUrl}/channel/${loc}`, {
+        const resp = await fetch(`${this.apiUrl}/channel/${loc}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawTx })
@@ -128,14 +128,14 @@ export class RestBlockchain extends Blockchain {
     }
 
     async getChannel(loc: string, seq?: number): Promise<any> {
-        const resp = await _fetch(`${this.apiUrl}/channel/${loc}`);
+        const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
         if (!resp.ok) throw createError(resp.status, resp.statusText);
         return await resp.json();
     }
 
     async submitAction(agentId: string, action: IAction) {
         console.log('submitting action:', agentId, JSON.stringify(action));
-        const resp = await _fetch(`${this.apiUrl}/${agentId}/submit`, {
+        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(action),
@@ -145,7 +145,7 @@ export class RestBlockchain extends Blockchain {
     }
 
     async fund(address, satoshis?: number) {
-        const resp = await _fetch(`${this.apiUrl}/fund/${address}`);
+        const resp = await fetch(`${this.apiUrl}/fund/${address}`);
         if (!resp.ok) throw createError(resp.status, resp.statusText);
         return await resp.json();
     }
