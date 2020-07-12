@@ -50,7 +50,7 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await fetch(`${this.apiUrl}/tx/${txid}?1`);
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}?3`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.text();
                 await this.cache.set(`tx://${txid}`, rawtx);
@@ -127,11 +127,11 @@ export class RestBlockchain extends Blockchain {
         return resp.json();
     }
 
-    async saveChannel(loc: string, rawTx: string) {
+    async saveChannel(loc: string, rawtx: string) {
         const resp = await fetch(`${this.apiUrl}/channel/${loc}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawTx })
+            body: JSON.stringify({ rawtx })
         });
         if (!resp.ok) throw createError(resp.status, resp.statusText);
     }

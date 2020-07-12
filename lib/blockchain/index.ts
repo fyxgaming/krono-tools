@@ -24,7 +24,7 @@ export abstract class Blockchain extends EventEmitter {
         throw new Error('getChannel not implemented');
     }
 
-    async updateChannel(tx) {
-        throw new Error('updateChannel not implemented');
-    };
+    async saveChannel(loc: string, rawtx: string) {
+        throw new Error('saveChannel not implemented');
+    }
 }

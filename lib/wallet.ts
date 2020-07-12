@@ -185,6 +185,11 @@ export class Wallet extends EventEmitter {
                 const now = new Date();
                 this.run.purse.nLocktime = now.setMonth(now.getMonth() + 12) / 1000;
                 this.run.purse.seqs[loc] = seq;
+                await this.transaction.pay();
+                await this.transaction.sign();
+                const tx = await this.transaction.export();
+                await this.blockchain.saveChannel(loc, tx.toString());
+                this.transaction.rollback();
             }
         }
         if ((this.transaction.actions || []).length) {
