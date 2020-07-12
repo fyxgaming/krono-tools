@@ -12,7 +12,7 @@ const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
-const Run = require('../lib/run');
+const Run = require('@runonbitcoin/release');
 var argv = minimist(process.argv.slice(2));
 const blockchainUrls = {
     mock: 'http://localhost:8080',
