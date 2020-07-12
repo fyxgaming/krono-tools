@@ -1,0 +1,1 @@
+export const Run = require('@runonbitcoin/release');

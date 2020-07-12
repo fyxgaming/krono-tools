@@ -10,7 +10,7 @@ const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 
-const Run = require('@runonbitcoin/release');
+const Run = require('../lib/run');
 
 var argv = minimist(process.argv.slice(2));
 

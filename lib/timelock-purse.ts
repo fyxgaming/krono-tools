@@ -1,5 +1,5 @@
 const { Transaction } = require('bsv');
-const Run = require('@runonbitcoin/release');
+const Run = require('./run');
 
 export class TimelockPurse extends Run.LocalPurse {
     private nLocktime = 0;
