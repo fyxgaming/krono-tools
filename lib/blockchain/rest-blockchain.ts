@@ -50,7 +50,7 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}?n`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.json();
                 await this.cache.set(`tx://${txid}`, rawtx);
