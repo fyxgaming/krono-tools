@@ -1,1 +1,2 @@
-export const Run = require('@runonbitcoin/release');
+const Run = require('@runonbitcoin/release');
+export default Run;
