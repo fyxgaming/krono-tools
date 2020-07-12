@@ -14,6 +14,6 @@ export class RedisStorage<T> implements IStorage<T> {
     }
 
     async delete(key: string) {
-        await this.redis.delete(key);
+        await this.redis.del(key);
     }
 }
