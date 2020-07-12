@@ -13,8 +13,7 @@ export class RestBlockchain extends Blockchain {
         network: string,
         // private txq: string,
         // private apiKey: string,
-        public cache: IStorage<any> = new LRUCache(10000000),
-        private cacheSpends = false
+        public cache: IStorage<any> = new LRUCache(10000000)
     ) {
         super(network);
     }
@@ -50,7 +49,7 @@ export class RestBlockchain extends Blockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await fetch(`${this.apiUrl}/tx/${txid}?3`);
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}?4`);
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
                 rawtx = await resp.text();
                 await this.cache.set(`tx://${txid}`, rawtx);
@@ -59,8 +58,8 @@ export class RestBlockchain extends Blockchain {
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
 
-            let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
-            if (!spends) {
+            let spends = [];
+            if (force) {
                 // const resp = await fetch(
                 //     `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
                 //     { headers: { api_key: this.apiKey } }
@@ -76,8 +75,6 @@ export class RestBlockchain extends Blockchain {
                     body: JSON.stringify({ locs })
                 });
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
-                
-                if (this.cacheSpends) await this.cache.set(`spends:${txid}`, spends);
             }
 
             tx.outputs.forEach((o: any, i) => {
