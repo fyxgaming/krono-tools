@@ -1,4 +1,4 @@
-const { Token } = require('../../run/dist/run.node.min');
+const { Token } = require('@runonbitcoin/release');
 
 class Coin extends Token { }
 Coin.decimals = 4;
