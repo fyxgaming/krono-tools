@@ -5,5 +5,6 @@
 
 *.js
 !bin/deploy.js
+!lib/run.js
 *.d.ts
 *.js.map
