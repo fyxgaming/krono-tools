@@ -17,7 +17,7 @@
     "krono-deploy": "./bin/deploy.js"
   },
   "files": [
-    "jigs/*", "**/*.ts", "bin/*"
+    "**/*"
   ],
   "dependencies": {
     "@runonbitcoin/release": "file:runonbitcoin-release.tgz",
