@@ -1,7 +1,8 @@
 import { IStorage } from '../interfaces';
+import { Redis } from 'ioredis';
 
 export class RedisStorage<T> implements IStorage<T> {
-    constructor(private redis) { }
+    constructor(private redis: Redis) { }
 
     async get(key: string) {
         const state = await this.redis.get(key);
