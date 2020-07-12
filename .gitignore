@@ -2,3 +2,8 @@
 /node_modules
 *.env
 !mock.env
+
+*.js
+!bin/deploy.js
+*.d.ts
+*.js.map
