@@ -85,7 +85,7 @@ function renderUsage() {
     });
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
-    const deployer = new Deployer(run, rootPath, env, !disableChainFiles);
+    const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
     const catalog = await deployer.deploy('catalog.js');
 
