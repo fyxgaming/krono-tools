@@ -7,12 +7,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const map_storage_1 = require("../lib/storage/map-storage");
 const rest_blockchain_1 = require("../lib/blockchain/rest-blockchain");
 const deployer_1 = require("../lib/deployer");
-const isomorphic_fetch_1 = __importDefault(require("isomorphic-fetch"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const dotenv = require('dotenv');
 const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
-const Run = require('../run/dist/run.node.min');
+const Run = require('../lib/run');
 var argv = minimist(process.argv.slice(2));
 const blockchainUrls = {
     mock: 'http://localhost:8080',
@@ -80,7 +80,7 @@ function renderUsage() {
     const catalog = await deployer.deploy('catalog.js');
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;
-        const resp = await isomorphic_fetch_1.default(`${blockchainUrl}/agents/${realm}/${agentId}`, {
+        const resp = await node_fetch_1.default(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ location: dep.location })
