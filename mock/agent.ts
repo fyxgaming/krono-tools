@@ -12,7 +12,7 @@ const Run = require('@runonbitcoin/release');
 export class Agent {
     private wallet: Wallet;
 
-    constructor(apiUrl, xpriv) {
+    constructor(apiUrl: string, xpriv: string) {
         const hdKey = HDPrivateKey.fromString(xpriv);
         const purse = hdKey.deriveChild('m/1').privateKey;
         const owner = hdKey.deriveChild('m/2').privateKey;

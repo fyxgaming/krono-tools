@@ -1,15 +1,12 @@
-#!/usr/bin/env node
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+import fs from 'fs-extra';
+import minimist from 'minimist';
+import path from 'path';
 
-const dotenv = require('dotenv');
-const fetch = require('node-fetch');
-const fs = require('fs-extra');
-const minimist = require('minimist');
-const path = require('path');
-
-const { MapStorage } = require('../lib/storage/map-storage');
-const { LRUCache } = require('../lib/lru-cache');
-const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
-const { Deployer } = require('../lib/deployer');
+import { MapStorage } from '../lib/storage/map-storage';
+import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
+import { Deployer } from '../lib/deployer';
 const Run = require('@runonbitcoin/release');
 
 var argv = minimist(process.argv.slice(2));
@@ -78,7 +75,7 @@ function renderUsage() {
         network, 
         // txq,
         // apiKey,
-        new LRUCache(10000000),
+        new MapStorage(),
     );
 
     const run = new Run({
@@ -87,7 +84,7 @@ function renderUsage() {
         owner,
         purse,
         app: argv.app,
-        // logger: console
+        logger: console
     });
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
@@ -100,7 +97,7 @@ function renderUsage() {
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: dep.location })
+            body: JSON.stringify({ location: (dep as any).location })
         });
         if(!resp.ok) throw new Error(resp.statusText);
     }

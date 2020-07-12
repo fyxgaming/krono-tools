@@ -11,9 +11,9 @@ export class RestBlockchain extends Blockchain {
     constructor(
         private apiUrl: string,
         network: string,
-        public cache: IStorage<any> = new LRUCache(10000000),
         // private txq: string,
         // private apiKey: string,
+        public cache: IStorage<any> = new LRUCache(10000000),
         private cacheSpends = false
     ) {
         super(network);
@@ -61,13 +61,22 @@ export class RestBlockchain extends Blockchain {
 
             let spends = this.cacheSpends && await this.cache.get(`spends:${txid}`);
             if (!spends) {
+                // const resp = await fetch(
+                //     `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
+                //     { headers: { api_key: this.apiKey } }
+                // );
+                // if (!resp.ok) throw createError(resp.status, resp.statusText);
+                // const { result } = await resp.json();
+                // const spentTxIds = {};
+                // result.forEach((o) => spentTxIds[`${o.txid}_o${o.index}`] = o.spend_txid);
+                // spends = locs.map(loc => spentTxIds[loc] || null);
                 const resp = await fetch(`${this.apiUrl}/spent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ locs })
                 });
                 if (!resp.ok) throw createError(resp.status, resp.statusText);
-                spends = await resp.json();
+                
                 if (this.cacheSpends) await this.cache.set(`spends:${txid}`, spends);
             }
 

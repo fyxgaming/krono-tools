@@ -6,8 +6,16 @@ export class LRUCache implements IStorage<any> {
     constructor(private maxBytes: number, private maxEntries?: number) {}
 
     async set(key: string, value: any) {
-        const serialized = JSON.stringify(value);
-        this.bytes += serialized?.length || 0;
+        let serialized;
+        if(typeof value == 'number') {
+            serialized = {bytes: 8, value}
+        } else if (typeof value === 'string' || value instanceof Uint8Array) {
+            serialized = { bytes: value.length, value }
+        } else {
+            const json = JSON.stringify(value)
+            serialized = {json: true, bytes: json.length, value: json};
+        }
+        this.bytes += serialized.bytes;
         this.cache.set(key, serialized);
 
         for (const delKey of Array.from(this.cache.keys())) {
@@ -15,7 +23,7 @@ export class LRUCache implements IStorage<any> {
                 (!this.maxBytes || this.bytes <= this.maxBytes)
             ) break;
             const delValue = this.cache.get(delKey);
-            this.bytes -= delValue?.length || 0;
+            this.bytes -= delValue?.bytes || 0;
             this.cache.delete(delKey);
         };
 
@@ -24,16 +32,17 @@ export class LRUCache implements IStorage<any> {
 
     get(key: string) {
         if (this.cache.has(key)) {
-            const value = this.cache.get(key);
+            const serialized = this.cache.get(key);
             this.cache.delete(key);
-            this.cache.set(key, value);
-            return value && JSON.parse(value);
+            this.cache.set(key, serialized);
+            const value = serialized.json ? JSON.parse(serialized.value) : serialized.value;
+            return value;
         }
     }
 
     async delete(key: string) {
         const delValue = this.cache.get(key);
-        this.bytes -= delValue?.length || 0;
+        this.bytes -= delValue?.bytes || 0;
         this.cache.delete(key);
     }
 }

@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
-    "deploy:dev": "node ./bin/deploy --app=kronoverse --src=jigs --env=dev",
-    "deploy:test": "node ./bin/deploy --app=kronoverse --src=jigs --env=test",
-    "deploy:prod": "node ./bin/deploy --app=kronoverse --src=jigs --env=prod",
+    "deploy:dev": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=dev",
+    "deploy:test": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=test",
+    "deploy:prod": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=prod",
     "postinstall": "npm run build",
     "prepare": "npm run build",
     "start:mock": "ts-node mock/server.ts",
