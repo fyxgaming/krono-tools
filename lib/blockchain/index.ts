@@ -5,8 +5,6 @@ export abstract class Blockchain extends EventEmitter {
         super();
     }
 
-    abstract broadcast(tx);
-    
     get bsvNetwork(): string {
         switch (this.network) {
             case 'stn':
@@ -17,6 +15,8 @@ export abstract class Blockchain extends EventEmitter {
                 return 'testnet';
         }
     }
+
+    abstract broadcast(tx): Promise<any>;
 
     abstract fetch(txid: string): Promise<any>;
 
