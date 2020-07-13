@@ -21,6 +21,7 @@ export abstract class Blockchain extends EventEmitter {
     abstract fetch(txid: string): Promise<any>;
 
     abstract utxos(address): Promise<any[]>;
+    abstract isSpent(loc): Promise<boolean>;
 
     async getChannel(loc: string): Promise<any> {
         throw new Error('getChannel not implemented');

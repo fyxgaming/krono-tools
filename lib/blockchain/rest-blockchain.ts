@@ -31,20 +31,6 @@ export class RestBlockchain extends Blockchain {
         return tx.hash;
     }
 
-    async saveTx(tx): Promise<IUTXO[]> {
-        const txid = tx.hash;
-        return tx.outputs.map((o, vout) => o.script.isPublicKeyHashOut() && {
-            _id: `${txid}_o${vout}`,
-            address: o.script.toAddress(this.bsvNetwork).toString(),
-            script: o.script.toString(),
-            satoshis: o.satoshis,
-            txid,
-            ts: Date.now(),
-            vout,
-            lockUntil: 0
-        }).filter(utxo => utxo);
-    }
-
     async fetch(txid: string, force?: boolean) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
@@ -97,6 +83,13 @@ export class RestBlockchain extends Blockchain {
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     };
+
+    async isSpent(loc) {
+        const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
+        if (!resp.ok) throw new Error(await resp.text());
+        const spentTxId = await resp.text();
+        return !!spentTxId;
+    }
 
     async balance(address) {
         const resp = await fetch(`${this.apiUrl}/balance/${address}`);
