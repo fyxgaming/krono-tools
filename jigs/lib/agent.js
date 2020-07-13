@@ -37,7 +37,7 @@ class Agent {
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler');
-        await handler.bind(this)(payload);
+        return handler.bind(this)(payload);
     }
 
     static hexToBytes(hex) {
