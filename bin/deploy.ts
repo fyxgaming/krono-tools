@@ -59,9 +59,10 @@ function renderUsage() {
     const txq = argv.txq || process.env.TXQ;
     const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
+    const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
 
-    const sourcePath = path.resolve(source, 'catalog.js');
+    const sourcePath = path.resolve(source, catalogFile);
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
@@ -91,7 +92,7 @@ function renderUsage() {
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy('catalog.js');
+    const catalog = await deployer.deploy(catalogFile);
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;

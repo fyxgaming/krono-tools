@@ -64,7 +64,7 @@ function renderUsage() {
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
 
-    const sourcePath = path.resolve(source, 'catalog.js');
+    const sourcePath = path.resolve(source, catalogFile);
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
