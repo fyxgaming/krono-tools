@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
-import { TimelockPurse } from '../lib/timelock-purse';
 import { Wallet } from '../lib/wallet';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
@@ -22,7 +21,7 @@ export class Agent {
             network: 'mock',
             blockchain,
             owner: owner.toString(),
-            purse: new TimelockPurse({ blockchain, privkey: purse.toString() }),
+            purse: purse.toString(),
             state: new LRUCache(100000000)
         });
         run.owner.owner = () => run.owner.pubkey;
