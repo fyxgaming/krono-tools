@@ -61,7 +61,7 @@ function renderUsage() {
     const txq = argv.txq || process.env.TXQ;
     const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
-    const catalog = argv.catalog || 'catalog.js';
+    const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
 
     const sourcePath = path.resolve(source, 'catalog.js');
@@ -94,7 +94,7 @@ function renderUsage() {
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy(catalog);
+    const catalog = await deployer.deploy(catalogFile);
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;
