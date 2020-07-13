@@ -10,7 +10,7 @@ class Agent {
         this.handlers = handlers;
         this.channelHandlers = channelHandlers;
 
-        this.eventHandlers = new Set();
+        this.eventHandlers = new Map();
         this.jigHandlers = new Map();
     }
 
