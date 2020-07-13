@@ -10,27 +10,33 @@ class Agent {
         this.handlers = handlers;
         this.channelHandlers = channelHandlers;
 
-        this.whitelist = new Set();
+        this.eventHandlers = new Set();
+        this.jigHandlers = new Map();
     }
 
     initialize() { }
-    onJig(jig) {}
+    onJig(jigData) {
+        let handler = this.jigHandlers.get(jigData.kind);
+        if(!handler) return;
+        const jig = await this.wallet.loadJig(jigData.location);
+        if (!jig) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+            return;
+        }
+        await jig.sync();
+        if (jig.location !== jigData.location) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+        }
+        await handler.bind(this)(jig);
+    }
     onChannel(channe) {}
     onKindSub(jig, handler) {}
     onOriginSub(jig, handler) {}
     onChannelSub(jig, handler) {}
     
     onEvent(handler, payload) {
-        if(!this.whitelist.has(handler)) throw new Error('Invalid handler');
+        if (!this.eventHandlers.has(handler)) throw new Error('Invalid handler');
         return this[handler](payload);
-    }
-
-    loadJig() {
-        return this.wallet.loadJig();
-    }
-
-    loadChannelTransaction(loc, seq, worker) {
-        return this.wallet.loadChannelTransaction(loc, seq, worker);
     }
 
     static hexToBytes(hex) {
