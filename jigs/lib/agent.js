@@ -15,7 +15,7 @@ class Agent {
     }
 
     initialize() { }
-    onJig(jigData) {
+    async onJig(jigData) {
         let handler = this.jigHandlers.get(jigData.kind);
         if(!handler) return;
         const jig = await this.wallet.loadJig(jigData.location);
@@ -29,14 +29,15 @@ class Agent {
         }
         await handler.bind(this)(jig);
     }
-    onChannel(channe) {}
-    onKindSub(jig, handler) {}
-    onOriginSub(jig, handler) {}
-    onChannelSub(jig, handler) {}
+    async onChannel(channe) {}
+    async onKindSub(jig, handler) {}
+    async onOriginSub(jig, handler) {}
+    async onChannelSub(jig, handler) {}
     
-    onEvent(handler, payload) {
-        if (!this.eventHandlers.has(handler)) throw new Error('Invalid handler');
-        return this[handler](payload);
+    async onEvent(event, payload) {
+        let handler = this.jigHandlers.get(event);
+        if (!handler) throw new Error('Invalid handler');
+        await handler.bind(this)(payload);
     }
 
     static hexToBytes(hex) {
