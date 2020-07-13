@@ -35,7 +35,7 @@ class Agent {
     async onChannelSub(jig, handler) {}
     
     async onEvent(event, payload) {
-        let handler = this.jigHandlers.get(event);
+        let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler');
         await handler.bind(this)(payload);
     }
