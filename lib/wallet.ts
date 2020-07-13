@@ -10,7 +10,7 @@ const fetch = require('node-fetch');
 
 export class Wallet extends EventEmitter {
     fetch = fetch;
-    private agent: any;
+    agent: any;
     private blockchain: Blockchain;
 
     pubkey: string;
