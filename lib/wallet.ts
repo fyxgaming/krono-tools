@@ -137,9 +137,13 @@ export class Wallet extends EventEmitter {
             .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
     }
 
-    async signChannel(loc) {
-        this.transaction.sign();
+    async signChannel(loc, seq) {
+        await this.transaction.pay();
+        await this.transaction.sign();
         const tx = this.transaction.export();
+        const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
+        if(!input) throw new Error('Invalid Channel');
+        input.sequenceNumber = seq;
         await this.blockchain.saveChannel(loc, tx.toString());
     }
 
