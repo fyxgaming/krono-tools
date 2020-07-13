@@ -3,7 +3,7 @@ import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import createError from 'http-errors';
 
-import fetch from 'node-fetch'
+const fetch = require('node-fetch');
 
 const { Transaction } = require('bsv');
 

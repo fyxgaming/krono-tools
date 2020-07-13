@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
 import fs from 'fs-extra';
 import minimist from 'minimist';
 import path from 'path';
@@ -7,6 +6,7 @@ import path from 'path';
 import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
 import { Deployer } from '../lib/deployer';
+const fetch = require('node-fetch');
 const Run = require('@runonbitcoin/release');
 
 var argv = minimist(process.argv.slice(2));

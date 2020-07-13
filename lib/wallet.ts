@@ -2,7 +2,8 @@ import * as secp from 'noble-secp256k1';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { EventEmitter } from 'events';
-import fetch from 'node-fetch'
+
+const fetch = require('node-fetch');
 
 // import { Notifier } from './notifier';
 
@@ -46,6 +47,10 @@ export class Wallet extends EventEmitter {
             console.log(event, payload);
             this.emit('jig-event', event, payload);
         };
+    }
+
+    get balance(): Promise<number> {
+        return this.run.purse.balance();
     }
 
     async initializeAgent(location: string) {
