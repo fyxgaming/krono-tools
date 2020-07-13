@@ -24,7 +24,6 @@ export class Wallet extends EventEmitter {
     transaction: any;
 
     constructor(
-        private db,
         private apiUrl: string,
         private run: any,
         private storage?: IStorage<any>
