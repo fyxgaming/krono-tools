@@ -6,7 +6,6 @@ const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 
-const { MapStorage } = require('../lib/storage/map-storage');
 const { LRUCache } = require('../lib/lru-cache');
 const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
 const { Deployer } = require('../lib/deployer');
@@ -62,6 +61,7 @@ function renderUsage() {
     const txq = argv.txq || process.env.TXQ;
     const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
+    const catalog = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
 
     const sourcePath = path.resolve(source, 'catalog.js');
@@ -89,11 +89,12 @@ function renderUsage() {
         app: argv.app,
         // logger: console
     });
+    run.owner.owner = () => run.owner.pubkey;
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy('catalog.js');
+    const catalog = await deployer.deploy(catalog);
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;

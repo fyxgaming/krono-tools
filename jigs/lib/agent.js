@@ -5,11 +5,33 @@ class Agent {
         this.address = wallet.address;
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
+
+        /// TODO: remove
         this.handlers = handlers;
         this.channelHandlers = channelHandlers;
+
+        this.whitelist = new Set();
     }
 
     initialize() { }
+    onJig(jig) {}
+    onChannel(channe) {}
+    onKindSub(jig, handler) {}
+    onOriginSub(jig, handler) {}
+    onChannelSub(jig, handler) {}
+    
+    onEvent(handler, payload) {
+        if(!this.whitelist.has(handler)) throw new Error('Invalid handler');
+        return this[handler](payload);
+    }
+
+    loadJig() {
+        return this.wallet.loadJig();
+    }
+
+    loadChannelTransaction(loc, seq, worker) {
+        return this.wallet.loadChannelTransaction(loc, seq, worker);
+    }
 
     static hexToBytes(hex) {
         let bytes = new Uint8Array(32);
