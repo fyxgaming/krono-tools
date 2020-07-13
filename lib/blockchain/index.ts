@@ -5,6 +5,8 @@ export abstract class Blockchain extends EventEmitter {
         super();
     }
 
+    abstract broadcast(tx);
+    
     get bsvNetwork(): string {
         switch (this.network) {
             case 'stn':
