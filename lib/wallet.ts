@@ -18,7 +18,6 @@ export class Wallet extends EventEmitter {
     purse: string;
     handle?: string;
     private keyPair: KeyPair;
-    // private privkey: string;
     private queue: Promise<any> = Promise.resolve();
 
     private processCount = 0;
