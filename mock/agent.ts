@@ -46,13 +46,13 @@ export class Agent {
         await this.wallet.initializeAgent(loc);
     }
 
-    onUtxo(loc: string) {
-        return this.wallet.onUtxo(loc);
-    }
+    // onUtxo(loc: string) {
+    //     return this.wallet.onUtxo(loc);
+    // }
 
-    onChannel(loc: string) {
-        return this.wallet.onChannel(loc);
-    }
+    // onChannel(loc: string) {
+    //     return this.wallet.onChannel(loc);
+    // }
 
     handleEvent(name: string, payload?: any) {
         return this.wallet.handleEvent(name, payload);
