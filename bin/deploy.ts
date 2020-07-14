@@ -86,7 +86,7 @@ dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ loc: dep.location })
+            body: JSON.stringify({ loc: (dep as any).location })
         });
     }
     console.log('Deployed');
