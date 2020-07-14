@@ -4,7 +4,7 @@ import { PaymentRequired } from 'http-errors';
 export class Purse extends LocalPurse {
     async pay(rawtx: string) {
         try {
-            return super.pay();
+            return super.pay(rawtx);
         } catch(e) {
             if (e.message.includes('Not enough funds')) {
                 throw new PaymentRequired();
