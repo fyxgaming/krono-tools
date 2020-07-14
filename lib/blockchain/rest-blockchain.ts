@@ -1,4 +1,4 @@
-import { IUTXO, IAction, IStorage } from '../interfaces';
+import { IStorage } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
 import createError from 'http-errors';
@@ -117,6 +117,12 @@ export class RestBlockchain extends Blockchain {
         return resp.json();
     }
 
+    async getChannel(loc: string, seq?: number): Promise<any> {
+        const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
+        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        return await resp.json();
+    }
+
     async saveChannel(loc: string, rawtx: string) {
         const resp = await fetch(`${this.apiUrl}/channel/${loc}`, {
             method: 'POST',
@@ -124,23 +130,6 @@ export class RestBlockchain extends Blockchain {
             body: JSON.stringify({ rawtx })
         });
         if (!resp.ok) throw createError(resp.status, resp.statusText);
-    }
-
-    async getChannel(loc: string, seq?: number): Promise<any> {
-        const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
-        return await resp.json();
-    }
-
-    async submitAction(agentId: string, action: IAction) {
-        console.log('submitting action:', agentId, JSON.stringify(action));
-        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action),
-        });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
-        return resp.json();
     }
 
     async fund(address, satoshis?: number) {

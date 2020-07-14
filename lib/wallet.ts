@@ -205,11 +205,10 @@ export class Wallet extends EventEmitter {
             let jig = await this.loadChannel(loc, seq);
             if (!jig) return;
             jig = await work(jig);
-            jig = await this.finalizeTx(jig);
+            if (jig) return this.finalizeTx(jig);
             return jig;
-        } catch (e) {
+        } finally {
             this.transaction.rollback();
-            throw e;
         }
     }
 
