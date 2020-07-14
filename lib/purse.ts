@@ -3,8 +3,8 @@ import { PaymentRequired } from 'http-errors';
 import { Blockchain } from './blockchain';
 
 export class Purse extends LocalPurse {
-    constructor(privkey, blockchain: Blockchain) {
-        super(privkey, blockchain);
+    constructor(options) {
+        super(options);
     }
 
     async pay(rawtx: string) {
