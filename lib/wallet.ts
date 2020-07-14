@@ -117,41 +117,6 @@ export class Wallet extends EventEmitter {
         return jigs;
     }
 
-    async loadChannel(loc: string, seq?: number) {
-        let channel;
-        console.time(`load channel ${loc}`);
-        try {
-            channel = await this.blockchain.getChannel(loc);
-        }
-        catch (e) {
-            if (e.status === 404) return;
-            throw e;
-        }
-        console.timeEnd(`load channel ${loc}`);
-        if (!channel || (seq && channel.seq !== seq)) return;
-        const tx = new bsv.Transaction(channel.rawtx);
-        return this.loadTransaction(tx, loc);
-    }
-
-    async loadTransaction(tx, loc) {
-        console.time(`import ${loc}`);
-        await this.transaction.import(tx);
-        console.timeEnd(`import ${loc}`);
-        return this.transaction.actions
-            .map(action => action.target)
-            .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
-    }
-
-    async signChannel(loc, seq) {
-        await this.transaction.pay();
-        await this.transaction.sign();
-        const tx = this.transaction.export();
-        const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
-        if (!input) throw new Error('Invalid Channel');
-        input.sequenceNumber = seq;
-        await this.blockchain.saveChannel(loc, tx.toString());
-    }
-
     async submitAction(agentId: string, name: string, loc: string, msgHash: string, payload?: any) {
         const sig = Ecdsa.sign(Buffer.from(msgHash, 'hex'), this.keyPair).toString();
         const action: IAction = {
@@ -178,30 +143,30 @@ export class Wallet extends EventEmitter {
         return verified;
     }
 
+    async signChannel(loc: string, seq?: number) {
+        await this.transaction.pay();
+        await this.transaction.sign();
+        const tx = this.transaction.export();
+        const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
+        if (!input) throw new Error('Invalid Channel');
+        input.sequenceNumber = seq;
+        await this.blockchain.saveChannel(loc, tx.toString());
+        this.transaction.rollback();
+    }
+
     private async finalizeTx(jig?: IJig) {
-        if (this.transaction.actions.length) {
+        if (jig && this.transaction.actions.length) {
             this.transaction.end();
-        } else {
-            this.transaction.rollback();
-        }
-        try {
-            await (jig ? jig.sync({ forward: false }) : this.run.sync());
-        } catch (e) {
-            if (e.message.includes('Not enough funds')) {
-                throw new PaymentRequired();
-            }
-            throw e;
-        }
+            if (jig.sync) await jig.sync({ forward: false });
+        } else this.transaction.rollback();
         return jig;
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {
         try {
             this.transaction.begin();
-            let jig = await work();
-            jig = await this.finalizeTx(jig);
-            return jig;
-        } catch (e) {
+            return this.finalizeTx(await work());
+        } catch(e) {
             this.transaction.rollback();
             throw e;
         }
@@ -209,13 +174,25 @@ export class Wallet extends EventEmitter {
 
     async loadChannelTransaction(loc: string, seq: number, work: (jig: IJig) => Promise<IJig | undefined>) {
         try {
-            let jig = await this.loadChannel(loc, seq);
+            console.time(`load channel ${loc}`);
+            const channel = await this.blockchain.getChannel(loc)
+                .catch(e => { if (e.status !== 404) throw e });
+            console.timeEnd(`load channel ${loc}`);
+            if (!channel || (seq && channel.seq !== seq)) return;
+
+            console.time(`import ${loc}`);
+            const tx = new bsv.Transaction(channel.rawtx);
+            await this.transaction.import(tx);
+            console.timeEnd(`import ${loc}`);
+
+            const jig = this.transaction.actions
+                .map(action => action.target)
+                .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
             if (!jig) return;
-            jig = await work(jig);
-            if (jig) return this.finalizeTx(jig);
-            return jig;
-        } finally {
+            return this.finalizeTx(await work(jig));
+        } catch(e) {
             this.transaction.rollback();
+            throw e;
         }
     }
 
