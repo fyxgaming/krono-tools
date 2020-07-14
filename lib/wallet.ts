@@ -3,7 +3,6 @@ import { Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
 import { EventEmitter } from 'events';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
-import { PaymentRequired } from 'http-errors';
 
 const fetch = require('node-fetch');
 // import { Notifier } from './notifier';
