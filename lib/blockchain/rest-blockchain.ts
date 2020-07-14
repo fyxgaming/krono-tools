@@ -25,7 +25,7 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx: tx.toString() })
         });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         console.timeEnd(`Broadcast: ${tx.hash}`);
         await this.cache.set(`tx:${tx.hash}`, tx.toString());
         return tx.hash;
@@ -36,7 +36,7 @@ export class RestBlockchain extends Blockchain {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
                 const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                if (!resp.ok) throw createError(resp.status, resp.statusText);
+                if (!resp.ok) throw createError(resp.status, await resp.text());
                 rawtx = await resp.text();
                 await this.cache.set(`tx://${txid}`, rawtx);
             }
@@ -50,7 +50,7 @@ export class RestBlockchain extends Blockchain {
                 //     `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
                 //     { headers: { api_key: this.apiKey } }
                 // );
-                // if (!resp.ok) throw createError(resp.status, resp.statusText);
+                // if (!resp.ok) throw createError(resp.status, await resp.text());
                 // const { result } = await resp.json();
                 // const spentTxIds = {};
                 // result.forEach((o) => spentTxIds[`${o.txid}_o${o.index}`] = o.spend_txid);
@@ -60,7 +60,7 @@ export class RestBlockchain extends Blockchain {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ locs })
                 });
-                if (!resp.ok) throw createError(resp.status, resp.statusText);
+                if (!resp.ok) throw createError(resp.status, await resp.text());
             }
 
             tx.outputs.forEach((o: any, i) => {
@@ -93,7 +93,7 @@ export class RestBlockchain extends Blockchain {
 
     async balance(address) {
         const resp = await fetch(`${this.apiUrl}/balance/${address}`);
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return resp.json();
     }
 
@@ -103,7 +103,7 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return resp.json();
     }
 
@@ -113,13 +113,13 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return resp.json();
     }
 
     async getChannel(loc: string, seq?: number): Promise<any> {
         const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
 
@@ -129,12 +129,12 @@ export class RestBlockchain extends Blockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx })
         });
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
     }
 
     async fund(address, satoshis?: number) {
         const resp = await fetch(`${this.apiUrl}/fund/${address}`);
-        if (!resp.ok) throw createError(resp.status, resp.statusText);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
 }
