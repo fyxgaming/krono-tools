@@ -118,11 +118,18 @@ export class Wallet extends EventEmitter {
     }
 
     async loadChannel(loc: string, seq?: number) {
+        let channel;
         console.time(`load channel ${loc}`);
-        const channel = await this.blockchain.getChannel(loc);
+        try {
+            channel = await this.blockchain.getChannel(loc);
+        }
+        catch (e) {
+            if (e.status === 404) return;
+            throw e;
+        }
         console.timeEnd(`load channel ${loc}`);
         if (!channel || (seq && channel.seq !== seq)) return;
-        const tx = new bsv.Transaction(channel.rawTx);
+        const tx = new bsv.Transaction(channel.rawtx);
         return this.loadTransaction(tx, loc);
     }
 
@@ -140,7 +147,7 @@ export class Wallet extends EventEmitter {
         await this.transaction.sign();
         const tx = this.transaction.export();
         const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
-        if(!input) throw new Error('Invalid Channel');
+        if (!input) throw new Error('Invalid Channel');
         input.sequenceNumber = seq;
         await this.blockchain.saveChannel(loc, tx.toString());
     }
