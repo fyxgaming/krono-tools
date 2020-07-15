@@ -144,7 +144,7 @@ export class Wallet extends EventEmitter {
     }
 
     async signChannel(loc: string, seq?: number) {
-        await this.transaction.pay();
+        // await this.transaction.pay();
         await this.transaction.sign();
         const tx = this.transaction.export();
         const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
