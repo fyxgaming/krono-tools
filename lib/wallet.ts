@@ -157,7 +157,7 @@ export class Wallet extends EventEmitter {
 
     private async finalizeTx(jig?: IJig) {
         if (jig && jig.KRONO_CHANNEL) {
-            this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
+            await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
             this.transaction.rollback();
             return;
         } else if (jig && this.transaction.actions.length) {
