@@ -1,88 +1,105 @@
-import * as secp from 'noble-secp256k1';
+const bsv = require('bsv');
+import { Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
+import { EventEmitter } from 'events';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
-import { EventEmitter } from 'events';
-import fetch from 'node-fetch';
-import { Notifier } from './notifier';
+import { PaymentRequired } from 'http-errors';
 
-const { crypto, PrivateKey, Transaction } = require('bsv');
+const fetch = require('node-fetch');
+// import { Notifier } from './notifier';
 
 export class Wallet extends EventEmitter {
     fetch = fetch;
-    private agent: any;
+    agent: any;
     private blockchain: Blockchain;
+
     pubkey: string;
     address: string;
     purse: string;
-    transaction: any;
-    private privkey: string;
-
-    private jigs = new Map<string, IJig>();
-    private handlers = new Map<any, (jig: IJig, channel?: any) => Promise<void>>();
-    private channelHandlers = new Map<any, (jig: IJig, channel?: any) => Promise<void>>();
+    handle?: string;
+    private keyPair: KeyPair;
     private queue: Promise<any> = Promise.resolve();
 
+    private processCount = 0;
+    transaction: any;
+
     constructor(
-        private run: any,
         private apiUrl: string,
+        private run: any,
         private storage?: IStorage<any>
     ) {
         super();
-
         this.blockchain = run.blockchain;
-        this.transaction = run.transaction;
-        this.privkey = new PrivateKey(run.owner.privkey).toBuffer().toString('hex');
+
+        if (run.network === 'main') {
+            const privKey = new PrivKey.Mainnet().fromString(run.owner.privkey);
+            this.keyPair = new KeyPair.Mainnet.fromPrivKey(privKey);
+        } else {
+            const privKey = new PrivKey.Testnet().fromString(run.owner.privkey);
+            this.keyPair = KeyPair.Testnet.fromPrivKey(privKey);
+        }
+        this.purse = run.purse.address;
         this.pubkey = run.owner.pubkey;
         this.address = run.owner.address;
-
-        this.purse = run.purse.address;
-
-        console.log(`OWNER: ${this.address}`);
+        this.transaction = run.transaction;
+        console.log(`ADDRESS: ${this.address}`);
         console.log(`PUBKEY: ${this.pubkey}`);
         console.log(`PURSE: ${this.purse}`);
-
-        (console as any).emit = (event, payload) => {
-            console.log(event, payload);
-            this.emit('jig-event', event, payload);
-        };
     }
 
-    async initializeAgent(location: string) {
-        console.log('AGENT:', location);
-        const Agent = await this.run.load(location);
-        this.agent = new Agent(this, this.blockchain, this.handlers, this.channelHandlers);
-        await this.agent.initialize();
+    async initializeAgent(agentLoc: string, handle?: string) {
+        console.log('AGENT:', agentLoc);
+        const Agent = await this.run.load(agentLoc);
+        this.agent = new Agent(this, this.blockchain);
+        this.handle = handle;
+
+        await this.addToQueue(() => this.agent.init(), 'init');
     }
 
-    private addToQueue(process: () => Promise<any>) {
-        const queuePromise = this.queue.then(process)
-        this.queue = queuePromise.catch(e => console.error('Queue error', e.message, e.stack));
+    get balance(): Promise<number> {
+        return this.run.purse.balance();
+    }
+
+    addToQueue(process: () => Promise<any>, label = 'process') {
+        const processCount = this.processCount++;
+        console.time(`${processCount}-${label}`);
+        const queuePromise = this.queue.then(process);
+        this.queue = queuePromise
+            .catch(e => console.error('Queue error', label, e.message, e.stack))
+            .then(() => console.timeEnd(`${processCount}-${label}`));
+
         return queuePromise;
     }
 
-    async handleEvent(handlerName: string, payload?: any): Promise<any> {
-        if (handlerName.startsWith('_') || typeof this.agent[handlerName] !== 'function') return;
-        return this.addToQueue(async () => this.agent[handlerName](payload));
+    async handleEvent(event, payload) {
+        return await this.addToQueue(async () => {
+            return this.agent.onEvent(event, payload);
+        }, `callClientEvent: ${event}`);
     }
 
     scheduleHandler(delaySeconds: number, handlerName: string, payload?: any) {
         this.emit('schedule', delaySeconds, handlerName, payload);
     }
 
+    async loadJigIndex() {
+        console.time('jigIndex');
+        const resp = await fetch(`${this.apiUrl}/jigs/${this.address}`);
+        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+        return resp.json();
+    }
+
     async loadJig(loc: string): Promise<IJig> {
         console.time(`load ${loc}`);
-        const jig = this.jigs.get(loc) || await this.run.load(loc)
-            .catch((e) => {
-                if (e.message.includes('not a run tx') ||
-                    e.message.includes('not a jig output') ||
-                    e.message.includes('Not a token')
-                ) {
-                    console.log('Not a jig:', loc);
-                    return;
-                }
-                console.error('Load error:', e.message);
-                throw e;
-            });
+        const jig = await this.run.load(loc).catch((e) => {
+            if (e.message.includes('not a run tx') ||
+                e.message.includes('not a jig output') ||
+                e.message.includes('Not a token')
+            ) {
+                console.log('Not a jig:', loc);
+                return;
+            }
+            console.error('Load error:', loc, e.message);
+        });
         console.timeEnd(`load ${loc}`);
         return jig;
     }
@@ -90,84 +107,26 @@ export class Wallet extends EventEmitter {
     async loadJigs() {
         console.log('Load Jigs');
         const utxos = await this.blockchain.utxos(this.address);
-        const jigs = [];
+        const jigs: IJig[] = [];
         for (const utxo of utxos) {
             const loc = `${utxo.txid}_o${utxo.vout}`;
             const jig = await this.loadJig(loc);
             if (jig) jigs.push(jig);
         }
-        this.jigs.clear();
-        jigs.forEach(jig => this.jigs.set(jig.location, jig));
         console.log('JIGS:', jigs.length);
         return jigs;
     }
 
-    async loadJigIndex() {
-        console.time('jigIndex');
-        const resp = await fetch(`${this.apiUrl}/jigs/${this.address}`);
-        const jigData = resp.ok ? await resp.json() : [];
-        return jigData;
-    }
-
-    async loadChannel(loc: string, seq?: number) {
-        const now = Date.now();
-        console.time(`load channel ${loc} ${now}`);
-        const txData = await this.blockchain.getChannel(loc);
-        if (!txData || (seq && txData.seq !== seq)) return;
-        const tx = new Transaction(txData);
-        console.timeEnd(`load channel ${loc} ${now}`);
-        console.time(`import ${loc} ${now}`);
-        await this.transaction.import(tx);
-        console.timeEnd(`import ${loc} ${now}`);
-        return this.transaction.actions
-            .map(action => action.target)
-            .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
-    }
-
-    async onUtxo(loc: string) {
-        return this.addToQueue(async () => {
-            console.log('OnUTXO:', loc);
-            const jig = await this.loadJig(loc);
-            if (!jig) return;
-            console.log('JIG', jig.constructor.name, loc);
-            await jig.sync();
-            if (jig.location !== loc) {
-                console.log('Jig spent:', loc);
-                return;
-            }
-            const handler = this.handlers.get((jig.constructor as any).origin);
-            if (!handler) {
-                console.log('No handler:', jig.constructor.name, loc);
-                return;
-            };
-            console.log('handler:', handler.name);
-            await handler.bind(this.agent)(jig);
-        });
-    }
-
-    async onChannel(loc: string) {
-        return this.addToQueue(async () => {
-            console.log('onChannel', loc);
-            try {
-                const jig = await this.loadChannel(loc);
-                if (!jig) return;
-                console.log('CHANNEL', jig.constructor.name, loc);
-                const handler = this.channelHandlers.get((jig.constructor as any).origin);
-                if (!handler) return;
-                console.log('handler:', handler.name);
-                await handler.bind(this.agent)(jig);
-            } finally {
-                this.transaction.rollback();
-            }
-        });
-    }
-
-    async submitAction(agentId: string, name: string, loc: string, hash: string, payload?: any) {
-        const sig = await secp.sign(hash, this.privkey);
-        const action: IAction = { name, loc, hash, payload, sig };
-        const url = `${this.apiUrl}/${agentId}/submit`;
-        console.log('Submitting action:', name, url);
-        const resp = await fetch(url, {
+    async submitAction(agentId: string, name: string, loc: string, msgHash: string, payload?: any) {
+        const sig = Ecdsa.sign(Buffer.from(msgHash, 'hex'), this.keyPair).toString();
+        const action: IAction = {
+            name,
+            loc,
+            hash: msgHash,
+            payload,
+            sig
+        };
+        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(action)
@@ -176,34 +135,50 @@ export class Wallet extends EventEmitter {
         return resp.json();
     }
 
-    async finalizeTx(jig?: IJig) {
-        if (jig) {
-            console.log('Committing:', jig.constructor.name, jig.KRONO_CHANNEL?.loc, jig.KRONO_CHANNEL?.seq);
-            if (jig.KRONO_CHANNEL) {
-                const { loc, seq } = jig.KRONO_CHANNEL;
-                const now = new Date();
-                this.run.purse.nLocktime = now.setMonth(now.getMonth() + 12) / 1000;
-                this.run.purse.seqs[loc] = seq;
-            }
-        }
-        if ((this.transaction.actions || []).length) {
-            this.transaction.end();
-        } else {
+    async verifySig(sig, hash, pubkey): Promise<boolean> {
+        const msgHash = await Hash.asyncSha256(Buffer.from(hash));
+        console.time('verify');
+        const verified = Ecdsa.verify(msgHash, Sig.fromString(sig), PubKey.fromString(pubkey));
+        console.timeEnd('verify');
+        return verified;
+    }
+
+    async signChannel(loc: string, seq?: number) {
+        await this.transaction.pay();
+        await this.transaction.sign();
+        const tx = this.transaction.export();
+        const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
+        console.log('Signing channel:', loc, seq);
+        if (!input) throw new Error('Invalid Channel');
+        input.sequenceNumber = seq;
+        await this.blockchain.saveChannel(loc, tx.toString());
+        this.transaction.rollback();
+    }
+
+    private async finalizeTx(jig?: IJig) {
+        if (jig && jig.KRONO_CHANNEL) {
+            await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
             this.transaction.rollback();
-        }
-        this.run.purse.nLocktime = 0;
-        this.run.purse.seqs = {};
-        await (jig ? jig.sync({ forward: false }) : this.run.sync());
+            return;
+        } else if (jig && this.transaction.actions.length) {
+            this.transaction.end();
+            try {
+                if (jig.sync) await jig.sync({ forward: false });
+            } catch (e) {
+                if (e.message.includes('Not enough funds')) {
+                    throw new PaymentRequired();
+                }
+                throw e;
+            }
+        } else this.transaction.rollback();
         return jig;
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {
         try {
             this.transaction.begin();
-            let jig = await work();
-            jig = await this.finalizeTx(jig);
-            return jig;
-        } catch (e) {
+            return this.finalizeTx(await work());
+        } catch(e) {
             this.transaction.rollback();
             throw e;
         }
@@ -211,29 +186,43 @@ export class Wallet extends EventEmitter {
 
     async loadChannelTransaction(loc: string, seq: number, work: (jig: IJig) => Promise<IJig | undefined>) {
         try {
-            let jig = await this.loadChannel(loc, seq);
-            if (!jig) return;
-            jig = await work(jig);
-            jig = await this.finalizeTx(jig);
-            return jig;
-        } catch (e) {
+            console.time(`load channel ${loc}`);
+            const channel = await this.blockchain.getChannel(loc)
+                .catch(e => { if (e.status !== 404) throw e });
+            console.timeEnd(`load channel ${loc}`);
+            if (!channel || (seq && channel.seq !== seq)) return;
+
+            console.time(`import ${loc}`);
+            const tx = new bsv.Transaction(channel.rawtx);
+            await this.transaction.import(tx);
+            console.timeEnd(`import ${loc}`);
+
+            const jig = this.transaction.actions
+                .map(action => action.target)
+                .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
+            if (!jig) {
+                console.log('No Jig:', loc)
+                return;
+            }
+            return this.finalizeTx(await work(jig));
+        } catch(e) {
             this.transaction.rollback();
             throw e;
         }
     }
 
     randomInt(max) {
-        if (max > Number.MAX_SAFE_INTEGER) throw new Error('Max must be <= ' + Number.MAX_SAFE_INTEGER);
-        return Math.floor(Math.random() * max);
+        return Math.floor(Math.random() * (max || Number.MAX_SAFE_INTEGER));
     }
 
-    randomBytes(size: number) {
-        return crypto.Random.getRandomBuffer(size).toString('hex');
+    randomBytes(size: number): string {
+        return Random.getRandomBuffer(size).toString('hex');
     }
 
     timestamp() {
         return Date.now();
     }
+
 
     get(key) {
         if (!this.storage) throw new Error('Storage not implemented');
@@ -252,12 +241,5 @@ export class Wallet extends EventEmitter {
 
     sync() {
         return this.run.sync();
-    }
-
-    verifySig(sig, hash, pubkey): boolean {
-        console.time('verify');
-        const verified = secp.verify(sig, hash, pubkey);
-        console.timeEnd('verify');
-        return verified;
     }
 }

@@ -1,33 +1,48 @@
-export class LRUCache extends Map<string, any> {
+import { IStorage } from './interfaces';
+export class LRUCache implements IStorage<any> {
+    protected cache = new Map<string, any>();
     public bytes = 0;
 
-    constructor(private maxBytes: number, private maxEntries?: number) {
-        super();
-    }
+    constructor(private maxBytes: number, private maxEntries?: number) {}
 
-    set(key: string, value: any): this {
-        const serialized = JSON.stringify(value);
-        this.bytes += serialized?.length || 0;
-        super.set(key, serialized);
+    async set(key: string, value: any) {
+        let serialized;
+        if(typeof value == 'number') {
+            serialized = {bytes: 8, value}
+        } else if (typeof value === 'string' || value instanceof Uint8Array) {
+            serialized = { bytes: value.length, value }
+        } else {
+            const json = JSON.stringify(value)
+            serialized = {json: true, bytes: json.length, value: json};
+        }
+        this.bytes += serialized.bytes;
+        this.cache.set(key, serialized);
 
-        for (const delKey of Array.from(this.keys())) {
-            if ((!this.maxEntries || this.size <= this.maxEntries) &&
+        for (const delKey of Array.from(this.cache.keys())) {
+            if ((!this.maxEntries || this.cache.size <= this.maxEntries) &&
                 (!this.maxBytes || this.bytes <= this.maxBytes)
             ) break;
-            const delValue = super.get(delKey);
-            this.bytes -= delValue?.length || 0;
-            this.delete(delKey);
+            const delValue = this.cache.get(delKey);
+            this.bytes -= delValue?.bytes || 0;
+            this.cache.delete(delKey);
         };
 
-        return this;
+        return;
     }
 
     get(key: string) {
-        if (this.has(key)) {
-            const value = super.get(key);
-            this.delete(key);
-            super.set(key, value);
-            return value && JSON.parse(value);
+        if (this.cache.has(key)) {
+            const serialized = this.cache.get(key);
+            this.cache.delete(key);
+            this.cache.set(key, serialized);
+            const value = serialized.json ? JSON.parse(serialized.value) : serialized.value;
+            return value;
         }
+    }
+
+    async delete(key: string) {
+        const delValue = this.cache.get(key);
+        this.bytes -= delValue?.bytes || 0;
+        this.cache.delete(key);
     }
 }

@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 
 import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
-import { TimelockPurse } from '../lib/timelock-purse';
 import { Wallet } from '../lib/wallet';
 import { LRUCache } from '../lib/lru-cache';
 import { IStorage } from '../lib/interfaces';
 
 const { HDPrivateKey } = require('bsv');
-const Run = require('../run/dist/run.node.min');
+const Run = require('@runonbitcoin/release');
 
 export class Agent {
     private wallet: Wallet;
 
-    constructor(apiUrl, xpriv) {
+    constructor(apiUrl: string, xpriv: string) {
         const hdKey = HDPrivateKey.fromString(xpriv);
         const purse = hdKey.deriveChild('m/1').privateKey;
         const owner = hdKey.deriveChild('m/2').privateKey;
@@ -22,7 +21,7 @@ export class Agent {
             network: 'mock',
             blockchain,
             owner: owner.toString(),
-            purse: new TimelockPurse({ blockchain, privkey: purse.toString() }),
+            purse: purse.toString(),
             state: new LRUCache(100000000)
         });
         run.owner.owner = () => run.owner.pubkey;
@@ -46,13 +45,13 @@ export class Agent {
         await this.wallet.initializeAgent(loc);
     }
 
-    onUtxo(loc: string) {
-        return this.wallet.onUtxo(loc);
-    }
+    // onUtxo(loc: string) {
+    //     return this.wallet.onUtxo(loc);
+    // }
 
-    onChannel(loc: string) {
-        return this.wallet.onChannel(loc);
-    }
+    // onChannel(loc: string) {
+    //     return this.wallet.onChannel(loc);
+    // }
 
     handleEvent(name: string, payload?: any) {
         return this.wallet.handleEvent(name, payload);

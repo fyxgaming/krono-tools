@@ -192,8 +192,8 @@ export class Deployer {
                 await this.run.deploy(deployed);
 
                 //Wait for the transaction to be accepted
-                this.log(`RUN.SYNC`);
-                await this.run.sync();
+                // this.log(`RUN.SYNC`);
+                // await this.run.sync();
                 if (postDeploy) {
                     await postDeploy(this);
                 }

@@ -1,14 +1,13 @@
-#!/usr/bin/env node
+import dotenv from 'dotenv';
+import fs from 'fs-extra';
+import minimist from 'minimist';
+import path from 'path';
 
-const dotenv = require('dotenv');
-const fs = require('fs-extra');
-const minimist = require('minimist');
-const path = require('path');
+import { MapStorage } from '../lib/storage/map-storage';
+import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
+import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
-const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
-const { Deployer } = require('../lib/deployer');
-
-const Run = require('../run/dist/run.node.min');
+const Run = require('@runonbitcoin/release');
 
 var argv = minimist(process.argv.slice(2));
 
@@ -16,9 +15,13 @@ const blockchainUrls = {
     mock: 'http://localhost:8080',
     dev: 'https://kronoverse-dev.appspot.com',
     test: 'https://kronoverse-test.appspot.com',
-    prod: 'https://us-central1-kronoverse-backend.cloudfunctions.net'
+    prod: 'https://kronoverse-main.appspot.com'
 };
 
+
+console.log('PATH:', process.cwd());
+console.log('ARGV:', argv);
+dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 
 function renderUsage() {
     console.log(`
@@ -47,47 +50,58 @@ function renderUsage() {
     return 'Check usage instructions and provide valid parameters';
 }
 
-dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
-
 (async () => {
     const env = argv.env || 'mock';
     const blockchainUrl = argv.blockchain || process.env.BLOCKCHAIN || blockchainUrls[env];
     const owner = argv.owner || process.env.OWNER;
     const purse = argv.purse || process.env.PURSE;
     const network = argv.network || process.env.RUNNETWORK;
+    const txq = argv.txq || process.env.TXQ;
+    const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
+    const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
 
-    const sourcePath = path.resolve(source, 'catalog.js');
+    const sourcePath = path.resolve(source, catalogFile);
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
+    console.log('CONFIG:', blockchainUrl, network, source);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
         return;
     }
 
-    const blockchain = new RestBlockchain(blockchainUrl, network);
+    const blockchain = new RestBlockchain(
+        blockchainUrl, 
+        network, 
+        // txq,
+        // apiKey,
+        new MapStorage(),
+    );
 
     const run = new Run({
         blockchain,
         network,
         owner,
         purse,
-        app: argv.app
+        app: argv.app,
+        logger: console
     });
+    run.owner.owner = () => run.owner.pubkey;
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
-    const deployer = new Deployer(run, rootPath, env, !disableChainFiles);
+    const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy('catalog.js');
+    const catalog = await deployer.deploy(catalogFile);
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ loc: (dep as any).location })
+            body: JSON.stringify({ location: (dep as any).location })
         });
+        if(!resp.ok) throw new Error(resp.statusText);
     }
     console.log('Deployed');
 })().catch(e => {

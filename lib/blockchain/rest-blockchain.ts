@@ -1,13 +1,20 @@
-import { IUTXO, IAction } from '../interfaces';
+import { IStorage } from '../interfaces';
 import { Blockchain } from '.';
 import { LRUCache } from '../lru-cache';
-import fetch from 'node-fetch';
+import createError from 'http-errors';
+
+const fetch = require('node-fetch');
 
 const { Transaction } = require('bsv');
 
 export class RestBlockchain extends Blockchain {
-    private inflight = new Map<string, Promise<any>>();
-    constructor(private apiUrl: string, network: string, public cache = new LRUCache(10000000)) {
+    constructor(
+        private apiUrl: string,
+        network: string,
+        // private txq: string,
+        // private apiKey: string,
+        public cache: IStorage<any> = new LRUCache(10000000)
+    ) {
         super(network);
     }
 
@@ -16,55 +23,59 @@ export class RestBlockchain extends Blockchain {
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tx.toObject())
+            body: JSON.stringify({ rawtx: tx.toString() })
         });
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         console.timeEnd(`Broadcast: ${tx.hash}`);
-        return this.saveTx(tx, true);
-    }
-
-    async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
-        const txid = tx.hash;
-        return tx.outputs.map((o, vout) => o.script.isPublicKeyHashOut() && {
-            _id: `${txid}_o${vout}`,
-            address: o.script.toAddress(this.bsvNetwork).toString(),
-            script: o.script.toString(),
-            satoshis: o.satoshis,
-            txid,
-            ts: Date.now(),
-            vout,
-            lockUntil: 0
-        }).filter(utxo => utxo);
+        await this.cache.set(`tx:${tx.hash}`, tx.toString());
+        return tx.hash;
     }
 
     async fetch(txid: string, force?: boolean) {
-        this.emit('fetch', txid);
         try {
-            let txData;
-            if (!force && this.cache.has(txid)) {
-                txData = this.cache.get(txid);
+            let rawtx = await this.cache.get(`tx://${txid}`);
+            if (!rawtx) {
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                if (!resp.ok) throw createError(resp.status, await resp.text());
+                rawtx = await resp.text();
+                await this.cache.set(`tx://${txid}`, rawtx);
             }
-            if (!txData) {
-                const url = `${this.apiUrl}/tx/${txid}`;
-                const resp = await fetch(url);
-                txData = await resp.json();
-                this.inflight.delete(txid);
-                this.cache.set(txid, txData);
+
+            const tx = new Transaction(Buffer.from(rawtx, 'hex'));
+            const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
+
+            let spends = [];
+            if (force) {
+                // const resp = await fetch(
+                //     `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
+                //     { headers: { api_key: this.apiKey } }
+                // );
+                // if (!resp.ok) throw createError(resp.status, await resp.text());
+                // const { result } = await resp.json();
+                // const spentTxIds = {};
+                // result.forEach((o) => spentTxIds[`${o.txid}_o${o.index}`] = o.spend_txid);
+                // spends = locs.map(loc => spentTxIds[loc] || null);
+                const resp = await fetch(`${this.apiUrl}/spent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ locs })
+                });
+                if (!resp.ok) throw createError(resp.status, await resp.text());
             }
-            const tx = new Transaction(txData);
+
             tx.outputs.forEach((o: any, i) => {
-                o.spentTxId = txData.spent[i]?.txid || null
-                o.spentIndex = txData.spent[i]?.i
+                o.spentTxId = spends[i] || null;
+                o.spentIndex = null;
             });
-            (tx as any).time = txData.time;
+
             return tx;
         } catch (e) {
-            console.log(txid, 'not found');
+            console.log(`Fetch error: ${txid} - ${e.message}`);
             throw e;
         }
     };
 
-    async utxos(address, start?: number): Promise<IUTXO[]> {
+    async utxos(address) {
         if (typeof address !== 'string') {
             address = address.toAddress(this.bsvNetwork).toString();
         }
@@ -73,47 +84,57 @@ export class RestBlockchain extends Blockchain {
         return resp.json();
     };
 
-
-    async isSpent(loc: string) {
-        const resp = await fetch(`${this.apiUrl}/utxos/${loc}/spent`);
+    async isSpent(loc) {
+        const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
         if (!resp.ok) throw new Error(await resp.text());
-        return await resp.json();
+        const spentTxId = await resp.text();
+        return !!spentTxId;
     }
 
-    async utxosByLoc(locs: string[]): Promise<IUTXO[]> {
-        const resp = await fetch(`${this.apiUrl}/utxos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ locs }),
-        });
-        if (!resp.ok) throw new Error(await resp.text());
+    async balance(address) {
+        const resp = await fetch(`${this.apiUrl}/balance/${address}`);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return resp.json();
     }
 
-    async lockUtxo(address: string, expires: number, satoshis: number): Promise<IUTXO> {
-        throw new Error('lockUtxo not implemented');
-    };
+    async kindHistory(kind: string, query: any) {
+        const resp = await fetch(`${this.apiUrl}/jigs/kind/${kind}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        });
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+        return resp.json();
+    }
+
+    async originHistory(origin: string, query: any) {
+        const resp = await fetch(`${this.apiUrl}/jigs/origin/${origin}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        });
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+        return resp.json();
+    }
 
     async getChannel(loc: string, seq?: number): Promise<any> {
         const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
 
-    async submitAction(agentId: string, action: IAction) {
-        console.log('submitting action:', agentId, JSON.stringify(action));
-        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
+    async saveChannel(loc: string, rawtx: string) {
+        const resp = await fetch(`${this.apiUrl}/channel/${loc}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action),
+            body: JSON.stringify({ rawtx })
         });
-        if (!resp.ok) throw new Error(await resp.text());
-        return resp.json();
+        if (!resp.ok) throw createError(resp.status, await resp.text());
     }
 
-    async fund(address) {
+    async fund(address, satoshis?: number) {
         const resp = await fetch(`${this.apiUrl}/fund/${address}`);
-        if (!resp.ok) throw new Error(await resp.text());
+        if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
 }

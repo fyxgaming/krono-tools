@@ -2,7 +2,7 @@ import { Blockchain } from '.';
 import { IUTXO } from '../interfaces';
 import createError from 'http-errors';
 
-const { Transaction } = require('bsv');
+const { Script, Transaction } = require('bsv');
 export class MockBlockchain extends Blockchain {
     protected apiUrl: string;
     protected cache = new Map<string, any>();
@@ -11,6 +11,22 @@ export class MockBlockchain extends Blockchain {
     unspent = new Map<string, IUTXO>();
     locks = new Map<string, number>();
     channels = new Map<string, any>();
+
+    async broadcast(tx) {
+        if (tx.getLockTime() > Date.now()) {
+            await this.validateTx(tx);
+            await this.updateChannel(tx);
+        }
+        else {
+            await this.validateTx(tx);
+            const utxos = await this.saveTx(tx, true);
+            this.emit('tx', tx.hash);
+            utxos.forEach(utxo => this.emit('utxo', utxo));
+            const spent = tx.inputs.map((i) => `${i.prevTxId.toString('hex')}_o${i.outputIndex}`);
+            spent.forEach(loc => this.emit('spent', loc));
+            return utxos;
+        }
+    }
 
     async validateTx(tx) {
         if (tx.inputs.length === 0) throw new Error('tx has no inputs');
@@ -34,6 +50,25 @@ export class MockBlockchain extends Blockchain {
             if (!utxo) throw new Error(`tx input ${i} missing or spent: ${loc}`);
             // if (!this.validateInput(tx, i, utxo)) throw new Error('Script Invalid');
         });
+    }
+
+    validateInput(tx, i) {
+        const Interpreter = Script.Interpreter;
+        const flags = Interpreter.SCRIPT_VERIFY_STRICTENC |
+            Interpreter.SCRIPT_VERIFY_DERSIG |
+            Interpreter.SCRIPT_VERIFY_LOW_S |
+            Interpreter.SCRIPT_VERIFY_NULLDUMMY |
+            Interpreter.SCRIPT_VERIFY_SIGPUSHONLY |
+            Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES |
+            Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+            Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID
+
+        const interpreter = new Interpreter();
+        const valid = interpreter.verify(
+            tx.inputs[i].script, tx.inputs[i].output.script, tx, i,
+            flags, tx.inputs[i].output.satoshisBN
+        );
+        return valid;
     }
 
     async saveTx(tx, saveUtxos?: boolean): Promise<IUTXO[]> {
