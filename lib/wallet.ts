@@ -156,22 +156,29 @@ export class Wallet extends EventEmitter {
     }
 
     private async finalizeTx(jig?: IJig) {
-        if (jig && jig.KRONO_CHANNEL) {
-            await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
-            this.transaction.rollback();
-            return;
-        } else if (jig && this.transaction.actions.length) {
-            this.transaction.end();
-            try {
-                if (jig.sync) await jig.sync({ forward: false });
-            } catch (e) {
-                if (e.message.includes('Not enough funds')) {
-                    throw new PaymentRequired();
+        try {
+            if (jig && jig.KRONO_CHANNEL) {
+                await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
+                this.transaction.rollback();
+                return;
+            } else if (jig && this.transaction.actions.length) {
+                this.transaction.end();
+                try {
+                    if (jig.sync) await jig.sync({ forward: false });
+                } catch (e) {
+                    if (e.message.includes('Not enough funds')) {
+                        throw new PaymentRequired();
+                    }
+                    throw e;
                 }
-                throw e;
-            }
-        } else this.transaction.rollback();
-        return jig;
+            } else this.transaction.rollback();
+            return jig;
+        } catch(e) {
+            this.transaction.rollback();
+            throw e;
+        }
+
+        
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {
