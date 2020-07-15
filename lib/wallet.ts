@@ -147,6 +147,7 @@ export class Wallet extends EventEmitter {
         await this.transaction.sign();
         const tx = this.transaction.export();
         const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
+        console.log('Signing channel:', loc, seq);
         if (!input) throw new Error('Invalid Channel');
         input.sequenceNumber = seq;
         await this.blockchain.saveChannel(loc, tx.toString());
@@ -187,7 +188,10 @@ export class Wallet extends EventEmitter {
             const jig = this.transaction.actions
                 .map(action => action.target)
                 .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
-            if (!jig) return;
+            if (!jig) {
+                console.log('No Jig:', loc)
+                return;
+            }
             return this.finalizeTx(await work(jig));
         } catch(e) {
             this.transaction.rollback();
