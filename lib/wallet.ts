@@ -3,6 +3,7 @@ import { Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
 import { EventEmitter } from 'events';
 import { Blockchain } from './blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
+import { PaymentRequired } from 'http-errors';
 
 const fetch = require('node-fetch');
 // import { Notifier } from './notifier';
@@ -155,9 +156,20 @@ export class Wallet extends EventEmitter {
     }
 
     private async finalizeTx(jig?: IJig) {
-        if (jig && this.transaction.actions.length) {
+        if (jig && jig.KRONO_CHANNEL) {
+            this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
+            this.transaction.rollback();
+            return;
+        } else if (jig && this.transaction.actions.length) {
             this.transaction.end();
-            if (jig.sync) await jig.sync({ forward: false });
+            try {
+                if (jig.sync) await jig.sync({ forward: false });
+            } catch (e) {
+                if (e.message.includes('Not enough funds')) {
+                    throw new PaymentRequired();
+                }
+                throw e;
+            }
         } else this.transaction.rollback();
         return jig;
     }
