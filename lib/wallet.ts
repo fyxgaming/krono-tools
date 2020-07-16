@@ -144,14 +144,20 @@ export class Wallet extends EventEmitter {
     }
 
     async signChannel(loc: string, seq?: number) {
+        console.log('signChannel', loc, seq);
         // await this.transaction.pay();
+        console.time(`sign:${loc}:${seq}`);
         await this.transaction.sign();
+        console.timeEnd(`sign:${loc}:${seq}`);
+        console.time(`export:${loc}:${seq}`);
         const tx = this.transaction.export();
+        console.timeEnd(`export:${loc}:${seq}`);
         const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
-        console.log('Signing channel:', loc, seq);
         if (!input) throw new Error('Invalid Channel');
         input.sequenceNumber = seq;
+        console.time(`save:${loc}:${seq}`);
         await this.blockchain.saveChannel(loc, tx.toString());
+        console.timeEnd(`save:${loc}:${seq}`);
         this.transaction.rollback();
     }
 
