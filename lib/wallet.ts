@@ -68,12 +68,6 @@ export class Wallet extends EventEmitter {
         return queuePromise;
     }
 
-    async handleEvent(event, payload) {
-        return await this.addToQueue(async () => {
-            return this.agent.onEvent(event, payload);
-        }, `callClientEvent: ${event}`);
-    }
-
     scheduleHandler(delaySeconds: number, handlerName: string, payload?: any) {
         this.emit('schedule', delaySeconds, handlerName, payload);
     }
