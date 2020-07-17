@@ -7,7 +7,7 @@ export interface IAgent {
 }
 
 export interface IUTXO {
-    _id: string;
+    loc: string;
     address: string;
     txid: string;
     vout: number;
