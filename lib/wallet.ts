@@ -1,7 +1,7 @@
 const bsv = require('bsv');
-import { Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
+import { Constants, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
 import { EventEmitter } from 'events';
-import { Blockchain } from './blockchain';
+import { RestBlockchain } from './rest-blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { PaymentRequired } from 'http-errors';
 
@@ -11,7 +11,7 @@ const fetch = require('node-fetch');
 export class Wallet extends EventEmitter {
     fetch = fetch;
     agent: any;
-    private blockchain: Blockchain;
+    private blockchain: RestBlockchain;
 
     pubkey: string;
     address: string;
@@ -29,15 +29,16 @@ export class Wallet extends EventEmitter {
         private storage?: IStorage<any>
     ) {
         super();
+        Constants.Default = Object.assign({}, run.network === 'main' ? Constants.Mainnet : Constants.Testnet)
         this.blockchain = run.blockchain;
 
-        if (run.network === 'main') {
-            const privKey = new PrivKey.Mainnet().fromString(run.owner.privkey);
-            this.keyPair = new KeyPair.Mainnet.fromPrivKey(privKey);
-        } else {
-            const privKey = new PrivKey.Testnet().fromString(run.owner.privkey);
-            this.keyPair = KeyPair.Testnet.fromPrivKey(privKey);
-        }
+        // if (run.network === 'main') {
+            const privKey = new PrivKey.fromString(run.owner.privkey);
+            this.keyPair = new KeyPair.fromPrivKey(privKey);
+        // } else {
+        //     const privKey = new PrivKey.fromString(run.owner.privkey);
+        //     this.keyPair = KeyPair.fromPrivKey(privKey);
+        // }
         this.purse = run.purse.address;
         this.pubkey = run.owner.pubkey;
         this.address = run.owner.address;

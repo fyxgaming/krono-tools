@@ -13,6 +13,10 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "http-errors": "^1.8.0",
-    "txforge": "^0.1.7"
+    "txforge": "^0.1.7",
+    "typescript": "^3.9.7"
+  },
+  "devDependencies": {
+    "ts-node": "^8.10.2"
   }
 }
