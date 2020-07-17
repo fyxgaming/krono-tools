@@ -32,13 +32,9 @@ export class Wallet extends EventEmitter {
         Constants.Default = Object.assign({}, run.network === 'main' ? Constants.Mainnet : Constants.Testnet)
         this.blockchain = run.blockchain;
 
-        // if (run.network === 'main') {
-            const privKey = new PrivKey.fromWif(run.owner.privkey);
-            this.keyPair = new KeyPair.fromPrivKey(privKey);
-        // } else {
-        //     const privKey = new PrivKey.fromString(run.owner.privkey);
-        //     this.keyPair = KeyPair.fromPrivKey(privKey);
-        // }
+        const privKey = PrivKey.fromWif(run.owner.privkey);
+        this.keyPair = KeyPair.fromPrivKey(privKey);
+
         this.purse = run.purse.address;
         this.pubkey = run.owner.pubkey;
         this.address = run.owner.address;
@@ -174,19 +170,19 @@ export class Wallet extends EventEmitter {
                 }
             } else this.transaction.rollback();
             return jig;
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }
 
-        
+
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {
         try {
             this.transaction.begin();
             return this.finalizeTx(await work());
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }
@@ -213,7 +209,7 @@ export class Wallet extends EventEmitter {
                 return;
             }
             return this.finalizeTx(await work(jig));
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }
