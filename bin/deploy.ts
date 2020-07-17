@@ -74,8 +74,6 @@ function renderUsage() {
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        // txq,
-        // apiKey,
         new MapStorage(),
     );
 
@@ -87,7 +85,7 @@ function renderUsage() {
         app: argv.app,
         logger: console
     });
-    // run.owner.owner = () => run.owner.pubkey;
+
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
