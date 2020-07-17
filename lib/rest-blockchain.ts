@@ -4,7 +4,7 @@ import createError from 'http-errors';
 
 const fetch = require('node-fetch');
 
-const { Transaction } = require('bsv');
+const { Transaction } = require('bsv_legacy');
 
 export class RestBlockchain {
     constructor(

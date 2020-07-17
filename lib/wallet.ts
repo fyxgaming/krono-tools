@@ -1,5 +1,5 @@
-const bsv = require('bsv');
-import { Constants, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
+const bsv = require('bsv_legacy');
+import { Constants, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
@@ -33,7 +33,7 @@ export class Wallet extends EventEmitter {
         this.blockchain = run.blockchain;
 
         // if (run.network === 'main') {
-            const privKey = new PrivKey.fromString(run.owner.privkey);
+            const privKey = new PrivKey.fromWif(run.owner.privkey);
             this.keyPair = new KeyPair.fromPrivKey(privKey);
         // } else {
         //     const privKey = new PrivKey.fromString(run.owner.privkey);
