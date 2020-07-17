@@ -2,7 +2,7 @@
   "name": "krono-mock",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,10 +13,6 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "http-errors": "^1.8.0",
-    "txforge": "^0.1.7",
-    "typescript": "^3.9.7"
-  },
-  "devDependencies": {
-    "ts-node": "^8.10.2"
+    "txforge": "^0.1.7"
   }
 }
