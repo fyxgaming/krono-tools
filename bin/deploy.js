@@ -7,7 +7,7 @@ const minimist = require('minimist');
 const path = require('path');
 
 const { LRUCache } = require('../lib/lru-cache');
-const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
+const { RestBlockchain } = require('../lib/rest-blockchain');
 const { Deployer } = require('../lib/deployer');
 const Run = require('@runonbitcoin/release');
 
@@ -89,7 +89,7 @@ function renderUsage() {
         app: argv.app,
         // logger: console
     });
-    run.owner.owner = () => run.owner.pubkey;
+    // run.owner.owner = () => run.owner.pubkey;
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));

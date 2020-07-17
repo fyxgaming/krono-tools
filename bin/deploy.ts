@@ -4,7 +4,7 @@ import minimist from 'minimist';
 import path from 'path';
 
 import { MapStorage } from '../lib/storage/map-storage';
-import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
+import { RestBlockchain } from '../lib/rest-blockchain';
 import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
 const Run = require('@runonbitcoin/release');
@@ -87,7 +87,7 @@ function renderUsage() {
         app: argv.app,
         logger: console
     });
-    run.owner.owner = () => run.owner.pubkey;
+    // run.owner.owner = () => run.owner.pubkey;
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
