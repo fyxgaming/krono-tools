@@ -129,10 +129,8 @@ export class Wallet extends EventEmitter {
 
     async verifySig(sig, hash, pubkey): Promise<boolean> {
         const msgHash = await Hash.asyncSha256(Buffer.from(hash));
-        console.time('verify');
         const verified = Ecdsa.verify(msgHash, Sig.fromString(sig), PubKey.fromString(pubkey));
         console.log('SIG:', verified, sig, hash, pubkey);
-        console.timeEnd('verify');
         return verified;
     }
 
