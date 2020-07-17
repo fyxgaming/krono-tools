@@ -1,5 +1,5 @@
 {
-  "name": "kronoverse-tools",
+  "name": "krono-tools",
   "version": "0.1.0",
   "description": "Tools for interacting with the Kronoverse Platform",
   "main": "index.js",
@@ -25,8 +25,8 @@
     "@runonbitcoin/release": "file:runonbitcoin-release.tgz",
     "@types/node": "^13.5.2",
     "body-parser": "^1.19.0",
-    "bsv": "^1.5.3",
-    "bsv2": "npm:bsv@^2.0.0-beta.40",
+    "bsv": "npm:bsv@^2.0.0-beta.40",
+    "bsv_legacy": "npm:bsv@^1.5.3",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "eventsource": "^1.0.7",
@@ -41,6 +41,7 @@
     "node-fetch": "^2.6.0",
     "simple-git": "^2.11.0",
     "socket.io": "^2.3.0",
+    "txforge": "^0.1.7",
     "typescript": "^3.7.5"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
-const bsv = require('bsv');
-import { Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv2';
+const bsv = require('bsv_legacy');
+import { Constants, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv';
 import { EventEmitter } from 'events';
-import { Blockchain } from './blockchain';
+import { RestBlockchain } from './rest-blockchain';
 import { IAction, IJig, IStorage } from './interfaces';
 import { PaymentRequired } from 'http-errors';
 
@@ -11,7 +11,7 @@ const fetch = require('node-fetch');
 export class Wallet extends EventEmitter {
     fetch = fetch;
     agent: any;
-    private blockchain: Blockchain;
+    private blockchain: RestBlockchain;
 
     pubkey: string;
     address: string;
@@ -29,15 +29,12 @@ export class Wallet extends EventEmitter {
         private storage?: IStorage<any>
     ) {
         super();
+        Constants.Default = Object.assign({}, run.network === 'main' ? Constants.Mainnet : Constants.Testnet)
         this.blockchain = run.blockchain;
 
-        if (run.network === 'main') {
-            const privKey = new PrivKey.Mainnet().fromString(run.owner.privkey);
-            this.keyPair = new KeyPair.Mainnet.fromPrivKey(privKey);
-        } else {
-            const privKey = new PrivKey.Testnet().fromString(run.owner.privkey);
-            this.keyPair = KeyPair.Testnet.fromPrivKey(privKey);
-        }
+        const privKey = PrivKey.fromWif(run.owner.privkey);
+        this.keyPair = KeyPair.fromPrivKey(privKey);
+
         this.purse = run.purse.address;
         this.pubkey = run.owner.pubkey;
         this.address = run.owner.address;
@@ -71,12 +68,6 @@ export class Wallet extends EventEmitter {
         return queuePromise;
     }
 
-    async handleEvent(event, payload) {
-        return await this.addToQueue(async () => {
-            return this.agent.onEvent(event, payload);
-        }, `callClientEvent: ${event}`);
-    }
-
     scheduleHandler(delaySeconds: number, handlerName: string, payload?: any) {
         this.emit('schedule', delaySeconds, handlerName, payload);
     }
@@ -105,8 +96,9 @@ export class Wallet extends EventEmitter {
     }
 
     async loadJigs() {
-        console.log('Load Jigs');
+        console.log('Load Jigs', this.address);
         const utxos = await this.blockchain.utxos(this.address);
+        console.log('UTXOS:', utxos.length);
         const jigs: IJig[] = [];
         for (const utxo of utxos) {
             const loc = `${utxo.txid}_o${utxo.vout}`;
@@ -137,9 +129,8 @@ export class Wallet extends EventEmitter {
 
     async verifySig(sig, hash, pubkey): Promise<boolean> {
         const msgHash = await Hash.asyncSha256(Buffer.from(hash));
-        console.time('verify');
         const verified = Ecdsa.verify(msgHash, Sig.fromString(sig), PubKey.fromString(pubkey));
-        console.timeEnd('verify');
+        console.log('SIG:', verified, sig, hash, pubkey);
         return verified;
     }
 
@@ -179,19 +170,19 @@ export class Wallet extends EventEmitter {
                 }
             } else this.transaction.rollback();
             return jig;
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }
 
-        
+
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {
         try {
             this.transaction.begin();
             return this.finalizeTx(await work());
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }
@@ -218,7 +209,7 @@ export class Wallet extends EventEmitter {
                 return;
             }
             return this.finalizeTx(await work(jig));
-        } catch(e) {
+        } catch (e) {
             this.transaction.rollback();
             throw e;
         }

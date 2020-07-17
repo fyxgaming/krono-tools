@@ -1,21 +1,27 @@
-import { IStorage } from '../interfaces';
-import { Blockchain } from '.';
-import { LRUCache } from '../lru-cache';
+import { IStorage } from './interfaces';
+import { LRUCache } from './lru-cache';
 import createError from 'http-errors';
 
 const fetch = require('node-fetch');
 
-const { Transaction } = require('bsv');
+const { Transaction } = require('bsv_legacy');
 
-export class RestBlockchain extends Blockchain {
+export class RestBlockchain {
     constructor(
         private apiUrl: string,
-        network: string,
-        // private txq: string,
-        // private apiKey: string,
-        public cache: IStorage<any> = new LRUCache(10000000)
-    ) {
-        super(network);
+        public network: string,
+        private cache: IStorage<any> = new LRUCache(10000000)
+    ) {}
+    
+    get bsvNetwork(): string {
+        switch (this.network) {
+            case 'stn':
+                return 'stn';
+            case 'main':
+                return 'mainnet';
+            default:
+                return 'testnet';
+        }
     }
 
     async broadcast(tx) {
@@ -46,15 +52,6 @@ export class RestBlockchain extends Blockchain {
 
             let spends = [];
             if (force) {
-                // const resp = await fetch(
-                //     `${this.txq}/api/v1/txout/txid/${locs.join(',')}`,
-                //     { headers: { api_key: this.apiKey } }
-                // );
-                // if (!resp.ok) throw createError(resp.status, await resp.text());
-                // const { result } = await resp.json();
-                // const spentTxIds = {};
-                // result.forEach((o) => spentTxIds[`${o.txid}_o${o.index}`] = o.spend_txid);
-                // spends = locs.map(loc => spentTxIds[loc] || null);
                 const resp = await fetch(`${this.apiUrl}/spent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -133,7 +130,7 @@ export class RestBlockchain extends Blockchain {
     }
 
     async fund(address, satoshis?: number) {
-        const resp = await fetch(`${this.apiUrl}/fund/${address}`);
+        const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`);
         if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
