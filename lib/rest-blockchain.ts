@@ -58,6 +58,7 @@ export class RestBlockchain {
                     body: JSON.stringify({ locs })
                 });
                 if (!resp.ok) throw createError(resp.status, await resp.text());
+                spends = await resp.json();
             }
 
             tx.outputs.forEach((o: any, i) => {
