@@ -96,8 +96,9 @@ export class Wallet extends EventEmitter {
     }
 
     async loadJigs() {
-        console.log('Load Jigs');
+        console.log('Load Jigs', this.address);
         const utxos = await this.blockchain.utxos(this.address);
+        console.log('UTXOS:', utxos.length);
         const jigs: IJig[] = [];
         for (const utxo of utxos) {
             const loc = `${utxo.txid}_o${utxo.vout}`;
