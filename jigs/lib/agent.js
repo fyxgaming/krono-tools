@@ -12,6 +12,9 @@ class Agent {
 
         this.eventHandlers = new Map();
         this.jigHandlers = new Map();
+        this.kindSubHandlers = new Map();
+        this.originSubHandlers = new Map();
+        this.channelSubHandlers = new Map();
     }
 
     initialize() { }
@@ -30,9 +33,43 @@ class Agent {
         await handler.bind(this)(jig);
     }
     async onChannel(channe) {}
-    async onKindSub(jig, handler) {}
-    async onOriginSub(jig, handler) {}
-    async onChannelSub(jig, handler) {}
+    
+    async onKindSub(jigData) {
+        let handler = this.kindSubHandlers.get(jigData.kind);
+        if(!handler) return;
+        const jig = await this.wallet.loadJig(jigData.location);
+        if (!jig) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+            return;
+        }
+        await jig.sync();
+        if (jig.location !== jigData.location) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+        }
+        await handler.bind(this)(jig);
+    }
+    async onOriginSub(jigData) {
+        let handler = this.kindSubHandlers.get(jigData.kind);
+        if(!handler) return;
+        const jig = await this.wallet.loadJig(jigData.location);
+        if (!jig) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+            return;
+        }
+        await jig.sync();
+        if (jig.location !== jigData.location) {
+            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+        }
+        await handler.bind(this)(jig);
+    }
+    async onChannelSub(channel) {
+        let handler = this.channelSubHandlers.get(channel.loc);
+        if(!handler) return;
+        await this.wallet.loadChannelTransaction(channel.loc, channel.seq, async jig => {
+            if(jig.constructor.origin !== Battle.origin) return;
+            return handler.bind(this)(jig);
+        });
+    }
     
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
