@@ -163,6 +163,7 @@ export class Wallet extends EventEmitter {
                 try {
                     if (jig.sync) await jig.sync({ forward: false });
                 } catch (e) {
+                    console.error(e);
                     if (e.message.includes('Not enough funds')) {
                         throw new PaymentRequired();
                     }
