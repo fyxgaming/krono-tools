@@ -209,9 +209,9 @@ export class Wallet extends EventEmitter {
                 console.log('No Jig:', loc)
                 return;
             }
-            console.time(`work ${loc}`);
+            console.time(`work ${loc} ${seq}`);
             jig = await work(jig);
-            console.timeEnd(`work ${loc}`);
+            console.timeEnd(`work ${loc} ${seq}`);
             return this.finalizeTx(jig);
         } catch (e) {
             this.transaction.rollback();
