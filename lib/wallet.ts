@@ -155,12 +155,10 @@ export class Wallet extends EventEmitter {
     private async finalizeTx(jig?: IJig) {
         try {
             if (jig && jig.KRONO_CHANNEL) {
-                console.log('Jig is channel. Signing');
                 await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
                 this.transaction.rollback();
                 return;
             } else if (jig && this.transaction.actions.length) {
-                console.log('Jig is not channel. Finalizing');
                 this.transaction.end();
                 try {
                     console.log('syncing jig');
@@ -203,17 +201,14 @@ export class Wallet extends EventEmitter {
             await this.transaction.import(tx);
             console.timeEnd(`import ${loc}`);
 
-            let jig = this.transaction.actions
+            const jig = this.transaction.actions
                 .map(action => action.target)
                 .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
             if (!jig) {
                 console.log('No Jig:', loc)
                 return;
             }
-            console.time(`work ${loc} ${seq}`);
-            jig = await work(jig);
-            console.timeEnd(`work ${loc} ${seq}`);
-            return this.finalizeTx(jig);
+            return this.finalizeTx(await work(jig));
         } catch (e) {
             this.transaction.rollback();
             throw e;
