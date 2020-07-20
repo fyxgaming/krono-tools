@@ -155,10 +155,12 @@ export class Wallet extends EventEmitter {
     private async finalizeTx(jig?: IJig) {
         try {
             if (jig && jig.KRONO_CHANNEL) {
+                console.log('Jig is channel. Signing');
                 await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
                 this.transaction.rollback();
                 return;
             } else if (jig && this.transaction.actions.length) {
+                console.log('Jig is not channel. Finalizing');
                 this.transaction.end();
                 try {
                     if (jig.sync) await jig.sync({ forward: false });
