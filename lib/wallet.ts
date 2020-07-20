@@ -202,14 +202,17 @@ export class Wallet extends EventEmitter {
             await this.transaction.import(tx);
             console.timeEnd(`import ${loc}`);
 
-            const jig = this.transaction.actions
+            let jig = this.transaction.actions
                 .map(action => action.target)
                 .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
             if (!jig) {
                 console.log('No Jig:', loc)
                 return;
             }
-            return this.finalizeTx(await work(jig));
+            console.time(`work ${loc}`);
+            jig = await work(jig);
+            console.timeEnd(`work ${loc}`);
+            return this.finalizeTx(jig);
         } catch (e) {
             this.transaction.rollback();
             throw e;
