@@ -1,7 +1,7 @@
 import { IStorage } from './interfaces';
 import { LRUCache } from './lru-cache';
-import createError from 'http-errors';
 
+const createError = require('http-errors');
 const fetch = require('node-fetch');
 
 const { Transaction } = require('bsv_legacy');
