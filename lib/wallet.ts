@@ -163,6 +163,7 @@ export class Wallet extends EventEmitter {
                 console.log('Jig is not channel. Finalizing');
                 this.transaction.end();
                 try {
+                    console.log('syncing jig');
                     if (jig.sync) await jig.sync({ forward: false });
                 } catch (e) {
                     console.error(e);
