@@ -175,8 +175,6 @@ export class Wallet extends EventEmitter {
             this.transaction.rollback();
             throw e;
         }
-
-
     }
 
     async runTransaction(work: () => Promise<IJig | undefined>) {

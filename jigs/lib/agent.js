@@ -62,11 +62,11 @@ class Agent {
         }
         await handler.bind(this)(jig);
     }
+
     async onChannelSub(channel) {
         let handler = this.channelSubHandlers.get(channel.loc);
         if(!handler) return;
         await this.wallet.loadChannelTransaction(channel.loc, channel.seq, async jig => {
-            if(jig.constructor.origin !== Battle.origin) return;
             return handler.bind(this)(jig);
         });
     }
