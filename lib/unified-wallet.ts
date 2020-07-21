@@ -19,7 +19,7 @@ export class Wallet extends EventEmitter {
         private keyPair: KeyPair,
         private apiUrl: string,
         private run: any,
-        private storage?: IStorage<any>
+        // private storage?: IStorage<any>
     ) {
         super();
         this.blockchain = run.blockchain;
@@ -27,6 +27,18 @@ export class Wallet extends EventEmitter {
         this.address = run.owner.address;
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
+
+        const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx'];
+        return new Proxy(this, {
+            get: (target, prop, receiver) => {
+                if (protect.includes(prop)) return undefined;
+                return Reflect.get(target, prop, receiver);
+            },
+            getOwnPropertyDescriptor: (target, prop) => {
+                if (protect.includes(prop)) return undefined;
+                return Reflect.getOwnPropertyDescriptor(target, prop);
+            }
+        });
     }
 
     get balance(): Promise<number> {
@@ -200,20 +212,20 @@ export class Wallet extends EventEmitter {
     }
 
 
-    get(key) {
-        if (!this.storage) throw new Error('Storage not implemented');
-        return this.storage.get(key);
-    }
+    // get(key) {
+    //     if (!this.storage) throw new Error('Storage not implemented');
+    //     return this.storage.get(key);
+    // }
 
-    set(key: string, value: any) {
-        if (!this.storage) throw new Error('Storage not implemented');
-        return this.storage.set(key, value);
-    }
+    // set(key: string, value: any) {
+    //     if (!this.storage) throw new Error('Storage not implemented');
+    //     return this.storage.set(key, value);
+    // }
 
-    delete(key: string) {
-        if (!this.storage) throw new Error('Storage not implemented');
-        return this.storage.delete(key);
-    }
+    // delete(key: string) {
+    //     if (!this.storage) throw new Error('Storage not implemented');
+    //     return this.storage.delete(key);
+    // }
 
     async cashout(address) {
         const utxos = await this.blockchain.utxos(this.run.purse.address);
