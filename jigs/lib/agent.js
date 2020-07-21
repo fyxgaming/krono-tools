@@ -1,14 +1,16 @@
-class Agent {
-    constructor(wallet, blockchain, handlers, channelHandlers) {
+const EventEmitter = require('./event-emitter');
+
+//fetch, storage, blockchain, wallet, ADDRESS, PAYMAIL, PUBKEY
+class Agent extends EventEmitter {
+    // EVENTS: schedule, client, 
+
+    constructor(wallet, blockchain) { 
+        super();
         this.wallet = wallet;
         this.blockchain = blockchain;
         this.address = wallet.address;
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
-
-        /// TODO: remove
-        this.handlers = handlers;
-        this.channelHandlers = channelHandlers;
 
         this.eventHandlers = new Map();
         this.jigHandlers = new Map();
@@ -97,6 +99,7 @@ class Agent {
 }
 
 Agent.asyncDeps = {
+    EventEmitter: 'lib/event-emitter.js',
     Sha256: "lib/sha256.js"
 }
 
