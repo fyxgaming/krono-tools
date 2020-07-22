@@ -1,13 +1,15 @@
 const EventEmitter = require('./event-emitter');
 
-//fetch, storage, blockchain, wallet, ADDRESS, PAYMAIL, PUBKEY
+//fetch, ADDRESS, PAYMAIL, PUBKEY
+
 class Agent extends EventEmitter {
     // EVENTS: schedule, client, 
 
-    constructor(wallet, blockchain) { 
+    constructor(wallet, blockchain, storage) { 
         super();
         this.wallet = wallet;
         this.blockchain = blockchain;
+        this.storage = storage;
         this.address = wallet.address;
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
@@ -35,43 +37,45 @@ class Agent extends EventEmitter {
         await handler.bind(this)(jig);
     }
     async onChannel(channe) {}
-    
-    async onKindSub(jigData) {
-        let handler = this.kindSubHandlers.get(jigData.kind);
-        if(!handler) return;
-        const jig = await this.wallet.loadJig(jigData.location);
-        if (!jig) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
-            return;
-        }
-        await jig.sync();
-        if (jig.location !== jigData.location) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
-        }
-        await handler.bind(this)(jig);
-    }
-    async onOriginSub(jigData) {
-        let handler = this.kindSubHandlers.get(jigData.kind);
-        if(!handler) return;
-        const jig = await this.wallet.loadJig(jigData.location);
-        if (!jig) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
-            return;
-        }
-        await jig.sync();
-        if (jig.location !== jigData.location) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
-        }
-        await handler.bind(this)(jig);
-    }
 
-    async onChannelSub(channel) {
-        let handler = this.channelSubHandlers.get(channel.loc);
-        if(!handler) return;
-        await this.wallet.loadChannelTransaction(channel.loc, channel.seq, async jig => {
-            return handler.bind(this)(jig);
-        });
-    }
+    async onMessage(message) {}
+    
+    // async onKindSub(jigData) {
+    //     let handler = this.kindSubHandlers.get(jigData.kind);
+    //     if(!handler) return;
+    //     const jig = await this.wallet.loadJig(jigData.location);
+    //     if (!jig) {
+    //         console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+    //         return;
+    //     }
+    //     await jig.sync();
+    //     if (jig.location !== jigData.location) {
+    //         console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+    //     }
+    //     await handler.bind(this)(jig);
+    // }
+    // async onOriginSub(jigData) {
+    //     let handler = this.kindSubHandlers.get(jigData.kind);
+    //     if(!handler) return;
+    //     const jig = await this.wallet.loadJig(jigData.location);
+    //     if (!jig) {
+    //         console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+    //         return;
+    //     }
+    //     await jig.sync();
+    //     if (jig.location !== jigData.location) {
+    //         console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+    //     }
+    //     await handler.bind(this)(jig);
+    // }
+
+    // async onChannelSub(channel) {
+    //     let handler = this.channelSubHandlers.get(channel.loc);
+    //     if(!handler) return;
+    //     await this.wallet.loadChannelTransaction(channel.loc, channel.seq, async jig => {
+    //         return handler.bind(this)(jig);
+    //     });
+    // }
     
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);

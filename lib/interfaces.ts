@@ -1,3 +1,5 @@
+import { SignedMessage } from "./signed-message";
+
 export interface IJigData {
     location: string;
 }
@@ -12,6 +14,7 @@ export interface IAgent {
     onOriginSub(jigData: IJigData): Promise<any>;
     onChannelSub(jigData: IChannel): Promise<any>;
     onEvent(type: string, payload: any): Promise<any>;
+    onMessage(message: SignedMessage): Promise<any>;
 }
 
 export interface IAgentDef {
@@ -20,13 +23,6 @@ export interface IAgentDef {
     // address?: string;
     // derivationPath?: string;
     anonymous?: boolean;
-}
-
-export interface ISignedMessage {
-    paymail: string;
-    payload: string;
-    ts: number;
-    sig: string;
 }
 
 export interface IUTXO {

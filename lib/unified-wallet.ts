@@ -1,8 +1,10 @@
-import { Bw, Ecdsa, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
+import { Bw, Ecdsa, Ecies, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
-import { IAction, IJig, IStorage, ISignedMessage } from './interfaces';
+import { IAction, IJig, IStorage } from './interfaces';
 import { PaymentRequired } from 'http-errors';
+import { SignedMessage } from './signed-message';
+import { RunTransaction } from './run-transaction';
 
 const { Transaction } = require('bsv_legacy');
 const fetch = require('node-fetch');
@@ -13,27 +15,31 @@ export class Wallet extends EventEmitter {
     private blockchain: RestBlockchain;
     address: string;
     purse: string;
+    private transaction: any;
 
     constructor(
         private paymail: string,
         private keyPair: KeyPair,
         private apiUrl: string,
         private run: any,
+        private paymailClient: any
         // private storage?: IStorage<any>
     ) {
         super();
         this.blockchain = run.blockchain;
         this.purse = run.purse.address;
         this.address = run.owner.address;
+        this.transaction = new RunTransaction(run, this.blockchain);
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
 
-        const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx'];
+        const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx', 'transaction'];
         return new Proxy(this, {
             get: (target, prop, receiver) => {
                 if (protect.includes(prop)) return undefined;
                 return Reflect.get(target, prop, receiver);
             },
+            // TODO evaluate other traps
             getOwnPropertyDescriptor: (target, prop) => {
                 if (protect.includes(prop)) return undefined;
                 return Reflect.getOwnPropertyDescriptor(target, prop);
@@ -82,35 +88,51 @@ export class Wallet extends EventEmitter {
         return jigs;
     }
 
-    async submitAction(agentId: string, name: string, loc: string, msgHash: string, payload?: any) {
-        const sig = Ecdsa.sign(Buffer.from(msgHash, 'hex'), this.keyPair).toString();
-        const action: IAction = {
-            name,
-            loc,
-            hash: msgHash,
-            payload,
-            sig
-        };
-        const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-        if (!resp.ok) throw new Error(await resp.text());
-        return resp.json();
+    // async submitAction(agentId: string, name: string, loc: string, msgHash: string, payload?: any) {
+    //     const sig = Ecdsa.sign(Buffer.from(msgHash, 'hex'), this.keyPair).toString();
+    //     const action: IAction = {
+    //         name,
+    //         loc,
+    //         hash: msgHash,
+    //         payload,
+    //         sig
+    //     };
+    //     const resp = await fetch(`${this.apiUrl}/${agentId}/submit`, {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify(action)
+    //     });
+    //     if (!resp.ok) throw new Error(await resp.text());
+    //     return resp.json();
+    // }
+
+    // async verifyMessage(message: SignedMessage) {
+    //     const hashBuf = SignedMessage.hash(message);
+    //     const { from, sig } = message;
+
+    //     const pubkey = from.includes('@') ?
+    //         await this.paymailClient.getPublicKey(from) :
+    //         from;
+
+    //     const verified = Ecdsa.verify(hashBuf, Sig.fromString(sig), PubKey.fromString(pubkey));
+    //     return verified;
+    // }
+
+    async buildMessage(to: string[], subject: string, payload: string, sign = false, send = false): Promise<SignedMessage> {
+        const ts = Date.now();
+        const message = new SignedMessage({to, payload, subject, ts})
+        if(sign) await message.sign(this.keyPair);
+        if(send) await this.blockchain.sendMessage(message);
+        return message;
     }
 
-    async signMessage(payload: string): Promise<ISignedMessage> {
-        const prefix = Bw.varIntBufNum(payload.length);
-        const buf = Buffer.concat([MAGIC_BYTES_PREFIX, MAGIC_BYTES, prefix, Buffer.from(payload)]);
-        const hashBuf = Hash.sha256Sha256(buf);
-        return {
-            paymail: this.paymail,
-            payload,
-            ts: Date.now(),
-            sig: await Ecdsa.asyncSign(hashBuf, this.keyPair).toString()
-        };
+    async encrypt(pubkey: string) {
+
     }
+
+    async decrypt(value) {
+
+    } 
 
     async verifySig(sig, hash, pubkey): Promise<boolean> {
         const msgHash = await Hash.asyncSha256(Buffer.from(hash));
@@ -119,60 +141,18 @@ export class Wallet extends EventEmitter {
         return verified;
     }
 
-    async signChannel(loc: string, seq?: number) {
-        console.log('signChannel', loc, seq);
-        console.time(`sign:${loc}:${seq}`);
-        await this.run.transaction.sign();
-        console.timeEnd(`sign:${loc}:${seq}`);
-        console.time(`export:${loc}:${seq}`);
-        const tx = this.run.transaction.export();
-        console.timeEnd(`export:${loc}:${seq}`);
-        const input = tx.inputs.find(i => `${i.prevTxId.toString('hex')}_o${i.outputIndex}` === loc);
-        if (!input) throw new Error('Invalid Channel');
-        input.sequenceNumber = seq;
-        console.time(`save:${loc}:${seq}`);
-        await this.blockchain.saveChannel(loc, tx.toString());
-        console.timeEnd(`save:${loc}:${seq}`);
-        this.run.transaction.rollback();
-    }
-
-    private async finalizeTx(jig?: IJig) {
+    async runTransaction(work: (t) => Promise<IJig | undefined>) {
         try {
-            if (jig && jig.KRONO_CHANNEL) {
-                await this.signChannel(jig.KRONO_CHANNEL.loc, jig.KRONO_CHANNEL.seq);
-                this.run.transaction.rollback();
-                return;
-            } else if (jig && this.run.transaction.actions.length) {
-                this.run.transaction.end();
-                try {
-                    console.log('syncing jig');
-                    if (jig.sync) await jig.sync({ forward: false });
-                } catch (e) {
-                    console.error(e);
-                    if (e.message.includes('Not enough funds')) {
-                        throw new PaymentRequired();
-                    }
-                    throw e;
-                }
-            } else this.run.transaction.rollback();
-            return jig;
+            this.transaction.begin();
+            await work(this.transaction);
         } catch (e) {
-            this.run.transaction.rollback();
             throw e;
+        } finally {
+            this.transaction.rollback();
         }
     }
 
-    async runTransaction(work: () => Promise<IJig | undefined>) {
-        try {
-            this.run.transaction.begin();
-            return this.finalizeTx(await work());
-        } catch (e) {
-            this.run.transaction.rollback();
-            throw e;
-        }
-    }
-
-    async loadChannelTransaction(loc: string, seq: number, work: (jig: IJig) => Promise<IJig | undefined>) {
+    async loadChannelTransaction(loc: string, seq: number, work: (t, jig: IJig) => Promise<IJig | undefined>) {
         try {
             console.time(`load channel ${loc}`);
             const channel = await this.blockchain.getChannel(loc)
@@ -182,20 +162,22 @@ export class Wallet extends EventEmitter {
 
             console.time(`import ${loc}`);
             const tx = new Transaction(channel.rawtx);
-            await this.run.transaction.import(tx);
+            await this.transaction.import(tx);
             console.timeEnd(`import ${loc}`);
 
-            const jig = this.run.transaction.actions
+            const jig = this.transaction.actions
                 .map(action => action.target)
                 .find(jig => jig.KRONO_CHANNEL && jig.KRONO_CHANNEL.loc === loc);
             if (!jig) {
                 console.log('No Jig:', loc)
                 return;
             }
-            return this.finalizeTx(await work(jig));
+            // return this.finalizeTx(await work(this.run.transaction, jig));
+            await work(this.transaction, jig);
         } catch (e) {
-            this.run.transaction.rollback();
             throw e;
+        } finally {
+            this.transaction.rollback();
         }
     }
 

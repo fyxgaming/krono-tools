@@ -135,4 +135,13 @@ export class RestBlockchain {
         if (!resp.ok) throw createError(resp.status, await resp.text());
         return await resp.json();
     }
+
+    async sendMessage(message) {
+        const resp = await fetch(`${this.apiUrl}/message`, {
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            body: JSON.stringify(message)
+        });
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+    }
 }

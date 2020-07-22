@@ -30,20 +30,20 @@ class KronoJig extends Jig {
         this.authCount++;
     }
 
-    beginChannel() {
-        this.KRONO_CHANNEL = {
-            loc: this.location,
-            seq: 1
-        }
-    }
+    // beginChannel() {
+    //     this.KRONO_CHANNEL = {
+    //         loc: this.location,
+    //         seq: 1
+    //     }
+    // }
 
-    incrementChannel() {
-        this.KRONO_CHANNEL.seq++;
-    }
+    // incrementChannel() {
+    //     this.KRONO_CHANNEL.seq++;
+    // }
 
-    endChannel() {
-        delete this.KRONO_CHANNEL;
-    }
+    // endChannel() {
+    //     delete this.KRONO_CHANNEL;
+    // }
 
     static deepClone(obj, skipKeys) {
         return KronoClass.deepClone(obj, skipKeys);
