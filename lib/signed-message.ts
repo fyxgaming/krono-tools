@@ -1,12 +1,13 @@
-import { Bw, Ecdsa, Ecies, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
+import { Bw, Ecdsa, Hash, KeyPair, PubKey, Sig } from 'bsv';
 const MAGIC_BYTES = Buffer.from('Bitcoin Signed Message:\n');
 const MAGIC_BYTES_PREFIX = Bw.varIntBufNum(MAGIC_BYTES.length);
 
 export class SignedMessage {
     from: string;
     to: string[];
+    reply: string = '';
     subject: string;
-    payload: string;
+    payload: string = '';
     ts: number;
     sig: string;
 
@@ -26,20 +27,25 @@ export class SignedMessage {
         this.sig = await Ecdsa.asyncSign(this.hash, keyPair).toString();
     }
 
-    async verify(message: SignedMessage, paymailClient?) {
-        let pubkey;
-        if(this.from.includes('@')) {
-            if(!paymailClient) throw new Error('paymailClient required');
-            pubkey = await paymailClient.getPublicKey(this.from)
-        } else {
-            pubkey = this.from;
-        }
-        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(pubkey));
+    async verify(paymailClient?) {
+        return SignedMessage.verify(this, paymailClient);
     }
 
-    static hash({ to, payload, subject, ts }: Partial<SignedMessage>): Buffer {
+    static async verify(message: SignedMessage, paymailClient?) {
+        let pubkey;
+        if(message.from.includes('@')) {
+            if(!paymailClient) throw new Error('paymailClient required');
+            pubkey = await paymailClient.getPublicKey(message.from)
+        } else {
+            pubkey = message.from;
+        }
+        return Ecdsa.asyncVerify(this.hash, Sig.fromString(message.sig), PubKey.fromString(pubkey));
+    }
+
+    static hash({ to, subject, reply, payload, ts }: Partial<SignedMessage>): Buffer {
         const payloadBuf = Buffer.concat([
             Buffer.from(to.join(':')),
+            Buffer.from(reply),
             Buffer.from(subject),
             Bw.varIntBufNum(ts),
             Buffer.from(payload, 'hex')

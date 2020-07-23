@@ -1,6 +1,6 @@
 const EventEmitter = require('./event-emitter');
 
-//fetch, ADDRESS, PAYMAIL, PUBKEY
+//fetch, ADDRESS, PAYMAIL, PUBKEY, bsv
 
 class Agent extends EventEmitter {
     // EVENTS: schedule, client, 
@@ -16,6 +16,7 @@ class Agent extends EventEmitter {
 
         this.eventHandlers = new Map();
         this.jigHandlers = new Map();
+        this.messageHandlers = new Map();
         this.kindSubHandlers = new Map();
         this.originSubHandlers = new Map();
         this.channelSubHandlers = new Map();
@@ -38,7 +39,11 @@ class Agent extends EventEmitter {
     }
     async onChannel(channe) {}
 
-    async onMessage(message) {}
+    async onMessage(message) {
+        let handler = this.messageHandlers.get(message.subject);
+        if (!handler) return;
+        return handler.bind(this)(message);
+    }
     
     // async onKindSub(jigData) {
     //     let handler = this.kindSubHandlers.get(jigData.kind);

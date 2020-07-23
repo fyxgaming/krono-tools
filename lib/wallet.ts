@@ -1,4 +1,4 @@
-const bsv = require('bsv_legacy');
+const bsv = require('bsv-legacy');
 import { Constants, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
