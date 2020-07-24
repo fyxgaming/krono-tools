@@ -3,8 +3,6 @@
 *.env
 !mock.env
 
-*.js
-!bin/deploy.js
-!lib/run.js
+lib/**/*.js
 *.d.ts
 *.js.map
