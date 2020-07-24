@@ -1,4 +1,4 @@
-class IORedisMock {
+export class IORedisMock {
     private store = new Map<string, any>();
 
     get(key: string): string {
