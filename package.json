@@ -25,7 +25,7 @@
     "@runonbitcoin/release": "file:runonbitcoin-release-0.5.35.tgz",
     "@types/node": "^13.5.2",
     "body-parser": "^1.19.0",
-    "bsv": "npm:bsv@^2.0.0-beta.40",
+    "bsv2": "npm:bsv@^2.0.0-beta.40",
     "bsv-legacy": "npm:bsv@^1.5.3",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",

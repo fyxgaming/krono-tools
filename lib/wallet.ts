@@ -1,4 +1,4 @@
-import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
+import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig } from 'bsv2';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
