@@ -1,29 +1,45 @@
 const { Transaction } = require('bsv-legacy');
 
 export class RunTransaction {
-    constructor(transaction) {
-        return new Proxy(transaction, {
-            get: (target, prop, receiver) => {
-                if(prop === 'actions') return target.actions;
-                if(prop === 'begin') return target.begin();
-                if (prop === 'end') return undefined;
-                if (prop === 'commit') return async () => {
-                    let jig = target.actions[0] && target.actions[0].target;
-                    if (!jig) return target.rollback();
-                    target.end();
-                    await jig.sync({ forward: false });
-                };
-                if (prop === 'export') return async () => {
-                    return target.export().toString();
-                };
-                if (prop === 'import') return async (rawtx) => {
-                    const tx = new Transaction(rawtx);
-                    return target.import(tx);
-                };
-                if(prop === 'rollback') return target.rollback();
-                if(prop === 'pay') return target.pay();
-                if(prop === 'sign') return target.sign();
-            }
-        });
+    constructor(private transaction) {}
+
+    get actions() {
+        return this.transaction.actions;
+    }
+
+    begin() {
+        return this.transaction.begin();
+    }
+
+    end() {
+        return this.transaction.end();
+    }
+
+    async commit() {
+        let jig = this.transaction.actions[0] && this.transaction.actions[0].target;
+        if (!jig) return this.rollback();
+        this.end();
+        await jig.sync({ forward: false });
+    }
+
+    export(): any {
+        return this.transaction.export().toString();
+    }
+
+    import(rawtx: string): Promise<void> {
+        const tx = new Transaction(rawtx);
+        return this.transaction.import(tx);
+    }
+
+    rollback() {
+        return this.transaction.rollback();
+    }
+
+    pay() {
+        return this.transaction.pay();
+    }
+
+    sign() {
+        return this.transaction.sign();
     }
 }
