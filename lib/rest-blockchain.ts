@@ -124,13 +124,13 @@ export class RestBlockchain {
     }
 
     async loadMessage(messageId): Promise<SignedMessage> {
-        const resp = await fetch(`${this.apiUrl}/message/${messageId}`);
+        const resp = await fetch(`${this.apiUrl}/messages/${messageId}`);
         if (!resp.ok) throw createError(resp.status, await resp.text());
         return new SignedMessage(await resp.json());
     }
 
     async sendMessage(message: SignedMessage): Promise<void> {
-        const resp = await fetch(`${this.apiUrl}/message`, {
+        const resp = await fetch(`${this.apiUrl}/messages`, {
             method: 'POST',
             headers: {'content-type': 'application/json'},
             body: JSON.stringify(message)
