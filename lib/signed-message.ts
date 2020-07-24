@@ -16,7 +16,20 @@ export class SignedMessage {
     }
 
     get hash() {
-        return SignedMessage.hash(this);
+        const payloadBuf = Buffer.concat([
+            Buffer.from(this.to.join(':')),
+            Buffer.from(this.reply),
+            Buffer.from(this.subject),
+            Bw.varIntBufNum(this.ts),
+            Buffer.from(this.payload, 'hex')
+        ]);
+        const messageBuf = Buffer.concat([
+            MAGIC_BYTES_PREFIX,
+            MAGIC_BYTES,
+            Bw.varIntBufNum(payloadBuf.length),
+            payloadBuf
+        ]);
+        return Hash.sha256Sha256(messageBuf);
     }
 
     get payloadObj() {
@@ -28,36 +41,14 @@ export class SignedMessage {
     }
 
     async verify(paymailClient?) {
-        return SignedMessage.verify(this, paymailClient);
-    }
-
-    static async verify(message: SignedMessage, paymailClient?) {
         let pubkey;
-        if(message.from.includes('@')) {
+        if(this.from.includes('@')) {
             if(!paymailClient) throw new Error('paymailClient required');
-            pubkey = await paymailClient.getPublicKey(message.from)
+            pubkey = await paymailClient.getPublicKey(this.from)
         } else {
-            pubkey = message.from;
+            pubkey = this.from;
         }
-        return Ecdsa.asyncVerify(this.hash, Sig.fromString(message.sig), PubKey.fromString(pubkey));
+        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(pubkey));
     }
-
-    static hash({ to, subject, reply, payload, ts }: Partial<SignedMessage>): Buffer {
-        const payloadBuf = Buffer.concat([
-            Buffer.from(to.join(':')),
-            Buffer.from(reply),
-            Buffer.from(subject),
-            Bw.varIntBufNum(ts),
-            Buffer.from(payload, 'hex')
-        ]);
-        const messageBuf = Buffer.concat([
-            MAGIC_BYTES_PREFIX,
-            MAGIC_BYTES,
-            Bw.varIntBufNum(payloadBuf.length),
-            payloadBuf
-        ]);
-        return Hash.sha256Sha256(messageBuf);
-    }
-
     
 }
