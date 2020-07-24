@@ -11,7 +11,7 @@ export class SignedMessage {
     ts: number;
     sig: string;
 
-    constructor(message) {
+    constructor(message: Partial<SignedMessage>) {
         Object.assign(this, message);
     }
 

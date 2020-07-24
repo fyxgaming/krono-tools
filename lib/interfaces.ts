@@ -9,10 +9,10 @@ export interface IChannel {
 
 export interface IAgent {
     onJig(jigData: IJigData): Promise<any>;
-    onChannel(jigData: IChannel): Promise<any>;
-    onKindSub(jigData: IJigData): Promise<any>;
-    onOriginSub(jigData: IJigData): Promise<any>;
-    onChannelSub(jigData: IChannel): Promise<any>;
+    // onChannel(jigData: IChannel): Promise<any>;
+    // onKindSub(jigData: IJigData): Promise<any>;
+    // onOriginSub(jigData: IJigData): Promise<any>;
+    // onChannelSub(jigData: IChannel): Promise<any>;
     onEvent(type: string, payload: any): Promise<any>;
     onMessage(message: SignedMessage): Promise<any>;
 }

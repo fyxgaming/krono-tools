@@ -1,4 +1,4 @@
-import { Bw, Ecdsa, Ecies, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
+import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
@@ -82,7 +82,7 @@ export class Wallet extends EventEmitter {
 
 
     async buildMessage(messageData: Partial<SignedMessage>, sign = true): Promise<SignedMessage> {
-        const ts = Date.now();
+        messageData.ts = Date.now();
         messageData.from = this.paymail;
         const message = new SignedMessage(messageData);
         if (sign) await message.sign(this.keyPair);
@@ -116,7 +116,6 @@ export class Wallet extends EventEmitter {
     async loadTransaction(rawtx: string, work: (t) => Promise<any>) {
         try {
             this.transaction.import(rawtx);
-            const result = await work(this.transaction);
             return await work(this.transaction);
         } finally {
             this.transaction.rollback();
