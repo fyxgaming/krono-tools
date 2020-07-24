@@ -1,5 +1,3 @@
-import { PaymentRequired } from 'http-errors';
-
 const { Transaction } = require('bsv-legacy');
 
 export class RunTransaction {
