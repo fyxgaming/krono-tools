@@ -3,13 +3,13 @@ const MAGIC_BYTES = Buffer.from('Bitcoin Signed Message:\n');
 const MAGIC_BYTES_PREFIX = Bw.varIntBufNum(MAGIC_BYTES.length);
 
 export class SignedMessage {
-    from: string;
-    to: string[];
+    from: string = '';
+    to: string[] = [];
     reply: string = '';
-    subject: string;
+    subject: string = '';
     payload: string = '';
-    ts: number;
-    sig: string;
+    ts: number = 0;
+    sig?: string;
 
     constructor(message: Partial<SignedMessage>) {
         Object.assign(this, message);
