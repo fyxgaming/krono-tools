@@ -10,6 +10,7 @@ export class Wallet extends EventEmitter {
     address: string;
     purse: string;
     private transaction: any;
+    balance: () => Promise<number>
 
     constructor(
         private paymail: string,
@@ -20,6 +21,7 @@ export class Wallet extends EventEmitter {
         this.blockchain = run.blockchain;
         this.purse = run.purse.address;
         this.address = run.owner.address;
+        this.balance = run.purse.balance;
         this.transaction = new RunTransaction(run);
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
@@ -40,10 +42,6 @@ export class Wallet extends EventEmitter {
 
     get now() {
         return Date.now();
-    }
-
-    get balance(): Promise<number> {
-        return this.run.purse.balance();
     }
 
     async loadJigIndex() {

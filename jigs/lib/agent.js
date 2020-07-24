@@ -22,7 +22,7 @@ class Agent extends EventEmitter {
         this.channelSubHandlers = new Map();
     }
 
-    initialize() { }
+    init() { }
     async onJig(jigData) {
         let handler = this.jigHandlers.get(jigData.kind);
         if(!handler) return;
