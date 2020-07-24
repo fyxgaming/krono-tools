@@ -26,18 +26,18 @@ export class Wallet extends EventEmitter {
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
 
-        const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx', 'transaction'];
-        return new Proxy(this, {
-            get: (target, prop, receiver) => {
-                if (protect.includes(prop)) return undefined;
-                return Reflect.get(target, prop, receiver);
-            },
-            // TODO evaluate other traps
-            getOwnPropertyDescriptor: (target, prop) => {
-                if (protect.includes(prop)) return undefined;
-                return Reflect.getOwnPropertyDescriptor(target, prop);
-            }
-        });
+        // const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx', 'transaction'];
+        // return new Proxy(this, {
+        //     get: (target, prop, receiver) => {
+        //         if (protect.includes(prop)) return undefined;
+        //         return Reflect.get(target, prop, receiver);
+        //     },
+        //     // TODO evaluate other traps
+        //     getOwnPropertyDescriptor: (target, prop) => {
+        //         if (protect.includes(prop)) return undefined;
+        //         return Reflect.getOwnPropertyDescriptor(target, prop);
+        //     }
+        // });
     }
 
     get now() {
