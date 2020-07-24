@@ -37,7 +37,7 @@ export class SignedMessage {
     }
 
     async sign(keyPair: KeyPair) {
-        this.sig = await Ecdsa.asyncSign(this.hash, keyPair).toString();
+        this.sig = (await Ecdsa.asyncSign(this.hash, keyPair)).toString();
     }
 
     async verify(paymailClient?) {
