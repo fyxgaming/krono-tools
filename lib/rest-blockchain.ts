@@ -38,7 +38,7 @@ export class RestBlockchain {
         return tx.hash;
     }
 
-    async fetch(txid: string, force?: boolean, rawtx = false) {
+    async fetch(txid: string, force?: boolean, asRaw = false) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
@@ -48,7 +48,7 @@ export class RestBlockchain {
                 await this.cache.set(`tx://${txid}`, rawtx);
             }
 
-            if(rawtx) return rawtx;
+            if(asRaw) return rawtx;
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
 
