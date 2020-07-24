@@ -1,8 +1,10 @@
-class KronoError extends Error {
+class KronoError {
     constructor(status, message, attributes) {
-        super(message);
-        this.status = status;
-        this.attributes = attributes;
+        const error = new Error(message);
+        error.status = status;
+        error.attributes = attributes;
+
+        return error;
     }
 }
 
