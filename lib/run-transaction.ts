@@ -1,8 +1,8 @@
 const { Transaction } = require('bsv-legacy');
 
 export class RunTransaction {
-    constructor(run) {
-        return new Proxy(run.transaction, {
+    constructor(transaction) {
+        return new Proxy(transaction, {
             get: (target, prop, receiver) => {
                 if(prop === 'actions') return target.actions;
                 if(prop === 'begin') return target.begin();

@@ -22,7 +22,7 @@ export class Wallet extends EventEmitter {
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance;
-        this.transaction = new RunTransaction(run);
+        this.transaction = new RunTransaction(run.transaction);
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
 
