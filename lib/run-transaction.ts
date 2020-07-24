@@ -8,11 +8,10 @@ export class RunTransaction {
             get: (target, prop, receiver) => {
                 if (prop === 'end') return undefined;
                 if (prop === 'commit') return async () => {
-                    let jig = target.actions[0] &&
-                        target.actions[0].target;
-                    if (!jig) return target.rollback();
-                    target.end();
                     try {
+                        let jig = target.actions[0] && target.actions[0].target;
+                        if (!jig) return target.rollback();
+                        target.end();
                         await jig.sync({ forward: false });
                     } catch (e) {
                         console.error(e);
@@ -20,10 +19,10 @@ export class RunTransaction {
                         throw new PaymentRequired();
                     }
                 };
-                if(prop === 'export') return async () => {
+                if (prop === 'export') return async () => {
                     return target.export().toString();
                 };
-                if(prop === 'import') return async (rawtx) => {
+                if (prop === 'import') return async (rawtx) => {
                     const tx = new Transaction(rawtx);
                     return target.import(tx);
                 };
