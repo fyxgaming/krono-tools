@@ -21,7 +21,7 @@ export class SignedMessage {
             Buffer.from(this.reply),
             Buffer.from(this.subject),
             Bw.varIntBufNum(this.ts),
-            Buffer.from(this.payload, 'hex')
+            Buffer.from(this.payload)
         ]);
         const messageBuf = Buffer.concat([
             MAGIC_BYTES_PREFIX,
