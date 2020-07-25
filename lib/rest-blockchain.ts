@@ -34,6 +34,7 @@ export class RestBlockchain {
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
+        console.log('Broadcast:', hash);
         await this.cache.set(`tx:${hash}`, rawtx);
         return tx.hash;
     }
@@ -44,7 +45,7 @@ export class RestBlockchain {
             input.output = outTx.outputs[input.outputIndex];
         }));
     }
-    
+
     async fetch(txid: string, force?: boolean, asRaw = false) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
