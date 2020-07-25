@@ -15,6 +15,7 @@ class Agent extends EventEmitter {
         this.address = wallet.address;
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
+        this.paymail = wallet.paymail;
 
         this.eventHandlers = new Map();
         this.jigHandlers = new Map();
