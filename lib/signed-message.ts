@@ -18,10 +18,10 @@ export class SignedMessage {
     get hash() {
         const payloadBuf = Buffer.concat([
             Buffer.from(this.to.join(':')),
-            Buffer.from(this.reply),
+            Buffer.from(this.reply || ''),
             Buffer.from(this.subject),
             Bw.varIntBufNum(this.ts),
-            Buffer.from(this.payload)
+            Buffer.from(this.payload || '')
         ]);
         const messageBuf = Buffer.concat([
             MAGIC_BYTES_PREFIX,
