@@ -53,9 +53,9 @@ export class IORedisMock {
     }
 
     rpush(key: string, ...items: string[]) {
-        let item = this.store.get(key);
-        if (!item) item = [];
+        let item = this.store.get(key) || [];
         item.push(...items);
+        this.store.set(key, item);
     }
 
     exists(key: string) {
