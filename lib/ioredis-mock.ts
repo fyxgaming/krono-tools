@@ -38,7 +38,7 @@ export class IORedisMock {
     }
 
     hgetall(key: string): { [key: string]: string } {
-        return this.store.get(key);
+        return this.store.get(key) || {};
     }
 
     lindex(key: string, index: number) {
@@ -48,8 +48,7 @@ export class IORedisMock {
     }
 
     lrange(key: string, start: number, end: number) {
-        const item = this.store.get(key);
-        if (!item) return;
+        const item = this.store.get(key) || [];
         return item.slice(start, end + 1);
     }
 
