@@ -29,6 +29,7 @@ export class RestBlockchain {
         if(typeof tx === 'string') {
             tx = new Transaction(tx);
         }
+        await this.populateInputs(tx);
         if(!tx.isFullySigned()) throw new Error('Transaction not signed');
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
@@ -39,6 +40,13 @@ export class RestBlockchain {
         const hash = await resp.json();
         await this.cache.set(`tx:${hash}`, tx.toString());
         return tx.hash;
+    }
+
+    async populateInputs(tx) {
+        await Promise.all(tx.inputs.map(async input => {
+            const outTx = await this.fetch(input.prevTxId.toString('hex'));
+            input.output = outTx.outputs[input.outputIndex];
+        }));
     }
 
     async fetch(txid: string, force?: boolean, asRaw = false) {

@@ -35,10 +35,7 @@ export class RunTransaction {
 
     async import(rawtx: string): Promise<void> {
         const tx = new Transaction(rawtx);
-        await Promise.all(tx.inputs.map(async input => {
-            const outTx = await this.blockchain.fetch(input.prevTxId.toString('hex'));
-            input.output = outTx.outputs[input.outputIndex];
-        }));
+        await this.blockchain.populateInputs(tx);
         return this.transaction.import(tx);
     }
 
