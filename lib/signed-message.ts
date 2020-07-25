@@ -32,6 +32,10 @@ export class SignedMessage {
         return Hash.sha256Sha256(messageBuf);
     }
 
+    get id() {
+        return this.hash.toString('hex');
+    }
+
     get payloadObj() {
         return this.payload && JSON.parse(this.payload);
     }
