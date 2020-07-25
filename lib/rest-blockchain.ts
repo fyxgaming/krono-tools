@@ -26,15 +26,18 @@ export class RestBlockchain {
     }
 
     async broadcast(tx) {
-        const rawtx = typeof tx === 'string' ? tx : tx.toString();
+        if(typeof tx === 'string') {
+            tx = new Transaction(tx);
+        }
+        if(!tx.isFullySigned()) throw new Error('Transaction not signed');
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawtx })
+            body: JSON.stringify({ rawtx: tx.toString() })
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
-        await this.cache.set(`tx:${hash}`, rawtx);
+        await this.cache.set(`tx:${hash}`, tx.toString());
         return tx.hash;
     }
 
