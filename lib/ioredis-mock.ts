@@ -52,6 +52,12 @@ export class IORedisMock {
         return item.slice(start, end + 1);
     }
 
+    lset(key: string, index: number, value: string) {
+        let item = this.store.get(key) || [];
+        item[index] = value;
+        this.store.set(key, item);
+    }
+
     rpush(key: string, ...items: string[]) {
         let item = this.store.get(key) || [];
         item.push(...items);
