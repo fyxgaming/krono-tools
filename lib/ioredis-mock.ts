@@ -13,7 +13,7 @@ export class IORedisMock {
         this.store.delete(key);
     }
 
-    hget(key: string, field: string): string {
+    hget(key: string, field: string) {
         const item = this.store.get(key);
         if (!item) return;
         return item[field];
