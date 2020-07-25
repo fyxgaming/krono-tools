@@ -113,7 +113,7 @@ export class Wallet extends EventEmitter {
 
     async loadTransaction(rawtx: string, work: (t) => Promise<any>) {
         try {
-            this.transaction.import(rawtx);
+            await this.transaction.import(rawtx);
             return await work(this.transaction);
         } finally {
             this.transaction.rollback();
