@@ -26,19 +26,15 @@ export class RestBlockchain {
     }
 
     async broadcast(tx) {
-        if(typeof tx === 'string') {
-            tx = new Transaction(tx);
-        }
-        await this.populateInputs(tx);
-        if(!tx.isFullySigned()) throw new Error('Transaction not signed');
+        const rawtx = typeof tx === 'string' ? tx : tx.toString();
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawtx: tx.toString() })
+            body: JSON.stringify({ rawtx })
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
-        await this.cache.set(`tx:${hash}`, tx.toString());
+        await this.cache.set(`tx:${hash}`, rawtx);
         return tx.hash;
     }
 
@@ -48,7 +44,7 @@ export class RestBlockchain {
             input.output = outTx.outputs[input.outputIndex];
         }));
     }
-
+    
     async fetch(txid: string, force?: boolean, asRaw = false) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
