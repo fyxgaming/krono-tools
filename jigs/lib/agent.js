@@ -99,7 +99,7 @@ class Agent extends EventEmitter {
     }
 
     generateHashchain(size) {
-        const hashchain = {};
+        const hashchain = [];
         // const hashchain = new Array(size);
         let hash = hashchain[size - 1] = this.wallet.randomBytes(32);
         for (let i = size - 2; i >= 0; i--) {
