@@ -79,11 +79,11 @@ export class Wallet extends EventEmitter {
     }
 
 
-    async buildMessage(messageData: Partial<SignedMessage>, sign = true): Promise<SignedMessage> {
+    buildMessage(messageData: Partial<SignedMessage>, sign = true): SignedMessage {
         messageData.ts = Date.now();
         messageData.from = this.paymail;
         const message = new SignedMessage(messageData);
-        if (sign) await message.sign(this.keyPair);
+        if (sign) message.sign(this.keyPair);
         return message;
     }
 

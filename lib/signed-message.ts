@@ -40,8 +40,8 @@ export class SignedMessage {
         return this.payload && JSON.parse(this.payload);
     }
 
-    async sign(keyPair: KeyPair) {
-        this.sig = (await Ecdsa.asyncSign(this.hash, keyPair)).toString();
+    sign(keyPair: KeyPair) {
+        this.sig = Ecdsa.sign(this.hash, keyPair).toString();
     }
 
     async verify(paymailClient?) {
