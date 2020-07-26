@@ -15,7 +15,7 @@ var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
-    infra: 'https://kronoverse-infra.appspot.com',
+    dev: 'https://kronoverse-dev.appspot.com',
     dev: 'https://kronoverse-dev.appspot.com',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
@@ -59,6 +59,8 @@ function renderUsage() {
     const owner = argv.owner || process.env.OWNER;
     const purse = argv.purse || process.env.PURSE;
     const network = argv.network || process.env.RUNNETWORK;
+    const txq = argv.txq || process.env.TXQ;
+    const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -93,20 +95,16 @@ function renderUsage() {
 
     const catalog = await deployer.deploy(catalogFile);
 
-    for (const [agentId, { location }] of Object.entries(catalog.agents)) {
-        const message = new SignedMessage({
-            from: paymail,
-            subject: 'Deployed',
-            payload: location
-        });
-        message.sign(keyPair);
-        const resp = await fetch(`${blockchainUrl}/api/accounts/${agentId}`, {
+    for (const [agentId, dep] of Object.entries(catalog.agents)) {
+        const realm = catalog.realm;
+        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(message)
+            body: JSON.stringify({ location: dep.location })
         });
-        if (!resp.ok) throw new Error(resp.statusText);
+        if(!resp.ok) throw new Error(resp.statusText);
     }
+    console.log('Deployed');
 })().catch(e => {
     console.error(e);
     process.exit(1);
