@@ -50,7 +50,7 @@ export class KronoAuth {
         const sig = Ecdsa.sign(msgHash, keyPair);
         reg.sig = sig.toString();
 
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${this.domain}@${handle}`, {
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${handle}@${this.domain}`, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(reg)
