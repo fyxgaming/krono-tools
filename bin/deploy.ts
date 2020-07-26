@@ -96,7 +96,7 @@ function renderUsage() {
             payload: location
         });
         message.sign(keyPair);
-        const resp = await fetch(`${blockchainUrl}/accounts/${agentId}`, {
+        const resp = await fetch(`${blockchainUrl}/api/accounts/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(message)

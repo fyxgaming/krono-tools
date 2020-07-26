@@ -93,16 +93,20 @@ function renderUsage() {
 
     const catalog = await deployer.deploy(catalogFile);
 
-    for (const [agentId, dep] of Object.entries(catalog.agents)) {
-        const realm = catalog.realm;
-        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
+    for (const [agentId, { location }] of Object.entries(catalog.agents)) {
+        const message = new SignedMessage({
+            from: paymail,
+            subject: 'Deployed',
+            payload: location
+        });
+        message.sign(keyPair);
+        const resp = await fetch(`${blockchainUrl}/api/accounts/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: dep.location })
+            body: JSON.stringify(message)
         });
-        if(!resp.ok) throw new Error(resp.statusText);
+        if (!resp.ok) throw new Error(resp.statusText);
     }
-    console.log('Deployed');
 })().catch(e => {
     console.error(e);
     process.exit(1);
