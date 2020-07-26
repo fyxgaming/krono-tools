@@ -58,7 +58,8 @@ export class IORedisMock {
 
     hgetall(key: string): { [key: string]: string } {
         this._expire(key);
-        return this.store.get(key) || {};
+        const item = this.store.get(key) || {};
+        return {...item};
     }
 
     lindex(key: string, index: number) {
