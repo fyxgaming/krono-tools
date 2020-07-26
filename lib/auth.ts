@@ -1,7 +1,8 @@
 import * as argon2 from 'argon2-browser';
 import { Bip32, Constants, Ecdsa, Ecies, Hash, KeyPair, PrivKey, PubKey } from 'bsv2';
-import * as fetch from 'node-fetch';
 import { SignedMessage } from './signed-message';
+
+const fetch = require('node-fetch');
 
 export class KronoAuth {
     keyPair: KeyPair;
