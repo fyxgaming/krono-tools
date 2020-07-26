@@ -29,16 +29,16 @@ export class KronoAuth {
         ]);
         const privKey = new PrivKey().fromBuffer(keybuf);
         const keyPair = KeyPair.fromPrivKey(privKey);
-        const pubKey = PubKey.fromPrivKey(privKey);
+        const pubkey = PubKey.fromPrivKey(privKey);
         const bip32 = Bip32.fromRandom();
 
         const recoveryBuf = await Ecies.asyncBitcoreEncrypt(
             Buffer.from(bip32.toString()),
-            pubKey,
+            pubkey,
             keyPair
         );
         const reg: any = {
-            pubKey: pubKey.toString(),
+            pubkey: pubkey.toString(),
             xpub: bip32.toPublic().toString(),
             recovery: recoveryBuf.toString('base64'),
             email
@@ -60,9 +60,6 @@ export class KronoAuth {
 
         this.keyPair = keyPair;
         return bip32;
-        // localStorage.setItem('XPRIV', bip32.toString());
-        // this.deriveKeys(bip32);
-        // this.initializeWallet();
     }
 
     async recover({ handle, password }) {
@@ -98,12 +95,8 @@ export class KronoAuth {
             privKey
         );
         const bip32 = Bip32.fromString(recoveryBuf.toString());
-        // this.handle = handle;
         this.keyPair = keyPair;
         return bip32;
-        // localStorage.setItem('XPRIV', bip32.toString());
-        // this.deriveKeys(bip32);
-        // this.initializeWallet();
     }
 
     public async isHandleAvailable(handle: string) {
