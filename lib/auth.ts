@@ -50,12 +50,13 @@ export class KronoAuth {
         const sig = Ecdsa.sign(msgHash, keyPair);
         reg.sig = sig.toString();
 
-        const resp = await fetch(`${this.apiUrl}/accounts/${this.domain}@${handle}`, {
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${this.domain}@${handle}`, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(reg)
         });
         if (!resp.ok) {
+            console.error(resp.status, resp.statusText);
             throw new Error('Registration Failed');
         }
 
