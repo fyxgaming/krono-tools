@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
+    "deploy:infra": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=infra",
     "deploy:dev": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=dev",
     "deploy:test": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=test",
     "deploy:prod": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=prod",
