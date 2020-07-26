@@ -8,14 +8,14 @@ export class KronoAuth {
     
     constructor(private apiUrl: string, public domain: string, private network: string) {}
 
-    private async createKey(handle, password) {
+    async createKey(handle, password) {
         const salt = await Hash.asyncSha256(Buffer.from(`${this.domain}|${handle}`));
         const pass = await Hash.asyncSha256(Buffer.from(password.normalize('NFKC')));
         const { hash } = await argon2.hash({ pass, salt, time: 100, mem: 1024, hashLen: 32 });
         return Buffer.from(hash);
     }
 
-    private async register({ email, handle, password }) {
+    async register({ email, handle, password }) {
         handle = handle.toLowerCase().normalize('NFKC');
         const keyhash = await this.createKey(handle, password);
 
@@ -64,7 +64,7 @@ export class KronoAuth {
         // this.initializeWallet();
     }
 
-    private async recover({ handle, password }) {
+    async recover({ handle, password }) {
         handle = handle.toLowerCase().normalize('NFKC');
         const keyhash = await this.createKey(handle, password);
 
