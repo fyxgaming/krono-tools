@@ -85,7 +85,7 @@ export class KronoAuth {
           ts: Date.now()
         });
         message.sign(keyPair);
-        const resp = await fetch(`${this.apiUrl}/api/accounts/login`, {
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${handle}@${this.domain}/recover`, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(message)
