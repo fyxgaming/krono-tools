@@ -3,13 +3,23 @@ import fs from 'fs-extra';
 import minimist from 'minimist';
 import path from 'path';
 
+var argv = minimist(process.argv.slice(2));
+console.log('PATH:', process.cwd());
+console.log('ARGV:', argv);
+dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
+
 import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/rest-blockchain';
 import { Deployer } from '../lib/deployer';
+
+import { Bip32, KeyPair } from 'bsv2';
+import { SignedMessage } from '../lib/signed-message';
+
+
 const fetch = require('node-fetch');
 const Run = require('@runonbitcoin/release');
 
-var argv = minimist(process.argv.slice(2));
+
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
@@ -20,30 +30,13 @@ const blockchainUrls = {
 };
 
 
-console.log('PATH:', process.cwd());
-console.log('ARGV:', argv);
-dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
+
 
 function renderUsage() {
     console.log(`
 
     #######################################################################################
     USAGE:
-        node index deploy --path=/path/to/run_config.json
-        node index deploy --network=test --owner=address --purse=address --src=../models/battle.js
-
-    OPTIONS:
-        - RUN CONFIG: (DEFAULT: <project-root>/Jigs/.env)
-            env                REQUIRED: path to .env file
-                -- OR --
-            owner               REQUIRED: Address of Jig owner
-            env                 OPTIONAL: mock, dev, test, prod (DEFAULT: mock)
-            network             OPTIONAL: mock, test, stn, main
-            app                 OPTIONAL: run appId
-
-        - SOURCE FILES:
-            src                 REQUIRED: One or more Jig src files
-                                EXAMPLE: --src={../models/battle.js}
 
     #######################################################################################
 
@@ -54,11 +47,9 @@ function renderUsage() {
 (async () => {
     const env = argv.env || 'mock';
     const blockchainUrl = argv.blockchain || process.env.BLOCKCHAIN || blockchainUrls[env];
-    const owner = argv.owner || process.env.OWNER;
-    const purse = argv.purse || process.env.PURSE;
+    const paymail = argv.paymail || process.env.PAYMAIL;
+    const xpriv = argv.xpriv || process.env.XPRIV;
     const network = argv.network || process.env.RUNNETWORK;
-    const txq = argv.txq || process.env.TXQ;
-    const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -67,14 +58,19 @@ function renderUsage() {
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
-    if (!blockchainUrl || !network || !source) {
+    if (!blockchainUrl || !network || !source || !xpriv) {
         renderUsage();
         return;
     }
 
+    const bip32 = Bip32.fromString(xpriv);
+    const keyPair = KeyPair.fromPrivKey(bip32.privKey);
+    const purse = bip32.derive('m/0/0').privKey.toString();
+    const owner = bip32.derive('m/1/0').privKey.toString();
+
     const blockchain = new RestBlockchain(
-        blockchainUrl, 
-        network, 
+        blockchainUrl,
+        network,
         new MapStorage(),
     );
 
@@ -93,14 +89,19 @@ function renderUsage() {
 
     const catalog = await deployer.deploy(catalogFile);
 
-    for (const [agentId, dep] of Object.entries(catalog.agents)) {
-        const realm = catalog.realm;
-        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
+    for (const [agentId, { location }] of Object.entries(catalog.agents) as any[]) {
+        const message = new SignedMessage({
+            from: paymail,
+            subject: 'Deployed',
+            payload: location
+        });
+        message.sign(keyPair);
+        const resp = await fetch(`${blockchainUrl}/accounts/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: (dep as any).location })
+            body: JSON.stringify(message)
         });
-        if(!resp.ok) throw new Error(resp.statusText);
+        if (!resp.ok) throw new Error(resp.statusText);
     }
     console.log('Deployed');
 })().catch(e => {
