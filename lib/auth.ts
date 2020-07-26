@@ -59,6 +59,7 @@ export class KronoAuth {
         }
 
         this.keyPair = keyPair;
+        return bip32;
         // localStorage.setItem('XPRIV', bip32.toString());
         // this.deriveKeys(bip32);
         // this.initializeWallet();
@@ -99,6 +100,7 @@ export class KronoAuth {
         const bip32 = Bip32.fromString(recoveryBuf.toString());
         // this.handle = handle;
         this.keyPair = keyPair;
+        return bip32;
         // localStorage.setItem('XPRIV', bip32.toString());
         // this.deriveKeys(bip32);
         // this.initializeWallet();
