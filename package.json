@@ -1,7 +1,8 @@
 {
   "name": "@kronoverse/tools",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Tools for interacting with the Kronoverse Platform",
+  "private": false,
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",

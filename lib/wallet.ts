@@ -21,7 +21,7 @@ export class Wallet extends EventEmitter {
         this.blockchain = run.blockchain;
         this.purse = run.purse.address;
         this.address = run.owner.address;
-        this.balance = run.purse.balance;
+        this.balance = run.purse.balance.bind(run.purse);
         this.transaction = new RunTransaction(run);
         console.log(`PAYMAIL: ${paymail}`);
         console.log(`ADDRESS: ${this.address}`);
