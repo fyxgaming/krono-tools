@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2-browser';
-import { Bip32, Constants, Ecdsa, Ecies, Hash, KeyPair, PrivKey, PubKey } from 'bsv2';
+import { Bip32, Constants, Ecdsa, Ecies, Hash, KeyPair, PrivKey, PubKey } from 'bsv';
 import { SignedMessage } from './signed-message';
 
 const fetch = require('node-fetch');
