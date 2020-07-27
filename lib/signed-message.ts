@@ -8,7 +8,7 @@ export class SignedMessage {
     reply: string = '';
     subject: string = '';
     payload: string = '';
-    ts: number = 0;
+    ts: number = Date.now();
     sig?: string;
 
     constructor(message: Partial<SignedMessage>) {
