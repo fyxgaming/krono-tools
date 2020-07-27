@@ -12,8 +12,7 @@
     "deploy:prod": "ts-node ./bin/deploy --app=kronoverse --src=jigs --env=prod",
     "postinstall": "npm run build",
     "prepare": "npm run build",
-    "start:mock": "ts-node mock/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:mock": "ts-node mock/server.ts"
   },
   "bin": {
     "krono-deploy": "./bin/deploy.js"
