@@ -5,8 +5,6 @@ import { SignedMessage } from './signed-message';
 const fetch = require('node-fetch');
 
 export class KronoAuth {
-    keyPair: KeyPair;
-    
     constructor(private apiUrl: string, public domain: string, private network: string) {}
 
     async createKey(handle, password) {
@@ -60,11 +58,33 @@ export class KronoAuth {
             throw new Error('Registration Failed');
         }
 
-        this.keyPair = keyPair;
-        return bip32.toString();
+        return privKey.toString();
     }
 
-    async recover({ handle, password }): Promise<string> {
+    async recover(paymail: string, privKey: PrivKey) {
+        const keyPair = KeyPair.fromPrivKey(privKey);
+
+        const message = new SignedMessage({
+          from: paymail,
+          subject: 'Login',
+          ts: Date.now()
+        });
+        message.sign(keyPair);
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${paymail}/recover`, {
+            method: 'POST',
+            headers: { 'Content-type': 'application/json' },
+            body: JSON.stringify(message)
+        });
+        if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
+        const recovery = await resp.json();
+        const recoveryBuf = Ecies.bitcoreDecrypt(
+            Buffer.from(recovery, 'base64'),
+            privKey
+        );
+        return recoveryBuf.toString();
+    }
+
+    async login({ handle, password }): Promise<string> {
         handle = handle.toLowerCase().normalize('NFKC');
         const keyhash = await this.createKey(handle, password);
 
@@ -76,28 +96,10 @@ export class KronoAuth {
             keyhash,
             Buffer.from([1]) // compressed flag
         ]);
+        
+        const paymail = `${handle}@${this.domain}`;
         const privKey = new PrivKey().fromBuffer(keybuf);
-        const keyPair = KeyPair.fromPrivKey(privKey);
-
-        const message = new SignedMessage({
-          from: `${handle}@${this.domain}`,
-          subject: 'Login',
-          ts: Date.now()
-        });
-        message.sign(keyPair);
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${handle}@${this.domain}/recover`, {
-            method: 'POST',
-            headers: { 'Content-type': 'application/json' },
-            body: JSON.stringify(message)
-        });
-        if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
-        const recovery = await resp.json();
-        const recoveryBuf = Ecies.bitcoreDecrypt(
-            Buffer.from(recovery, 'base64'),
-            privKey
-        );
-        this.keyPair = keyPair;
-        return recoveryBuf.toString();
+        return this.recover(paymail, privKey);
     }
 
     public async isHandleAvailable(handle: string) {
