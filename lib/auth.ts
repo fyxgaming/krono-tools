@@ -82,6 +82,7 @@ export class KronoAuth {
         const message = new SignedMessage({
           from: paymail
         });
+        
         message.sign(keyPair);
         const resp = await fetch(`${this.apiUrl}/api/accounts/${paymail}/recover`, {
             method: 'POST',
