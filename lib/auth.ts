@@ -16,7 +16,7 @@ export class KronoAuth {
         return Buffer.from(hash);
     }
 
-    async register({ email, handle, password }) {
+    async register({ email, handle, password }): Promise<string> {
         handle = handle.toLowerCase().normalize('NFKC');
         const keyhash = await this.createKey(handle, password);
 
@@ -61,10 +61,10 @@ export class KronoAuth {
         }
 
         this.keyPair = keyPair;
-        return bip32;
+        return bip32.toString();
     }
 
-    async recover({ handle, password }) {
+    async recover({ handle, password }): Promise<string> {
         handle = handle.toLowerCase().normalize('NFKC');
         const keyhash = await this.createKey(handle, password);
 
@@ -96,9 +96,8 @@ export class KronoAuth {
             Buffer.from(recovery, 'base64'),
             privKey
         );
-        const bip32 = Bip32.fromString(recoveryBuf.toString());
         this.keyPair = keyPair;
-        return bip32;
+        return recoveryBuf.toString();
     }
 
     public async isHandleAvailable(handle: string) {
