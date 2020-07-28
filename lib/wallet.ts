@@ -95,9 +95,12 @@ export class Wallet extends EventEmitter {
             const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
             const txOut = outTx.txOuts[txIn.txOutNum];
             const address = Address.fromTxOutScript(txOut.script).toString();
+            console.log('ADDRESS:', i, address);
             if(address === this.purse) {
+                console.log('Signing purse');
                 return tx.asyncSign (this.pursePair, undefined, i, txOut.script, txOut.valueBn)
             } else if(address === this.address) {
+                console.log('Signing owner');
                 return tx.asyncSign (this.ownerPair, undefined, i, txOut.script, txOut.valueBn)
             }
         }));
