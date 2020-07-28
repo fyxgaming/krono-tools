@@ -11,19 +11,22 @@ export class Wallet extends EventEmitter {
     purse: string;
     private transaction: any;
     balance: () => Promise<number>
+    load: (loc: string) => Promise<IJig>;
 
     constructor(
-        private paymail: string,
+        public paymail: string,
         private keyPair: KeyPair,
-        private run: any
+        run: any
     ) {
         super();
         this.blockchain = run.blockchain;
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
+        this.load = run.load.bind(run);
         this.transaction = new RunTransaction(run);
         console.log(`PAYMAIL: ${paymail}`);
+        console.log(`PUBKEY: ${keyPair.pubKey.toString()}`);
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
 
@@ -49,16 +52,10 @@ export class Wallet extends EventEmitter {
         return this.blockchain.jigIndex(this.address);
     }
 
-    async loadJig(loc: string): Promise<IJig> {
+    async loadJig(loc: string): Promise<IJig | void> {
         console.time(`load ${loc}`);
-        const jig = await this.run.load(loc).catch((e) => {
-            if (e.message.includes('not a run tx') ||
-                e.message.includes('not a jig output') ||
-                e.message.includes('Not a token')
-            ) {
-                console.log('Not a jig:', loc);
-                return;
-            }
+        const jig = await this.load(loc).catch((e) => {
+            if (e.message.match(/not a/i)) return;
             console.error('Load error:', loc, e.message);
         });
         console.timeEnd(`load ${loc}`);
