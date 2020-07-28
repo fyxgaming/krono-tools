@@ -99,11 +99,11 @@ export class Wallet extends EventEmitter {
             let sig;
             if (address === this.purse) {
                 console.log('Signing purse');
-                sig = tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
+                sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
                 txIn.setScript(new Script[sig.toTxFormat(), this.pursePair.pubKey.toBuffer()]);
             } else if (address === this.address) {
                 console.log('Signing owner');
-                sig = tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
+                sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
                 txIn.setScript(new Script[sig.toTxFormat(), this.ownerPair.pubKey.toBuffer()]);
             } else return;
             console.log(sig);
