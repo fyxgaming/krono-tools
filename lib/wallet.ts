@@ -9,6 +9,7 @@ export class Wallet extends EventEmitter {
     private blockchain: RestBlockchain;
     address: string;
     purse: string;
+    pubkey: string;
     private transaction: any;
     balance: () => Promise<number>
     load: (loc: string) => Promise<IJig>;
@@ -24,6 +25,7 @@ export class Wallet extends EventEmitter {
         this.blockchain = run.blockchain;
         this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
         this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
+        this.pubkey = keyPair.pubKey.toHex();
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
