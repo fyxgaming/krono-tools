@@ -13,7 +13,7 @@ export class KronoTx extends Tx {
 
     toAddress(satoshis: number, address: string): void {
         return super.addTxOut(
-            Bn.fromNumber(satoshis),
+            new Bn(satoshis),
             Address.fromString(address).toTxOutScript()
         );
     }
