@@ -96,13 +96,10 @@ export class Wallet extends EventEmitter {
             const txOut = outTx.txOuts[txIn.txOutNum];
             if(!txOut.script.isPubKeyHashOut()) return;
             const address = Address.fromTxOutScript(txOut.script).toString();
-            console.log('ADDRESS:', i, address);
             if (address === this.purse) {
-                console.log('Signing purse');
                 const sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
                 txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.pursePair.pubKey.toBuffer()));
             } else if (address === this.address) {
-                console.log('Signing owner');
                 const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
                 txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
             }
