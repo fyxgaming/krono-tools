@@ -1,10 +1,9 @@
-import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig} from 'bsv';
+import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Script, Sig, Tx } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
 import { SignedMessage } from './signed-message';
 import { RunTransaction } from './run-transaction';
-import { Transaction } from 'bsv-legacy';
 
 export class Wallet extends EventEmitter {
     private blockchain: RestBlockchain;
@@ -13,8 +12,8 @@ export class Wallet extends EventEmitter {
     private transaction: any;
     balance: () => Promise<number>
     load: (loc: string) => Promise<IJig>;
-    // ownerPair: KeyPair;
-    // pursePair: KeyPair;
+    ownerPair: KeyPair;
+    pursePair: KeyPair;
 
     constructor(
         public paymail: string,
@@ -23,8 +22,8 @@ export class Wallet extends EventEmitter {
     ) {
         super();
         this.blockchain = run.blockchain;
-        // this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
-        // this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
+        this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
+        this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
@@ -90,37 +89,26 @@ export class Wallet extends EventEmitter {
         return message;
     }
 
-    async signTx(rawtx: string): Promise<string> {
-        const tx = new Transaction(rawtx);
-        await Promise.all(tx.inputs.map(async (input, i) => {
-            const outTx = await this.blockchain.fetch(input.prevTxId.toString('hex'));
-            input.output = outTx.outputs[input.outputIndex];
+    async signTx(tx: Tx): Promise<void> {
+        await Promise.all(tx.txIns.map(async (txIn, i) => {
+            const txid = txIn.txHashBuf.reverse().toString('hex');
+            const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
+            const txOut = outTx.txOuts[txIn.txOutNum];
+            const address = Address.fromTxOutScript(txOut.script).toString();
+            console.log('ADDRESS:', i, address);
+            let sig;
+            if (address === this.purse) {
+                console.log('Signing purse');
+                sig = tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
+                txIn.setScript(new Script[sig.toTxFormat(), this.pursePair.pubKey.toBuffer()]);
+            } else if (address === this.address) {
+                console.log('Signing owner');
+                sig = tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
+                txIn.setScript(new Script[sig.toTxFormat(), this.ownerPair.pubKey.toBuffer()]);
+            } else return;
+            console.log(sig);
         }));
-        tx.sign([this.run.owner.privkey, this.run.purse.privkay]);
-        return tx.toString();
-        // const txBuilder = new TxBuilder();
-        // const txOutMap = new TxOutMap();
-        // await Promise.all(tx.txIns.map(async (txIn, i) => {
-        //     const txid = txIn.txHashBuf.reverse().toString('hex');
-        //     const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
-        //     txOutMap.setTx(outTx);
-        // }));
-        // txBuilder.importPartiallySignedTx(tx, txOutMap);
-        // txBuilder.signWithKeyPairs([this.pursePair, this.ownerPair]);
-        // const txOut = outTx.txOuts[txIn.txOutNum];
-        //     const address = Address.fromTxOutScript(txOut.script).toString();
-        //     console.log('ADDRESS:', i, address);
-        //     let sig;
-        //     if(address === this.purse) {
-        //         console.log('Signing purse');
-        //         sig = tx.asyncSign (this.pursePair, undefined, i, txOut.script, txOut.valueBn);
-        //     } else if(address === this.address) {
-        //         console.log('Signing owner');
-        //         sig = tx.asyncSign (this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
-        //     } else return;
-        //     console.log(sig);
-        
-        // return txBuilder.tx;
+        // return tx;
     }
 
     async encrypt(pubkey: string) {
