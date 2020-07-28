@@ -1,4 +1,4 @@
-import { Address, Bn, Script, Tx } from 'bsv';
+import { Address, Bn, OpCode, Script, Tx } from 'bsv';
 import { IUTXO } from './interfaces';
 
 export class KronoTx extends Tx {
@@ -6,7 +6,7 @@ export class KronoTx extends Tx {
         return super.addTxIn(
             Buffer.from(utxo.txid, 'hex').reverse(),
             utxo.vout,
-            new Script(),
+            new Script([OpCode.OP_0, OpCode.OP_0]),
             0    
         )
     }
