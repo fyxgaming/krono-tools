@@ -1,9 +1,10 @@
-import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig, Tx, TxBuilder, TxOutMap } from 'bsv';
+import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig} from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
 import { SignedMessage } from './signed-message';
 import { RunTransaction } from './run-transaction';
+import { Transaction } from 'bsv-legacy';
 
 export class Wallet extends EventEmitter {
     private blockchain: RestBlockchain;
@@ -12,18 +13,18 @@ export class Wallet extends EventEmitter {
     private transaction: any;
     balance: () => Promise<number>
     load: (loc: string) => Promise<IJig>;
-    ownerPair: KeyPair;
-    pursePair: KeyPair;
+    // ownerPair: KeyPair;
+    // pursePair: KeyPair;
 
     constructor(
         public paymail: string,
         private keyPair: KeyPair,
-        run: any
+        private run: any
     ) {
         super();
         this.blockchain = run.blockchain;
-        this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
-        this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
+        // this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
+        // this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
@@ -89,16 +90,19 @@ export class Wallet extends EventEmitter {
         return message;
     }
 
-    async signTx(tx: Tx): Promise<Tx> {
-        const txBuilder = new TxBuilder();
-        const txOutMap = new TxOutMap();
-        await Promise.all(tx.txIns.map(async (txIn, i) => {
-            const txid = txIn.txHashBuf.reverse().toString('hex');
-            const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
-            txOutMap.setTx(outTx);
-        }));
-        txBuilder.importPartiallySignedTx(tx, txOutMap);
-        txBuilder.signWithKeyPairs([this.pursePair, this.ownerPair]);
+    async signTx(rawtx: string): Promise<string> {
+        const tx = new Transaction(rawtx);
+        tx.sign([this.run.owner.privkey, this.run.purse.privkay]);
+        return tx.toString();
+        // const txBuilder = new TxBuilder();
+        // const txOutMap = new TxOutMap();
+        // await Promise.all(tx.txIns.map(async (txIn, i) => {
+        //     const txid = txIn.txHashBuf.reverse().toString('hex');
+        //     const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
+        //     txOutMap.setTx(outTx);
+        // }));
+        // txBuilder.importPartiallySignedTx(tx, txOutMap);
+        // txBuilder.signWithKeyPairs([this.pursePair, this.ownerPair]);
         // const txOut = outTx.txOuts[txIn.txOutNum];
         //     const address = Address.fromTxOutScript(txOut.script).toString();
         //     console.log('ADDRESS:', i, address);
