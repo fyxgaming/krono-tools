@@ -6,7 +6,7 @@ export class KronoTx extends Tx {
         return super.addTxIn(
             Buffer.from(utxo.txid, 'hex').reverse(),
             utxo.vout,
-            Script.fromBuffer(Buffer.alloc(67)),
+            Script.fromBuffer(Buffer.alloc(0)),
             0    
         )
     }
