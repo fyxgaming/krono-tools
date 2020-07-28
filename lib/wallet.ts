@@ -18,7 +18,7 @@ export class Wallet extends EventEmitter {
     constructor(
         public paymail: string,
         private keyPair: KeyPair,
-        private run: any
+        run: any
     ) {
         super();
         this.blockchain = run.blockchain;
