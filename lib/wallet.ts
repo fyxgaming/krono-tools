@@ -93,7 +93,7 @@ export class Wallet extends EventEmitter {
     async signTx(rawtx: string): Promise<string> {
         const tx = new Transaction(rawtx);
         await Promise.all(tx.inputs.map(async (input, i) => {
-            const outTx = await this.blockchain.fetch(input.prevTxId);
+            const outTx = await this.blockchain.fetch(input.prevTxId.toString('hex'));
             input.output = outTx.outputs[input.outputIndex];
         }));
         tx.sign([this.run.owner.privkey, this.run.purse.privkay]);
