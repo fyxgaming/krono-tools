@@ -1,4 +1,4 @@
-import { Ecdsa, Hash, KeyPair, PubKey, Random, Sig } from 'bsv';
+import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Sig, Tx } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
@@ -12,6 +12,8 @@ export class Wallet extends EventEmitter {
     private transaction: any;
     balance: () => Promise<number>
     load: (loc: string) => Promise<IJig>;
+    ownerPair: KeyPair;
+    pursePair: KeyPair;
 
     constructor(
         public paymail: string,
@@ -20,6 +22,8 @@ export class Wallet extends EventEmitter {
     ) {
         super();
         this.blockchain = run.blockchain;
+        this.ownerPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner.privkey));
+        this.pursePair = KeyPair.fromPrivKey(PrivKey.fromString(run.purse.privkey));
         this.purse = run.purse.address;
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
@@ -83,6 +87,21 @@ export class Wallet extends EventEmitter {
         const message = new SignedMessage(messageData);
         if (sign) message.sign(this.keyPair);
         return message;
+    }
+
+    async signTx(tx: Tx): Promise<Tx> {
+        await Promise.all(tx.txIns.map(async (txIn, i) => {
+            const txid = txIn.txHashBuf.reverse().toString('hex')
+            const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
+            const txOut = outTx.txOuts[txIn.txOutNum];
+            const address = Address.fromTxOutScript(txOut.script).toString();
+            if(address === this.purse) {
+                return tx.asyncSign (this.pursePair, undefined, i, txOut.script, txOut.valueBn)
+            } else if(address === this.address) {
+                return tx.asyncSign (this.ownerPair, undefined, i, txOut.script, txOut.valueBn)
+            }
+        }));
+        return tx;
     }
 
     async encrypt(pubkey: string) {
