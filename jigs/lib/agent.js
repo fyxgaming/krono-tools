@@ -5,12 +5,14 @@ const EventEmitter = require('./event-emitter');
 class Agent extends EventEmitter {
     // EVENTS: schedule, client, 
 
-    constructor(wallet, blockchain, storage, KronoTx, fetch) { 
+    constructor(wallet, blockchain, storage, KronoTx, bsv, fetch, Buffer) { 
         super();
         this.wallet = wallet;
         this.blockchain = blockchain;
         this.storage = storage;
         this.KronoTx = KronoTx;
+        this.bsv = bsv;
+        this.Buffer = Buffer;
         this.fetch = fetch;
         this.address = wallet.address;
         this.pubkey = wallet.pubkey;
