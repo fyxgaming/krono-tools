@@ -91,6 +91,17 @@ class Agent extends EventEmitter {
         return handler.bind(this)(payload);
     }
 
+    async schedule(time, event, payload) {
+        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
+        await this.storage.multi()
+            .hset('timeouts', id, time)
+            .hmset(id, {
+                event,
+                payload: payload && JSON.stringify(payload),
+            })
+            .exec();
+    }
+
     async setTimeout(timeout, event, payload) {
         const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
         await this.storage.multi()
@@ -121,40 +132,6 @@ class Agent extends EventEmitter {
             .exec();
         this.storage.del(id);
     }
-
-    // async processScheduler() {
-    //     const timeouts = await this.storage.hgetall('timeouts');
-    //     for (const [id, timeout] of Object.entries(timeouts)) {
-    //         if (timeout < this.wallet.now()) continue;
-    //         const handler = await this.storage.hgetall(id);
-    //         try {
-    //             await this.onEvent(handler.event, handler.payload && JSON.parse(handler.payload));
-    //             await this.storage.multi()
-    //                 .hdel('timeouts', id)
-    //                 .del(id)
-    //                 .exec();
-    //         } catch (e) {
-    //             console.error('Timeout Error', handler.event, e);
-    //             await this.storage.hmset(id, {
-    //                 error: e.message,
-    //                 errorCount: (handler.errorCount || 0) + 1
-    //             });
-    //         }
-    //     }
-
-    //     const intervals = await this.storage.hgetall('intervals');
-    //     for (const [id, lastRun] of Object.entries(intervals)) {
-    //         const [interval] = id.split('|').slice(-1);
-    //         if (lastRun > this.wallet.now - interval) continue;
-    //         const handler = await this.storage.hgetall(id);
-    //         try {
-    //             await this.onEvent(handler.event, handler.payload && JSON.parse(handler.payload));
-    //             await this.storage.hset('intervals', id, this.wallet.now);
-    //         } catch (e) {
-    //             console.error('Interval Error', id, e);
-    //         }
-    //     }
-    // }
 
     static hexToBytes(hex) {
         let bytes = new Uint8Array(32);
