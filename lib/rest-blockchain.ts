@@ -37,7 +37,7 @@ export class RestBlockchain {
         return tx.hash;
     }
 
-    async fetch(txid: string, force?: boolean, retries = 0) {
+    async fetch(txid: string, force?: boolean) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
@@ -79,8 +79,7 @@ export class RestBlockchain {
             return tx;
         } catch (e) {
             console.log(`Fetch error: ${txid} - ${e.message}`);
-            if((e.status && e.status >= 400 && e.status < 500) || ++retries > 3) throw e;
-            return this.fetch(txid, force, retries);
+            throw e;
         }
     };
 
