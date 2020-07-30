@@ -41,10 +41,15 @@ export class RestBlockchain {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
-                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                if (!resp.ok) throw createError(resp.status, await resp.text());
-                rawtx = await resp.text();
-                await this.cache.set(`tx://${txid}`, rawtx);
+                for (let i = 0; i < 3; i++) {
+                    const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                    if (resp.ok) {
+                        rawtx = await resp.text();
+                        await this.cache.set(`tx://${txid}`, rawtx);
+                        break;
+                    }
+                    if (resp.status === 404 || i >= 2) throw createError(resp.status, await resp.text());
+                }
             }
 
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
@@ -52,12 +57,18 @@ export class RestBlockchain {
 
             let spends = [];
             if (force) {
-                const resp = await fetch(`${this.apiUrl}/spent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ locs })
-                });
-                if (!resp.ok) throw createError(resp.status, await resp.text());
+                for (let i = 0; i < 3; i++) {
+                    const resp = await fetch(`${this.apiUrl}/spent`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ locs })
+                    });
+                    if (resp.ok) {
+                        spends = await resp.json();
+                        break;
+                    }
+                    if (i >= 2) throw createError(resp.status, await resp.text());
+                }
             }
 
             tx.outputs.forEach((o: any, i) => {
