@@ -5,7 +5,7 @@ const EventEmitter = require('./event-emitter');
 class Agent extends EventEmitter {
     // EVENTS: schedule, client, 
 
-    constructor(wallet, blockchain, storage, bsv, lib) { 
+    constructor(wallet, blockchain, storage, bsv, lib) {
         super();
         this.wallet = wallet;
         this.blockchain = blockchain;
@@ -28,7 +28,7 @@ class Agent extends EventEmitter {
     init() { }
     async onJig(jigData) {
         let handler = this.jigHandlers.get(jigData.kind);
-        if(!handler) return;
+        if (!handler) return;
         const jig = await this.wallet.loadJig(jigData.location);
         if (!jig) {
             console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
@@ -40,14 +40,14 @@ class Agent extends EventEmitter {
         }
         await handler.bind(this)(jig);
     }
-    async onChannel(channe) {}
+    async onChannel(channe) { }
 
     async onMessage(message) {
         let handler = this.messageHandlers.get(message.subject);
         if (!handler) return;
         return handler.bind(this)(message);
     }
-    
+
     // async onKindSub(jigData) {
     //     let handler = this.kindSubHandlers.get(jigData.kind);
     //     if(!handler) return;
@@ -84,11 +84,75 @@ class Agent extends EventEmitter {
     //         return handler.bind(this)(jig);
     //     });
     // }
-    
+
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler');
         return handler.bind(this)(payload);
+    }
+
+    async setTimeout(timeout, event, payload) {
+        await this.storage.multi()
+            .hset('timeouts', id, this.wallet.now + timeout)
+            .hmset(id, {
+                event,
+                payload: payload && JSON.stringify(payload),
+            })
+            .exec();
+    }
+
+    async setInterval(interval, event, payload) {
+        const id = `${event}|${interval}`;
+        await this.storage.multi()
+            .hset('intervals', id, 0)
+            .hmset(id, {
+                event,
+                payload: payload && JSON.stringify(payload),
+            })
+            .exec();
+    }
+
+    async clearInterval(interval, event) {
+        const id = `${event}|${interval}`;
+        this.storage.multi()
+            .hdel('intervals', id)
+            .del(id)
+            .exec();
+        this.storage.del(id);
+    }
+
+    async processScheduler() {
+        const timeouts = await this.storage.hgetall('timeouts');
+        for (const [id, timeout] of Object.entries(timeouts)) {
+            if (timeout < this.wallet.now()) continue;
+            const handler = await this.storage.hgetall(id);
+            try {
+                await this.onEvent(handler.event, handler.payload && JSON.parse(handler.payload));
+                await this.storage.multi()
+                    .hdel('timeouts', id)
+                    .del(id)
+                    .exec();
+            } catch (e) {
+                console.error('Timeout Error', handler.event, e);
+                await this.storage.hmset(id, {
+                    error: e.message,
+                    errorCount: (handler.errorCount || 0) + 1
+                });
+            }
+        }
+
+        const intervals = await this.storage.hgetall('intervals');
+        for (const [id, lastRun] of Object.entries(intervals)) {
+            const [interval] = id.split('|').slice(-1);
+            if (lastRun > this.wallet.now - interval) continue;
+            const handler = await this.storage.hgetall(id);
+            try {
+                await this.onEvent(handler.event, handler.payload && JSON.parse(handler.payload));
+                await this.storage.hset('intervals', id, this.wallet.now);
+            } catch (e) {
+                console.error('Interval Error', id, e);
+            }
+        }
     }
 
     static hexToBytes(hex) {
