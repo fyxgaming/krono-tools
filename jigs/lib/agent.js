@@ -92,6 +92,7 @@ class Agent extends EventEmitter {
     }
 
     async setTimeout(timeout, event, payload) {
+        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
         await this.storage.multi()
             .hset('timeouts', id, this.wallet.now + timeout)
             .hmset(id, {
