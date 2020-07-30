@@ -68,8 +68,8 @@ export class RestBlockchain {
             return tx;
         } catch (e) {
             console.log(`Fetch error: ${txid} - ${e.message}`);
-            if(retries++ < 3) return this.fetch(txid, force, retries);
-            throw e;
+            if((e.status && e.status >= 400 && e.status < 500) || ++retries > 3) throw e;
+            return this.fetch(txid, force, retries);
         }
     };
 
