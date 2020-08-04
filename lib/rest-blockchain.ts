@@ -1,10 +1,11 @@
-import { IStorage } from './interfaces';
+import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
-import createError from 'http-errors';
+import { SignedMessage } from './signed-message';
 
+const createError = require('http-errors');
 const fetch = require('node-fetch');
 
-const { Transaction } = require('bsv_legacy');
+const { Transaction } = require('bsv-legacy');
 
 export class RestBlockchain {
     constructor(
@@ -25,19 +26,27 @@ export class RestBlockchain {
     }
 
     async broadcast(tx) {
-        console.time(`Broadcast: ${tx.hash}`);
+        const rawtx = typeof tx === 'string' ? tx : tx.toString();
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawtx: tx.toString() })
+            body: JSON.stringify({ rawtx })
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
-        console.timeEnd(`Broadcast: ${tx.hash}`);
-        await this.cache.set(`tx:${tx.hash}`, tx.toString());
+        const hash = await resp.json();
+        console.log('Broadcast:', hash);
+        await this.cache.set(`tx:${hash}`, rawtx);
         return tx.hash;
     }
 
-    async fetch(txid: string, force?: boolean) {
+    async populateInputs(tx) {
+        await Promise.all(tx.inputs.map(async input => {
+            const outTx = await this.fetch(input.prevTxId.toString('hex'));
+            input.output = outTx.outputs[input.outputIndex];
+        }));
+    }
+
+    async fetch(txid: string, force?: boolean, asRaw = false) {
         try {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
@@ -52,6 +61,7 @@ export class RestBlockchain {
                 }
             }
 
+            if(asRaw) return rawtx;
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
 
@@ -83,7 +93,7 @@ export class RestBlockchain {
         }
     };
 
-    async utxos(address) {
+    async utxos(address): Promise<IUTXO[]> {
         if (typeof address !== 'string') {
             address = address.toAddress(this.bsvNetwork).toString();
         }
@@ -99,9 +109,9 @@ export class RestBlockchain {
         return !!spentTxId;
     }
 
-    async balance(address) {
-        const resp = await fetch(`${this.apiUrl}/balance/${address}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+    async jigIndex(address) {
+        const resp = await fetch(`${this.apiUrl}/jigs/${address}`);
+        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
         return resp.json();
     }
 
@@ -125,24 +135,24 @@ export class RestBlockchain {
         return resp.json();
     }
 
-    async getChannel(loc: string, seq?: number): Promise<any> {
-        const resp = await fetch(`${this.apiUrl}/channel/${loc}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
-        return await resp.json();
-    }
-
-    async saveChannel(loc: string, rawtx: string) {
-        const resp = await fetch(`${this.apiUrl}/channel/${loc}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawtx })
-        });
-        if (!resp.ok) throw createError(resp.status, await resp.text());
-    }
-
-    async fund(address, satoshis?: number) {
+    async fund(address: string, satoshis?: number) {
         const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`);
         if (!resp.ok) throw createError(resp.status, await resp.text());
-        return await resp.json();
+        return resp.json();
+    }
+
+    async loadMessage(messageId): Promise<SignedMessage> {
+        const resp = await fetch(`${this.apiUrl}/messages/${messageId}`);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+        return new SignedMessage(await resp.json());
+    }
+
+    async sendMessage(message: SignedMessage, postTo?: string): Promise<void> {
+        const resp = await fetch(postTo || `${this.apiUrl}/messages`, {
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            body: JSON.stringify(message)
+        });
+        if (!resp.ok) throw createError(resp.status, await resp.text());
     }
 }

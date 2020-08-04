@@ -1,8 +1,9 @@
 import { IStorage } from '../interfaces';
-import createError from 'http-errors';
 import { LRUCache } from '../lru-cache';
 
+const createError = require('http-errors');
 const fetch = require('node-fetch');
+
 export class RestStateCache implements IStorage<any> {
     constructor(
         private apiUrl: string, 

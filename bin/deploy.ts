@@ -4,7 +4,7 @@ import minimist from 'minimist';
 import path from 'path';
 
 import { MapStorage } from '../lib/storage/map-storage';
-import { RestBlockchain } from '../lib/blockchain/rest-blockchain';
+import { RestBlockchain } from '../lib/rest-blockchain';
 import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
 const Run = require('@runonbitcoin/release');
@@ -13,6 +13,7 @@ var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
+    infra: 'https://kronoverse-infra.appspot.com',
     dev: 'https://kronoverse-dev.appspot.com',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
@@ -74,8 +75,6 @@ function renderUsage() {
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        // txq,
-        // apiKey,
         new MapStorage(),
     );
 
@@ -87,7 +86,7 @@ function renderUsage() {
         app: argv.app,
         logger: console
     });
-    run.owner.owner = () => run.owner.pubkey;
+
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));

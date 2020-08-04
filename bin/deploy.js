@@ -7,7 +7,7 @@ const minimist = require('minimist');
 const path = require('path');
 
 const { LRUCache } = require('../lib/lru-cache');
-const { RestBlockchain } = require('../lib/blockchain/rest-blockchain');
+const { RestBlockchain } = require('../lib/rest-blockchain');
 const { Deployer } = require('../lib/deployer');
 const Run = require('@runonbitcoin/release');
 
@@ -15,6 +15,7 @@ var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
+    infra: 'https://kronoverse-infra.appspot.com',
     dev: 'https://kronoverse-dev.appspot.com',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
@@ -76,8 +77,6 @@ function renderUsage() {
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        // txq,
-        // apiKey,
         new LRUCache(10000000),
     );
 
@@ -89,7 +88,7 @@ function renderUsage() {
         app: argv.app,
         // logger: console
     });
-    run.owner.owner = () => run.owner.pubkey;
+
     const rootPath = path.dirname(sourcePath)
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
