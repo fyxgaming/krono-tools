@@ -4,7 +4,8 @@ class KronoItem extends KronoJig {
     init(itemDef, owner) {
         this.itemDef = itemDef;
 
-        this.minter = caller;
+        this.mint = caller;
+        this.minter = caller && caller.owner;
         // if (caller) {
         //     this.mint = caller.location;
         //     this.mintType = caller.constructor.location;

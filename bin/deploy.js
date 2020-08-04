@@ -15,6 +15,7 @@ var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
+    infra: 'https://kronoverse-infra.appspot.com',
     dev: 'https://kronoverse-dev.appspot.com',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
