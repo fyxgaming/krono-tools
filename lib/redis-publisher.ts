@@ -1,11 +1,11 @@
-import IORedis from "ioredis";
-
 import {Redis} from 'ioredis'
+import microtime from 'microtime';
 export class RedisPublisher {
     constructor(private redis: Redis, private cacheSize = 50) {}
 
     async publish(channel: string, event: string, data: {[key: string]: any}) {
-        const ts = Date.now().toString();
+        // TODO: Add entropy to id;
+        const ts = microtime.now().toString();
         await this.redis.multi()
             .hset(channel, ts, JSON.stringify([ts, event, data]))
             .publish(channel, JSON.stringify([ts, event, data]))
