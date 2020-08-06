@@ -7,7 +7,7 @@ export class RedisPublisher {
     async publish(channel: string, event: string, data: {[key: string]: any}) {
         const ts = Date.now().toString();
         await this.redis.multi()
-            .hset(channel, ts, JSON.stringify([event, data]))
+            .hset(channel, ts, JSON.stringify([ts, event, data]))
             .publish(channel, JSON.stringify([ts, event, data]))
             .exec();
 
