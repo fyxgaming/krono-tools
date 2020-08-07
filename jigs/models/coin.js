@@ -1,4 +1,4 @@
-const { Token } = require('@runonbitcoin/release');
+const { Token } = require('@kronoverse/run');
 
 class Coin extends Token { }
 Coin.decimals = 4;

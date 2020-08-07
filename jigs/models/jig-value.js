@@ -1,4 +1,4 @@
-const { Jig } = require('@runonbitcoin/release');
+const { Jig } = require('@kronoverse/run');
 
 class JigValue extends Jig {
     init(value) {

@@ -7,7 +7,7 @@ import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/rest-blockchain';
 import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
-const Run = require('@runonbitcoin/release');
+const Run = require('@kronoverse/run');
 
 var argv = minimist(process.argv.slice(2));
 
