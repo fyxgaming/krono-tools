@@ -59,12 +59,10 @@ export class Wallet extends EventEmitter {
     }
 
     async loadJig(loc: string): Promise<IJig | void> {
-        console.time(`load ${loc}`);
         const jig = await this.load(loc).catch((e) => {
             if (e.message.match(/not a/i)) return;
             console.error('Load error:', loc, e.message);
         });
-        console.timeEnd(`load ${loc}`);
         return jig;
     }
 
