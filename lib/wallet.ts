@@ -1,4 +1,4 @@
-import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Script, Sig, Tx } from 'bsv';
+import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Script, Sig, Tx, TxOut } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
@@ -89,11 +89,9 @@ export class Wallet extends EventEmitter {
         return message;
     }
 
-    async signTx(tx: Tx, locs?: string[]): Promise<void> {
-        await Promise.all(tx.txIns.map(async (txIn, i) => {
+    async signTx(tx: Tx): Promise<TxOut[]> {
+        return Promise.all(tx.txIns.map(async (txIn, i) => {
             const txid = txIn.txHashBuf.reverse().toString('hex');
-            const loc = `${txid}_o${txIn.txOutNum}`;
-            if(locs && !locs.includes(loc)) return;
             const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
             const txOut = outTx.txOuts[txIn.txOutNum];
             if(!txOut.script.isPubKeyHashOut()) return;
@@ -105,8 +103,8 @@ export class Wallet extends EventEmitter {
                 const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
                 txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
             }
+            return txOut;
         }));
-        // return tx;
     }
 
     async encrypt(pubkey: string) {
