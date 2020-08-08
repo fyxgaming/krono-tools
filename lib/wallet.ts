@@ -94,14 +94,15 @@ export class Wallet extends EventEmitter {
             const txid = txIn.txHashBuf.reverse().toString('hex');
             const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
             const txOut = outTx.txOuts[txIn.txOutNum];
-            if(!txOut.script.isPubKeyHashOut()) return;
-            const address = Address.fromTxOutScript(txOut.script).toString();
-            if (address === this.purse) {
-                const sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
-                txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.pursePair.pubKey.toBuffer()));
-            } else if (address === this.address) {
-                const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
-                txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
+            if (txOut.script.isPubKeyHashOut()) {
+                const address = Address.fromTxOutScript(txOut.script).toString();
+                if (address === this.purse) {
+                    const sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
+                    txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.pursePair.pubKey.toBuffer()));
+                } else if (address === this.address) {
+                    const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
+                    txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
+                }
             }
             return txOut;
         }));
