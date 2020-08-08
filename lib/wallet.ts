@@ -89,9 +89,11 @@ export class Wallet extends EventEmitter {
         return message;
     }
 
-    async signTx(tx: Tx): Promise<void> {
+    async signTx(tx: Tx, locs?: string[]): Promise<void> {
         await Promise.all(tx.txIns.map(async (txIn, i) => {
             const txid = txIn.txHashBuf.reverse().toString('hex');
+            const loc = `${txid}_o${txIn.txOutNum}`;
+            if(locs && !locs.includes(loc)) return;
             const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
             const txOut = outTx.txOuts[txIn.txOutNum];
             if(!txOut.script.isPubKeyHashOut()) return;
