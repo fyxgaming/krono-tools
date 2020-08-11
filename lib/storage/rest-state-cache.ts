@@ -18,8 +18,8 @@ export class RestStateCache implements IStorage<any> {
         const url = `${this.apiUrl}/${encodeURIComponent(key)}`;
         try {
             const resp = await fetch(url);
+            console.log('Status:', resp.status, resp.ok);
             if(!resp.ok) {
-                console.log('Status:', resp.status);
                 if(resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
             }
