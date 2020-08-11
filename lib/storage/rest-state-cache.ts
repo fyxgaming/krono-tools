@@ -8,7 +8,9 @@ export class RestStateCache implements IStorage<any> {
     constructor(
         private apiUrl: string, 
         public cache: IStorage<any> = new LRUCache(10000000)
-    ) { }
+    ) { 
+        console.log('Cache URL:', apiUrl);
+    }
 
     async get(key: string): Promise<any> {
         let value = await this.cache.get(key);
