@@ -14,7 +14,7 @@ export class RestStateCache implements IStorage<any> {
         let value = await this.cache.get(key);
         if (value) return value;
         try {
-            const resp = await fetch(`${this.apiUrl}/${encodeURIComponent(key)}`);
+            const resp = await fetch(`${this.apiUrl}/cache/${encodeURIComponent(key)}`);
             if(!resp.ok) {
                 if(resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
@@ -24,7 +24,7 @@ export class RestStateCache implements IStorage<any> {
                 await this.cache.set(key, value);
             }
         } catch (e) {
-            console.error('State Error', e.message, e.stack);
+            console.error('State Error', e.message);
             return;
         }
 
