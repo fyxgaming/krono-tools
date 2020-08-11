@@ -19,6 +19,7 @@ export class RestStateCache implements IStorage<any> {
         try {
             const resp = await fetch(url);
             if(!resp.ok) {
+                console.log('Status:', resp.status);
                 if(resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
             }
