@@ -1,6 +1,8 @@
 import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
 import { SignedMessage } from './signed-message';
+import { create } from 'domain';
+import { NotFound } from 'http-errors';
 
 const createError = require('http-errors');
 const fetch = require('node-fetch');
@@ -12,8 +14,8 @@ export class RestBlockchain {
         private apiUrl: string,
         public network: string,
         private cache: IStorage<any> = new LRUCache(10000000)
-    ) {}
-    
+    ) { }
+
     get bsvNetwork(): string {
         switch (this.network) {
             case 'stn':
@@ -51,17 +53,21 @@ export class RestBlockchain {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
                 for (let i = 0; i < 3; i++) {
-                    const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                    if (resp.ok) {
-                        rawtx = await resp.text();
-                        await this.cache.set(`tx://${txid}`, rawtx);
-                        break;
+                    try {
+                        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                        if (resp.ok) {
+                            rawtx = await resp.text();
+                            await this.cache.set(`tx://${txid}`, rawtx);
+                            break;
+                        }
+                        throw createError(resp.status, await resp.text());
+                    } catch (e) {
+                        if (e.status === 404 || i >= 2) throw e;
                     }
-                    if (resp.status === 404 || i >= 2) throw createError(resp.status, await resp.text());
                 }
             }
 
-            if(asRaw) return rawtx;
+            if (asRaw) return rawtx;
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
 
@@ -150,7 +156,7 @@ export class RestBlockchain {
     async sendMessage(message: SignedMessage, postTo?: string): Promise<void> {
         const resp = await fetch(postTo || `${this.apiUrl}/messages`, {
             method: 'POST',
-            headers: {'content-type': 'application/json'},
+            headers: { 'content-type': 'application/json' },
             body: JSON.stringify(message)
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
