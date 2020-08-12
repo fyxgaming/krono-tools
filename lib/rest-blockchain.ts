@@ -1,8 +1,6 @@
 import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
 import { SignedMessage } from './signed-message';
-import { create } from 'domain';
-import { NotFound } from 'http-errors';
 
 const createError = require('http-errors');
 const fetch = require('node-fetch');
