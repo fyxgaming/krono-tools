@@ -80,7 +80,7 @@ export class KronoAuth {
 
     async recover(paymail: string, keyPair: KeyPair) {
         const message = new SignedMessage({
-          from: paymail
+          from: keyPair.pubKey.toString()
         });
         
         message.sign(keyPair);
