@@ -100,7 +100,16 @@ export class KronoAuth {
 
     public async isHandleAvailable(handle: string) {
         handle = handle.toLowerCase();
-        const resp = await fetch(`${this.apiUrl}/api/bsvalias/id/${handle}@${this.domain}`);
-        return resp.status === 404;
+        const url = `${this.apiUrl}/api/bsvalias/id/${handle}@${this.domain}`;
+        console.log('Requesting:', url);
+        try{
+            const resp = await fetch(url);
+            return resp.status === 404;
+        } catch(e) {
+            console.error('Error Fetching', e.message);
+            return false;
+        }
+        
+        
     }
 }
