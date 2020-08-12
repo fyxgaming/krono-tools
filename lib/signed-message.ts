@@ -44,15 +44,8 @@ export class SignedMessage {
         this.sig = Ecdsa.sign(this.hash, keyPair).toString();
     }
 
-    async verify(paymailClient?) {
-        let pubkey;
-        if(this.from.includes('@')) {
-            if(!paymailClient) throw new Error('paymailClient required');
-            pubkey = await paymailClient.getPublicKey(this.from)
-        } else {
-            pubkey = this.from;
-        }
-        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(pubkey));
+    async verify() {
+        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(this.from));
     }
     
 }
