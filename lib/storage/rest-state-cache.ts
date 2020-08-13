@@ -1,12 +1,14 @@
 import { IStorage } from '../interfaces';
 import { LRUCache } from '../lru-cache';
+import { Agent } from 'https';
 
 const createError = require('http-errors');
 const fetch = require('node-fetch');
+const agent = new Agent({ keepAlive: true })
 
 export class RestStateCache implements IStorage<any> {
     constructor(
-        private apiUrl: string, 
+        private apiUrl: string,
         public cache: IStorage<any> = new LRUCache(10000000)
     ) { }
 
@@ -14,9 +16,9 @@ export class RestStateCache implements IStorage<any> {
         let value = await this.cache.get(key);
         if (value) return value;
         try {
-            const resp = await fetch(`${this.apiUrl}/state/${encodeURIComponent(key)}`);
-            if(!resp.ok) {
-                if(resp.status === 404) return;
+            const resp = await fetch(`${this.apiUrl}/state/${encodeURIComponent(key)}`, { agent });
+            if (!resp.ok) {
+                if (resp.status === 404) return;
                 throw createError(resp.status, resp.statusText);
             }
             value = await resp.json();

@@ -1,9 +1,11 @@
 import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
 import { SignedMessage } from './signed-message';
+import { Agent } from 'https';
 
 const createError = require('http-errors');
 const fetch = require('node-fetch');
+const agent = new Agent({ keepAlive: true })
 
 const { Transaction } = require('bsv-legacy');
 
@@ -28,6 +30,7 @@ export class RestBlockchain {
     async broadcast(tx) {
         const rawtx = typeof tx === 'string' ? tx : tx.toString();
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
+            agent,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx })
@@ -52,7 +55,7 @@ export class RestBlockchain {
             if (!rawtx) {
                 for (let i = 0; i < 3; i++) {
                     try {
-                        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                        const resp = await fetch(`${this.apiUrl}/tx/${txid}`, { agent });
                         if (resp.ok) {
                             rawtx = await resp.text();
                             await this.cache.set(`tx://${txid}`, rawtx);
@@ -73,6 +76,7 @@ export class RestBlockchain {
             if (force) {
                 for (let i = 0; i < 3; i++) {
                     const resp = await fetch(`${this.apiUrl}/spent`, {
+                        agent,
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ locs })
@@ -101,26 +105,27 @@ export class RestBlockchain {
         if (typeof address !== 'string') {
             address = address.toAddress(this.bsvNetwork).toString();
         }
-        const resp = await fetch(`${this.apiUrl}/utxos/${address}`);
+        const resp = await fetch(`${this.apiUrl}/utxos/${address}`, { agent });
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     };
 
     async isSpent(loc) {
-        const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
+        const resp = await fetch(`${this.apiUrl}/spent/${loc}`, { agent });
         if (!resp.ok) throw new Error(await resp.text());
         const spentTxId = await resp.text();
         return !!spentTxId;
     }
 
     async jigIndex(address) {
-        const resp = await fetch(`${this.apiUrl}/jigs/${address}`);
+        const resp = await fetch(`${this.apiUrl}/jigs/${address}`, { agent });
         if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
         return resp.json();
     }
 
     async kindHistory(kind: string, query: any) {
         const resp = await fetch(`${this.apiUrl}/jigs/kind/${kind}`, {
+            agent,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
@@ -131,6 +136,7 @@ export class RestBlockchain {
 
     async originHistory(origin: string, query: any) {
         const resp = await fetch(`${this.apiUrl}/jigs/origin/${origin}`, {
+            agent,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
@@ -140,19 +146,20 @@ export class RestBlockchain {
     }
 
     async fund(address: string, satoshis?: number) {
-        const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`);
+        const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`, { agent });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         return resp.json();
     }
 
     async loadMessage(messageId): Promise<SignedMessage> {
-        const resp = await fetch(`${this.apiUrl}/messages/${messageId}`);
+        const resp = await fetch(`${this.apiUrl}/messages/${messageId}`, { agent });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         return new SignedMessage(await resp.json());
     }
 
     async sendMessage(message: SignedMessage, postTo?: string): Promise<void> {
         const resp = await fetch(postTo || `${this.apiUrl}/messages`, {
+            agent,
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(message)
