@@ -92,7 +92,6 @@ class Agent extends EventEmitter {
     }
 
     async schedule(id, time, event, payload) {
-        id = `timeout:${id}`;
         await this.storage.multi()
             .hset('timeouts', id, time)
             .hmset(`timeout:${id}`, {
@@ -103,7 +102,6 @@ class Agent extends EventEmitter {
     }
 
     async setTimeout(id, timeout, event, payload) {
-        id = `timeout:${id}`;
         await this.storage.multi()
             .hset('timeouts', id, this.wallet.now + timeout)
             .hmset(`timeout:${id}`, {
