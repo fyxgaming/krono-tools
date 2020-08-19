@@ -92,9 +92,10 @@ class Agent extends EventEmitter {
     }
 
     async schedule(id, time, event, payload) {
+        id = `timeout:${id}`;
         await this.storage.multi()
             .hset('timeouts', id, time)
-            .hmset(id, {
+            .hmset(`timeout:${id}`, {
                 event,
                 payload: payload && JSON.stringify(payload),
             })
@@ -102,9 +103,10 @@ class Agent extends EventEmitter {
     }
 
     async setTimeout(id, timeout, event, payload) {
+        id = `timeout:${id}`;
         await this.storage.multi()
             .hset('timeouts', id, this.wallet.now + timeout)
-            .hmset(id, {
+            .hmset(`timeout:${id}`, {
                 event,
                 payload: payload && JSON.stringify(payload),
             })
@@ -114,9 +116,8 @@ class Agent extends EventEmitter {
     async clearTimeout(id) {
         this.storage.multi()
             .hdel('timeouts', id)
-            .del(id)
+            .del(`timeout:${id}`)
             .exec();
-        this.storage.del(id);
     }
 
     async setInterval(interval, event, payload) {
