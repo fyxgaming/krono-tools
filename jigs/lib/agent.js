@@ -91,8 +91,7 @@ class Agent extends EventEmitter {
         return handler.bind(this)(payload);
     }
 
-    async schedule(time, event, payload) {
-        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
+    async schedule(id, time, event, payload) {
         await this.storage.multi()
             .hset('timeouts', id, time)
             .hmset(id, {
@@ -102,8 +101,7 @@ class Agent extends EventEmitter {
             .exec();
     }
 
-    async setTimeout(timeout, event, payload) {
-        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
+    async setTimeout(id, timeout, event, payload) {
         await this.storage.multi()
             .hset('timeouts', id, this.wallet.now + timeout)
             .hmset(id, {
@@ -111,6 +109,14 @@ class Agent extends EventEmitter {
                 payload: payload && JSON.stringify(payload),
             })
             .exec();
+    }
+
+    async clearTimeout(id) {
+        this.storage.multi()
+            .hdel('timeouts', id)
+            .del(id)
+            .exec();
+        this.storage.del(id);
     }
 
     async setInterval(interval, event, payload) {
