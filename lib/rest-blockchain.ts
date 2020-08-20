@@ -11,7 +11,8 @@ export class RestBlockchain {
     constructor(
         private apiUrl: string,
         public network: string,
-        private cache: IStorage<any> = new LRUCache(10000000)
+        private cache: IStorage<any> = new LRUCache(10000000),
+        private debug = false
     ) { }
 
     get bsvNetwork(): string {
@@ -34,7 +35,7 @@ export class RestBlockchain {
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
-        console.log('Broadcast:', hash);
+        this.debug && console.log('Broadcast:', hash);
         await this.cache.set(`tx:${hash}`, rawtx);
         return tx.hash;
     }
@@ -92,7 +93,7 @@ export class RestBlockchain {
 
             return tx;
         } catch (e) {
-            console.log(`Fetch error: ${txid} - ${e.message}`);
+            console.error(`Fetch error: ${txid} - ${e.message}`);
             throw e;
         }
     };
