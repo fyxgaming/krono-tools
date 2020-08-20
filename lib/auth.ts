@@ -84,7 +84,7 @@ export class KronoAuth {
         });
         
         message.sign(keyPair);
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${paymail}/recover`, {
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${encodeURIComponent(paymail)}/recover`, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(message)
