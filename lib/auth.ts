@@ -100,7 +100,7 @@ export class KronoAuth {
 
     public async isHandleAvailable(handle: string) {
         handle = handle.toLowerCase();
-        const url = `${this.apiUrl}/api/bsvalias/id/${handle}@${this.domain}`;
+        const url = `${this.apiUrl}/api/bsvalias/id/${encodeURIComponent(handle)}@${this.domain}`;
         console.log('Requesting:', url);
         try{
             const resp = await fetch(url);
