@@ -7,6 +7,7 @@ export class SignedMessage {
     to: string[] = [];
     reply: string = '';
     subject: string = '';
+    context: string[] = [];
     payload: string = '';
     ts: number = Date.now();
     sig?: string;
@@ -20,6 +21,7 @@ export class SignedMessage {
             Buffer.from(this.to.join(':')),
             Buffer.from(this.reply || ''),
             Buffer.from(this.subject),
+            Buffer.from(this.context.join(':')),
             Bw.varIntBufNum(this.ts),
             Buffer.from(this.payload || '')
         ]);
