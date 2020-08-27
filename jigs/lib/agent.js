@@ -23,6 +23,20 @@ class Agent extends EventEmitter {
         this.kindSubHandlers = new Map();
         this.originSubHandlers = new Map();
         this.channelSubHandlers = new Map();
+
+        this.queue = Promise.resolve();
+        this.processCount = 0;
+    }
+
+    addToQueue(process, label = 'process') {
+        const processCount = this.processCount++;
+        console.time(`${processCount}-${label}`);
+        const queuePromise = this.queue.then(process);
+        this.queue = queuePromise
+            .catch(e => console.error('Queue error', label, e.message, e.stack))
+            .then(() => console.timeEnd(`${processCount}-${label}`));
+
+        return queuePromise;
     }
 
     init() { }
