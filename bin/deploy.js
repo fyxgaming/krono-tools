@@ -73,7 +73,7 @@ function renderUsage() {
     console.log('PURSE:', purse);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
-        return;
+        process.exit(1);
     }
 
     const blockchain = new RestBlockchain(
