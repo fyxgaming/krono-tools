@@ -101,7 +101,7 @@ class Agent extends EventEmitter {
 
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
-        if (!handler) throw new Error('Invalid handler');
+        if (!handler) throw new Error('Invalid handler:', event);
         return handler.bind(this)(payload);
     }
 
