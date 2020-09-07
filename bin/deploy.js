@@ -9,7 +9,7 @@ const path = require('path');
 const { LRUCache } = require('../lib/lru-cache');
 const { RestBlockchain } = require('../lib/rest-blockchain');
 const { Deployer } = require('../lib/deployer');
-const Run = require('@kronoverse/run');
+const Run = require('run');
 
 var argv = minimist(process.argv.slice(2));
 

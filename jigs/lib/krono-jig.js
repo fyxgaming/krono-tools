@@ -1,4 +1,4 @@
-const { Jig } = require('@kronoverse/run');
+const { Jig } = require('run');
 
 class KronoJig extends Jig {
     toObject(skipKeys) {
@@ -8,27 +8,22 @@ class KronoJig extends Jig {
     static toObject() {
         const clone = Array.isArray(this) ? [] : {};
         Object.keys(this)
-            .filter(key => {
-                return key !== 'deps' &&
-                    !key.match(/.+Testnet/) &&
-                    !key.match(/.+Mainnet/) &&
-                    !key.match(/.+Stn/)
-            })
+            .filter(key => !['deps', 'presets'].includes(key))
             .forEach(key => clone[key] = this[key]);
         return clone;
     }
 
-    dispose() {
-        this.satoshis = 546;
-        this.owner = DisposeConfig.pubkey;
-    }
+    // dispose() {
+    //     this.satoshis = 546;
+    //     this.owner = DisposeConfig.pubkey;
+    // }
 
-    authenticate() {
-        if (!this.authCount) {
-            this.authCount = 0;
-        }
-        this.authCount++;
-    }
+    // authenticate() {
+    //     if (!this.authCount) {
+    //         this.authCount = 0;
+    //     }
+    //     this.authCount++;
+    // }
 
     // beginChannel() {
     //     this.KRONO_CHANNEL = {

@@ -5,8 +5,6 @@ import { SignedMessage } from './signed-message';
 const createError = require('http-errors');
 const fetch = require('node-fetch');
 
-const { Transaction } = require('bsv-legacy');
-
 export class RestBlockchain {
     constructor(
         private apiUrl: string,
@@ -26,8 +24,7 @@ export class RestBlockchain {
         }
     }
 
-    async broadcast(tx) {
-        const rawtx = typeof tx === 'string' ? tx : tx.toString();
+    async broadcast(rawtx) {
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,7 +34,6 @@ export class RestBlockchain {
         const hash = await resp.json();
         this.debug && console.log('Broadcast:', hash);
         await this.cache.set(`tx:${hash}`, rawtx);
-        return tx.hash;
     }
 
     async populateInputs(tx) {
@@ -47,56 +43,34 @@ export class RestBlockchain {
         }));
     }
 
-    async fetch(txid: string, force?: boolean, asRaw = false) {
-        try {
-            let rawtx = await this.cache.get(`tx://${txid}`);
-            if (!rawtx) {
-                for (let i = 0; i < 3; i++) {
-                    try {
-                        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                        if (resp.ok) {
-                            rawtx = await resp.text();
-                            await this.cache.set(`tx://${txid}`, rawtx);
-                            break;
-                        }
-                        throw createError(resp.status, await resp.text());
-                    } catch (e) {
-                        if (e.status === 404 || i >= 2) throw e;
-                    }
-                }
-            }
+    async fetch(txid: string, force?: boolean) {
+        let rawtx = await this.cache.get(`tx://${txid}`);
+        if (rawtx) return rawtx;
 
-            if (asRaw) return rawtx;
-            const tx = new Transaction(Buffer.from(rawtx, 'hex'));
-            const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
-
-            let spends = [];
-            if (force) {
-                for (let i = 0; i < 3; i++) {
-                    const resp = await fetch(`${this.apiUrl}/spent`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ locs })
-                    });
-                    if (resp.ok) {
-                        spends = await resp.json();
-                        break;
-                    }
-                    if (i >= 2) throw createError(resp.status, await resp.text());
-                }
-            }
-
-            tx.outputs.forEach((o: any, i) => {
-                o.spentTxId = spends[i] || null;
-                o.spentIndex = null;
-            });
-
-            return tx;
-        } catch (e) {
-            console.error(`Fetch error: ${txid} - ${e.message}`);
-            throw e;
-        }
+        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+        rawtx = await resp.text();
+        await this.cache.set(`tx://${txid}`, rawtx);
+        return rawtx;
     };
+
+    // async time(txid: string): Promise<number> {
+    //     return Date.now();
+    //     // const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+    //     // if (resp.ok) {
+    //     //     const {time} = await resp.json();
+    //     //     await this.cache.set(`tx://${txid}`, rawtx);
+    //     //     break;
+    //     // }
+    // }
+
+    async spends(txid: string, vout: number): Promise<string | null> {
+        let spend = await this.cache.get(`spend://${txid}`);
+        if (spend) return spend;
+        const resp = await fetch(`${this.apiUrl}/spent/${txid}_o${vout}`);
+        if (!resp.ok) throw createError(resp.status, await resp.text());
+        return (await resp.text()) || null;
+    }
 
     async utxos(address): Promise<IUTXO[]> {
         if (typeof address !== 'string') {
@@ -107,12 +81,12 @@ export class RestBlockchain {
         return resp.json();
     };
 
-    async isSpent(loc) {
-        const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
-        if (!resp.ok) throw new Error(await resp.text());
-        const spentTxId = await resp.text();
-        return !!spentTxId;
-    }
+    // async isSpent(loc) {
+    //     const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
+    //     if (!resp.ok) throw new Error(await resp.text());
+    //     const spentTxId = await resp.text();
+    //     return !!spentTxId;
+    // }
 
     async jigIndex(address) {
         const resp = await fetch(`${this.apiUrl}/jigs/${address}`);

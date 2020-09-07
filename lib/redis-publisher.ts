@@ -1,22 +1,21 @@
-import {Redis} from 'ioredis'
+import { Redis } from 'ioredis'
 import microtime from 'microtime';
 export class RedisPublisher {
-    constructor(private redis: Redis, private cacheSize = 50) {}
+    constructor(private redis: Redis, private cacheSize = 50, private expires = 3600) { }
 
-    async publish(channel: string, event: string, data: {[key: string]: any}) {
-        // TODO: Add entropy to id;
+    async publish(channels: string[], event: string, data: { [key: string]: any }): Promise<number> {
         const ts = microtime.now().toString();
-        await this.redis.multi()
-            .hset(channel, ts, JSON.stringify([ts, event, data]))
-            .publish(channel, JSON.stringify([ts, event, data]))
-            .exec();
+        const pipeline = this.redis.pipeline()
+            .set(ts, JSON.stringify([ts, event, data]))
+            .expire(ts, this.expires);
 
-        const keys = await this.redis.hkeys(channel);
-        keys.sort((a, b) => b > a ? 1 : -1);
-        const pipeline = this.redis.pipeline();
-        for(let key of keys.slice(this.cacheSize)) {
-            pipeline.hdel(key);
+        for (const channel of channels) {
+            pipeline.rpush(channel, ts)
+                .ltrim(channel, 0 - this.cacheSize, -1)
+                .publish(channel, JSON.stringify([ts, event, data]))
         }
         await pipeline.exec();
+
+        return ts;
     }
 }

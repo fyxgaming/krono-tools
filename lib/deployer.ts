@@ -20,21 +20,6 @@ export class Deployer {
         private modulePath = path.join(rootPath, 'node_modules'),
         private debug = true
     ) {
-        switch (run.blockchain.network) {
-            case 'main':
-                this.networkKey = 'Mainnet';
-                break;
-            case 'test':
-                this.networkKey = 'Testnet';
-                break;
-            case 'stn':
-                this.networkKey = 'Stn';
-                break;
-            default:
-                this.networkKey = 'Mocknet';
-                break;
-        }
-
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
     }
 
@@ -122,7 +107,8 @@ export class Deployer {
             const parent = Object.getPrototypeOf(deployed);
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
-                parent[`location${this.networkKey}`] = dep.location;
+                parent.presets[this.run.network] = dep.presets[this.run.network];
+                // parent[`location${this.networkKey}`] = dep.location;
             }
         }
 
