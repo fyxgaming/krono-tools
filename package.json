@@ -17,7 +17,7 @@
   },
   "files": [
     "**/*",
-    "run*.tgz"
+    "run/package.json"
   ],
   "dependencies": {
     "@google-cloud/storage": "^5.2.0",
