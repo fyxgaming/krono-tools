@@ -1,4 +1,4 @@
-const { Jig } = require('run');
+const { Jig } = require('@runonbitcoin/release');
 
 class KronoJig extends Jig {
     toObject(skipKeys) {

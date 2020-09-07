@@ -1,0 +1,171 @@
+0.6 Preview
+
+Please don't share it or talk about it yet. We want to surprise people.
+
+Thank you!
+
+To use, copy dist files into your project. Setup is the same as 0.5.
+
+-------------------------------------------------------------------------------
+New Features
+-------------------------------------------------------------------------------
+
+- Base protocol complete
+- Upgrade code
+- Classes are jigs                    (You can call methods on them!)
+- New Token class
+- New Transaction API
+- New Blockchain API
+- Async Owner API                     (Better for wallets)
+- Destroy jigs                        (And still load and reference them)
+- Auth jigs                           (Spends them)
+- Sealed code                         (Control who can extend from your class)
+- Code whitelist
+- Parallel loads and broadcasts
+- Security fixes
+
+-------------------------------------------------------------------------------
+Status
+-------------------------------------------------------------------------------
+
+- Protocol stable
+- API stable
+- Testing: 70%                         (Protocol: 95%, Run: 70%, Modules: 30%, Extras: 50%)
+- Berries and Locks not working
+- Inventory deprecated
+- Safari broken
+- Bad import performance
+- No docs, examples, deploy tool, or explorer
+- Uses old bsv 1.x library 
+
+-------------------------------------------------------------------------------
+API Changes
+-------------------------------------------------------------------------------
+
+class Run {
+   deploy(T): Code                     // not async anymore. call sync if needed
+   install(T): Code                    // gets you a code jig but doesn't deploy it
+   async import(rawtx): Transaction    // shorthand for Run.Transaction.import
+   async transaction(callback): any    // shorthand for new Transaction(callback).publish()
+   static Transaction                  // access Transaction class. may have multiple now.
+   codeWhitelist: []                   // list of transaction IDs
+   payload(rawtx): object              // extract run payload from tx
+}
+
+class Transaction {
+   constructor(callback: ?function)    // creates a new batch            
+   update(callback: function)          // updates the batch with new actions
+   async publish()                     // publishes
+   async export(options)               // exports the tx. options: pay and sign booleans
+   rollback()                          // undo the transaction's changes. recommended after export.
+   static async import(rawtx): Transaction
+}
+
+class Jig {
+   destroy()                           // new! makes a jig immutable and removes its output
+   auth()                              // new! forces owner to approve an update
+}
+
+class Code {                           // all installed code has the following functions
+   upgrade(T)                          // replace class/func with new code
+   destroy()                           // same as Jig.destroy
+   auth()                              // same as Jig.destroy
+   sync()                              // updates code like jigs
+}
+
+class Token {
+   constructor(...tokens)              // combine
+   static mint(amount)                 // mint. replaces new MyToken(amount)
+   send(to, amount): Token             // returns current token now not change
+}
+
+class Blockchain {
+  async broadcast (rawtx: string)     // accepts raw hex
+  async fetch (txid): rawtx           // returns raw hex
+  async utxos (script): []            // utxo.script is hex string now
+  async time (txid): number           // ms since unix epoch
+  async spends (txid, vout): ?string  // spend hex txid or null
+}
+
+class Owner {
+   async owner()                       // async now
+}
+
+-------------------------------------------------------------------------------
+Breaking changes
+-------------------------------------------------------------------------------
+
+- Token class
+- Transaction API
+- Static methods on jig classes are recorded
+- Owner property may not always be accessible now, esp in constructor. It is secure.
+- Getters and setters no longer supported on classes (security hole)
+- Anonymous functions no longer supported as args
+- Move to raw hex transactions and raw hex scripts wherever used
+
+-------------------------------------------------------------------------------
+Protocol
+-------------------------------------------------------------------------------
+
+Every Run transaction is an atomic program on jigs.
+
+   Inputs -> Computation -> Outputs
+
+Inputs and outputs are jigs. Computation is stored as Run opcodes in an OP_RETURN.
+
+There are 6 opcodes supported by Run in 0.6:
+
+   DEPLOY - Create a new code jig
+   NEW - Instantiate a class
+   CALL - Call a method on a jig
+   DESTROY - Delete code or object
+   AUTH - Prove ownership with a spend
+   UPGRADE - Replace code with new code
+
+They are stored in the "exec" part of the OP_RETURN payload:
+
+   {
+      "in": 0,
+      "ref": [
+         "native://Jig"
+      ],
+      "out": [
+         "e494cd3d0c33615620c22f44cddf85f2bf613fd608dbfc53822664581205d198",
+         "9a99596f417e8925cb25f2acf99abe28f014aaad47ce93c427ee3afd3bcc5084"
+      ],
+      "del": [],
+      "cre": [
+         "mhhHzeLjRTD4cjuygJFjqmCHCFpDKGrp75",
+         "mhhHzeLjRTD4cjuygJFjqmCHCFpDKGrp75"
+      ],
+      "exec": [
+         {
+            "op": "DEPLOY",
+            "data": ["class A extends Jig { }", { "deps": { "Jig": { "$jig": 0 } } }]
+         },
+         {
+            "op": "NEW",
+            "data": [{ "$jig": 1 }, []]
+         }
+      ]
+   }
+
+The other parts of this OP_RETURN are:
+
+   in  - Number of jig inputs
+   ref - Array of references to jigs used but not spent
+   out - State hashes of jigs in transaction outputs
+   del - State hashes of jigs deleted
+   cre - New owners of jigs created
+
+This JSON payload is stored in the first output. The OP_RETURN format is:
+
+   OP_FALSE OP_RETURN "run" 0x03 "<app>" "<payload>"
+
+It can be accessed via the payload function available on Run:
+
+   const tx = await run.blockchain.fetch(txid)
+   const payload = run.payload(tx)
+   console.log(payload)
+
+The rest of the protocol will be documented in a coming spec. Reach out for questions!
