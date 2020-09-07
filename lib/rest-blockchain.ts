@@ -54,15 +54,15 @@ export class RestBlockchain {
         return rawtx;
     };
 
-    // async time(txid: string): Promise<number> {
-    //     return Date.now();
-    //     // const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-    //     // if (resp.ok) {
-    //     //     const {time} = await resp.json();
-    //     //     await this.cache.set(`tx://${txid}`, rawtx);
-    //     //     break;
-    //     // }
-    // }
+    async time(txid: string): Promise<number> {
+        return Date.now();
+        // const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+        // if (resp.ok) {
+        //     const {time} = await resp.json();
+        //     await this.cache.set(`tx://${txid}`, rawtx);
+        //     break;
+        // }
+    }
 
     async spends(txid: string, vout: number): Promise<string | null> {
         let spend = await this.cache.get(`spend://${txid}`);

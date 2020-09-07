@@ -107,7 +107,16 @@ export class Deployer {
             const parent = Object.getPrototypeOf(deployed);
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
-                parent.presets[this.run.network] = dep.presets[this.run.network];
+                parent.presets = {
+                    [this.run.network]: {
+                        location: dep.location,
+                        origin: dep.location,
+                        owner: dep.owner,
+                        satoshis: dep.satoshis,
+                        nonce: dep.nonce
+                    }
+                };
+                // parent.presets[this.run.network] = dep.presets[this.run.network];
                 // parent[`location${this.networkKey}`] = dep.location;
             }
         }
@@ -175,7 +184,8 @@ export class Deployer {
                 if (!deployed.name) {
                     this.log(chainFilePath);
                 }
-                await this.run.deploy(deployed);
+                this.run.deploy(deployed);
+                await this.run.sync();
 
                 //Wait for the transaction to be accepted
                 // this.log(`RUN.SYNC`);
