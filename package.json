@@ -19,7 +19,6 @@
     "**/*"
   ],
   "dependencies": {
-    "@babel/preset-env": "^7.11.5",
     "@google-cloud/storage": "^5.2.0",
     "@kronoverse/run": "^0.5.35-alpha",
     "@types/node": "^13.5.2",
@@ -32,6 +31,7 @@
     "microtime": "^3.0.0",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.0",
+    "run": "file:run-0.6.0.tgz",
     "simple-git": "^2.11.0",
     "typescript": "^3.7.5"
   },
