@@ -14,7 +14,7 @@ Catalog.asyncDeps = {
     KronoError: 'lib/krono-error.js',
     KronoItem: 'models/krono-item.js',
     KronoJig: 'lib/krono-jig.js',
-    KMath: 'lib/math.js',
+    // KMath: 'lib/math.js',
     MockDice: 'lib/mock-dice.js',
     Sha256: 'lib/sha256.js',
     // SigVerifier: 'lib/sig-verifier.js'
