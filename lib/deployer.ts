@@ -184,12 +184,10 @@ export class Deployer {
                 if (!deployed.name) {
                     this.log(chainFilePath);
                 }
-                this.run.deploy(deployed);
-                await this.run.sync();
-
+                deployed = this.run.deploy(deployed);
                 //Wait for the transaction to be accepted
-                // this.log(`RUN.SYNC`);
-                // await this.run.sync();
+                this.log(`RUN.SYNC`);
+                await this.run.sync();
                 if (postDeploy) {
                     await postDeploy(this);
                 }
@@ -212,7 +210,7 @@ export class Deployer {
             }
         }
 
-        this.cache.set(source, await this.run.load(deployed.location));
+        this.cache.set(source, deployed.location);
         this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
         return deployed;
     }
