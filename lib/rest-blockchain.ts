@@ -6,6 +6,7 @@ const createError = require('http-errors');
 const fetch = require('node-fetch');
 
 export class RestBlockchain {
+    private requests = new Map<string, Promise<any>>();
     constructor(
         private apiUrl: string,
         public network: string,
@@ -43,15 +44,23 @@ export class RestBlockchain {
         }));
     }
 
-    async fetch(txid: string, force?: boolean) {
-        let rawtx = await this.cache.get(`tx://${txid}`);
-        if (rawtx) return rawtx;
-
-        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
-        rawtx = await resp.text();
-        await this.cache.set(`tx://${txid}`, rawtx);
-        return rawtx;
+    async fetch(txid: string) {
+        if (!this.requests.has(txid)) {
+            const request = Promise.resolve().then(async () => {
+                let rawtx = await this.cache.get(`tx://${txid}`);
+                if (rawtx)
+                    return rawtx;
+                const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                if (!resp.ok)
+                    throw createError(resp.status, await resp.text());
+                rawtx = await resp.text();
+                await this.cache.set(`tx://${txid}`, rawtx);
+                this.requests.delete(txid);
+                return rawtx;
+            });
+            this.requests.set(txid, request);
+        }
+        return this.requests.get(txid);
     };
 
     async time(txid: string): Promise<number> {
