@@ -7,6 +7,7 @@ export class SignedMessage {
     to: string[] = [];
     reply: string = '';
     subject: string = '';
+    context: string[] = [];
     payload: string = '';
     ts: number = Date.now();
     sig?: string;
@@ -20,6 +21,7 @@ export class SignedMessage {
             Buffer.from(this.to.join(':')),
             Buffer.from(this.reply || ''),
             Buffer.from(this.subject),
+            Buffer.from(this.context.join(':')),
             Bw.varIntBufNum(this.ts),
             Buffer.from(this.payload || '')
         ]);
@@ -44,15 +46,8 @@ export class SignedMessage {
         this.sig = Ecdsa.sign(this.hash, keyPair).toString();
     }
 
-    async verify(paymailClient?) {
-        let pubkey;
-        if(this.from.includes('@')) {
-            if(!paymailClient) throw new Error('paymailClient required');
-            pubkey = await paymailClient.getPublicKey(this.from)
-        } else {
-            pubkey = this.from;
-        }
-        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(pubkey));
+    async verify() {
+        return Ecdsa.asyncVerify(this.hash, Sig.fromString(this.sig), PubKey.fromString(this.from));
     }
     
 }

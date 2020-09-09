@@ -216,7 +216,7 @@ export class Deployer {
             }
         }
 
-        this.cache.set(source, deployed);
+        this.cache.set(source, await this.run.load(deployed.location));
         this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
         return deployed;
     }

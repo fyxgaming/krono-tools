@@ -80,11 +80,11 @@ export class KronoAuth {
 
     async recover(paymail: string, keyPair: KeyPair) {
         const message = new SignedMessage({
-          from: paymail
+          from: keyPair.pubKey.toString()
         });
         
         message.sign(keyPair);
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${paymail}/recover`, {
+        const resp = await fetch(`${this.apiUrl}/api/accounts/${encodeURIComponent(paymail)}/recover`, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(message)
@@ -100,7 +100,16 @@ export class KronoAuth {
 
     public async isHandleAvailable(handle: string) {
         handle = handle.toLowerCase();
-        const resp = await fetch(`${this.apiUrl}/api/bsvalias/id/${handle}@${this.domain}`);
-        return resp.status === 404;
+        const url = `${this.apiUrl}/api/bsvalias/id/${encodeURIComponent(handle)}@${this.domain}`;
+        console.log('Requesting:', url);
+        try{
+            const resp = await fetch(url);
+            return resp.status === 404;
+        } catch(e) {
+            console.error('Error Fetching', e.message);
+            return false;
+        }
+        
+        
     }
 }

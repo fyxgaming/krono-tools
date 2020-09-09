@@ -21,7 +21,6 @@ const blockchainUrls = {
     prod: 'https://kronoverse-main.appspot.com'
 };
 
-
 console.log('PATH:', process.cwd());
 console.log('ARGV:', argv);
 dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
@@ -60,7 +59,7 @@ function renderUsage() {
     const purse = argv.purse || process.env.PURSE;
     const network = argv.network || process.env.RUNNETWORK;
     const txq = argv.txq || process.env.TXQ;
-    const apiKey = argv.apiKey || process.env.API_KEY;
+    // const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -69,9 +68,12 @@ function renderUsage() {
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
+    console.log('ENV', process.env);
+    console.log('OWNER:', owner);
+    console.log('PURSE:', purse);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
-        return;
+        process.exit(1);
     }
 
     const blockchain = new RestBlockchain(

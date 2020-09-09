@@ -1,6 +1,6 @@
 {
   "name": "@kronoverse/tools",
-  "version": "0.2.41",
+  "version": "0.2.84",
   "description": "Tools for interacting with the Kronoverse Platform",
   "private": false,
   "main": "index.js",
@@ -30,6 +30,7 @@
     "fs-extra": "^9.0.1",
     "http-errors": "^1.7.3",
     "ioredis": "^4.17.3",
+    "microtime": "^3.0.0",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.0",
     "simple-git": "^2.11.0",

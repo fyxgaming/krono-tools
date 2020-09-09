@@ -23,6 +23,20 @@ class Agent extends EventEmitter {
         this.kindSubHandlers = new Map();
         this.originSubHandlers = new Map();
         this.channelSubHandlers = new Map();
+
+        this.queue = Promise.resolve();
+        this.processCount = 0;
+    }
+
+    addToQueue(process, label = 'process') {
+        const processCount = this.processCount++;
+        console.time(`${processCount}-${label}`);
+        const queuePromise = this.queue.then(process);
+        this.queue = queuePromise
+            .catch(e => console.error('Queue error', label, e.message, e.stack))
+            .then(() => console.timeEnd(`${processCount}-${label}`));
+
+        return queuePromise;
     }
 
     init() { }
@@ -87,29 +101,34 @@ class Agent extends EventEmitter {
 
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
-        if (!handler) throw new Error('Invalid handler');
+        if (!handler) throw new Error('Invalid handler:', event);
         return handler.bind(this)(payload);
     }
 
-    async schedule(time, event, payload) {
-        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
+    async schedule(id, time, event, payload) {
         await this.storage.multi()
             .hset('timeouts', id, time)
-            .hmset(id, {
+            .hmset(`timeout:${id}`, {
                 event,
                 payload: payload && JSON.stringify(payload),
             })
             .exec();
     }
 
-    async setTimeout(timeout, event, payload) {
-        const id = this.wallet.randomInt(Number.MAX_SAFE_INTEGER);
+    async setTimeout(id, timeout, event, payload) {
         await this.storage.multi()
             .hset('timeouts', id, this.wallet.now + timeout)
-            .hmset(id, {
+            .hmset(`timeout:${id}`, {
                 event,
                 payload: payload && JSON.stringify(payload),
             })
+            .exec();
+    }
+
+    async clearTimeout(id) {
+        this.storage.multi()
+            .hdel('timeouts', id)
+            .del(`timeout:${id}`)
             .exec();
     }
 

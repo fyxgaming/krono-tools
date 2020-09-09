@@ -1,4 +1,4 @@
-import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Script, Sig, Tx } from 'bsv';
+import { Address, Ecdsa, Hash, KeyPair, PrivKey, PubKey, Random, Script, Sig, Tx, TxOut } from 'bsv';
 import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
@@ -59,12 +59,10 @@ export class Wallet extends EventEmitter {
     }
 
     async loadJig(loc: string): Promise<IJig | void> {
-        console.time(`load ${loc}`);
         const jig = await this.load(loc).catch((e) => {
             if (e.message.match(/not a/i)) return;
             console.error('Load error:', loc, e.message);
         });
-        console.timeEnd(`load ${loc}`);
         return jig;
     }
 
@@ -91,22 +89,23 @@ export class Wallet extends EventEmitter {
         return message;
     }
 
-    async signTx(tx: Tx): Promise<void> {
-        await Promise.all(tx.txIns.map(async (txIn, i) => {
-            const txid = txIn.txHashBuf.reverse().toString('hex');
+    async signTx(tx: Tx): Promise<TxOut[]> {
+        return Promise.all(tx.txIns.map(async (txIn, i) => {
+            const txid = Buffer.from(txIn.txHashBuf).reverse().toString('hex');
             const outTx = Tx.fromHex(await this.blockchain.fetch(txid, false, true));
             const txOut = outTx.txOuts[txIn.txOutNum];
-            if(!txOut.script.isPubKeyHashOut()) return;
-            const address = Address.fromTxOutScript(txOut.script).toString();
-            if (address === this.purse) {
-                const sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
-                txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.pursePair.pubKey.toBuffer()));
-            } else if (address === this.address) {
-                const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
-                txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
+            if (txOut.script.isPubKeyHashOut()) {
+                const address = Address.fromTxOutScript(txOut.script).toString();
+                if (address === this.purse) {
+                    const sig = await tx.asyncSign(this.pursePair, undefined, i, txOut.script, txOut.valueBn);
+                    txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.pursePair.pubKey.toBuffer()));
+                } else if (address === this.address) {
+                    const sig = await tx.asyncSign(this.ownerPair, undefined, i, txOut.script, txOut.valueBn);
+                    txIn.setScript(new Script().writeBuffer(sig.toTxFormat()).writeBuffer(this.ownerPair.pubKey.toBuffer()));
+                }
             }
+            return txOut;
         }));
-        // return tx;
     }
 
     async encrypt(pubkey: string) {

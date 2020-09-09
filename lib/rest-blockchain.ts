@@ -11,9 +11,10 @@ export class RestBlockchain {
     constructor(
         private apiUrl: string,
         public network: string,
-        private cache: IStorage<any> = new LRUCache(10000000)
-    ) {}
-    
+        private cache: IStorage<any> = new LRUCache(10000000),
+        private debug = false
+    ) { }
+
     get bsvNetwork(): string {
         switch (this.network) {
             case 'stn':
@@ -34,7 +35,7 @@ export class RestBlockchain {
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
-        console.log('Broadcast:', hash);
+        this.debug && console.log('Broadcast:', hash);
         await this.cache.set(`tx:${hash}`, rawtx);
         return tx.hash;
     }
@@ -51,17 +52,21 @@ export class RestBlockchain {
             let rawtx = await this.cache.get(`tx://${txid}`);
             if (!rawtx) {
                 for (let i = 0; i < 3; i++) {
-                    const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
-                    if (resp.ok) {
-                        rawtx = await resp.text();
-                        await this.cache.set(`tx://${txid}`, rawtx);
-                        break;
+                    try {
+                        const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
+                        if (resp.ok) {
+                            rawtx = await resp.text();
+                            await this.cache.set(`tx://${txid}`, rawtx);
+                            break;
+                        }
+                        throw createError(resp.status, await resp.text());
+                    } catch (e) {
+                        if (e.status === 404 || i >= 2) throw e;
                     }
-                    if (resp.status === 404 || i >= 2) throw createError(resp.status, await resp.text());
                 }
             }
 
-            if(asRaw) return rawtx;
+            if (asRaw) return rawtx;
             const tx = new Transaction(Buffer.from(rawtx, 'hex'));
             const locs = tx.outputs.map((o, i) => `${txid}_o${i}`);
 
@@ -88,7 +93,7 @@ export class RestBlockchain {
 
             return tx;
         } catch (e) {
-            console.log(`Fetch error: ${txid} - ${e.message}`);
+            console.error(`Fetch error: ${txid} - ${e.message}`);
             throw e;
         }
     };
@@ -150,7 +155,7 @@ export class RestBlockchain {
     async sendMessage(message: SignedMessage, postTo?: string): Promise<void> {
         const resp = await fetch(postTo || `${this.apiUrl}/messages`, {
             method: 'POST',
-            headers: {'content-type': 'application/json'},
+            headers: { 'content-type': 'application/json' },
             body: JSON.stringify(message)
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
