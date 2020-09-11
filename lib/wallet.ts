@@ -3,18 +3,18 @@ import { EventEmitter } from 'events';
 import { RestBlockchain } from './rest-blockchain';
 import { IJig } from './interfaces';
 import { SignedMessage } from './signed-message';
-import { RunTransaction } from './run-transaction';
+import { Transaction } from '@kronoverse/run';
 
 export class Wallet extends EventEmitter {
     private blockchain: RestBlockchain;
     address: string;
     purse: string;
     pubkey: string;
-    private transaction: any;
     balance: () => Promise<number>
     load: (loc: string) => Promise<IJig>;
     ownerPair: KeyPair;
     pursePair: KeyPair;
+    Transaction = Transaction;
 
     constructor(
         public paymail: string,
@@ -30,24 +30,10 @@ export class Wallet extends EventEmitter {
         this.address = run.owner.address;
         this.balance = run.purse.balance.bind(run.purse);
         this.load = run.load.bind(run);
-        this.transaction = new RunTransaction(run);
         console.log(`PAYMAIL: ${paymail}`);
         console.log(`PUBKEY: ${keyPair.pubKey.toString()}`);
         console.log(`ADDRESS: ${this.address}`);
         console.log(`PURSE: ${this.purse}`);
-
-        // const protect: (string | number | symbol)[] = ['run', 'keyPair', 'finalizeTx', 'transaction'];
-        // return new Proxy(this, {
-        //     get: (target, prop, receiver) => {
-        //         if (protect.includes(prop)) return undefined;
-        //         return Reflect.get(target, prop, receiver);
-        //     },
-        //     // TODO evaluate other traps
-        //     getOwnPropertyDescriptor: (target, prop) => {
-        //         if (protect.includes(prop)) return undefined;
-        //         return Reflect.getOwnPropertyDescriptor(target, prop);
-        //     }
-        // });
     }
 
     get now() {
@@ -62,24 +48,17 @@ export class Wallet extends EventEmitter {
         const jig = await this.load(loc).catch((e) => {
             if (e.message.match(/not a/i)) return;
             console.error('Load error:', loc, e.message);
+            throw e;
         });
         return jig;
     }
 
     async loadJigs() {
-        console.log('Load Jigs', this.address);
-        const utxos = await this.blockchain.utxos(this.address);
-        console.log('UTXOS:', utxos.length);
-        const jigs: IJig[] = [];
-        for (const utxo of utxos) {
-            const loc = `${utxo.txid}_o${utxo.vout}`;
-            const jig = await this.loadJig(loc);
-            if (jig) jigs.push(jig);
-        }
+        const jigIndex = await this.loadJigIndex();
+        const jigs = await Promise.all(jigIndex.map(j => this.loadJig(j.location)))
         console.log('JIGS:', jigs.length);
         return jigs;
     }
-
 
     buildMessage(messageData: Partial<SignedMessage>, sign = true): SignedMessage {
         messageData.ts = Date.now();
@@ -108,6 +87,16 @@ export class Wallet extends EventEmitter {
         }));
     }
 
+    createTransaction() {
+        return new Transaction();
+    }
+
+    async loadTransaction(rawtx: string) {
+        const t = new Transaction();
+        await t.import(rawtx);
+        return t;
+    }
+
     async encrypt(pubkey: string) {
 
     }
@@ -121,24 +110,6 @@ export class Wallet extends EventEmitter {
         const verified = Ecdsa.verify(msgHash, Sig.fromString(sig), PubKey.fromString(pubkey));
         console.log('SIG:', verified, sig, hash, pubkey);
         return verified;
-    }
-
-    async runTransaction(work: (t) => Promise<any>) {
-        try {
-            this.transaction.begin();
-            return await work(this.transaction);
-        } finally {
-            this.transaction.rollback();
-        }
-    }
-
-    async loadTransaction(rawtx: string, work: (t) => Promise<any>) {
-        try {
-            await this.transaction.import(rawtx);
-            return await work(this.transaction);
-        } finally {
-            this.transaction.rollback();
-        }
     }
 
     randomInt(max) {
