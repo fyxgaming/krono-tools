@@ -34,7 +34,7 @@ export class RestBlockchain {
         if (!resp.ok) throw createError(resp.status, await resp.text());
         const hash = await resp.json();
         this.debug && console.log('Broadcast:', hash);
-        await this.cache.set(`tx:${hash}`, rawtx);
+        await this.cache.set(`tx://${hash}`, rawtx);
     }
 
     async populateInputs(tx) {
@@ -45,11 +45,10 @@ export class RestBlockchain {
     }
 
     async fetch(txid: string) {
+        let rawtx = await this.cache.get(`tx://${txid}`);
+        if (rawtx) return rawtx;
         if (!this.requests.has(txid)) {
             const request = Promise.resolve().then(async () => {
-                let rawtx = await this.cache.get(`tx://${txid}`);
-                if (rawtx)
-                    return rawtx;
                 const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
                 if (!resp.ok)
                     throw createError(resp.status, await resp.text());
@@ -76,9 +75,18 @@ export class RestBlockchain {
     async spends(txid: string, vout: number): Promise<string | null> {
         let spend = await this.cache.get(`spend://${txid}`);
         if (spend) return spend;
-        const resp = await fetch(`${this.apiUrl}/spent/${txid}_o${vout}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
-        return (await resp.text()) || null;
+        if (!this.requests.has(`spend:${txid}`)) {
+            const request = (async () => {
+                const resp = await fetch(`${this.apiUrl}/spent/${txid}_o${vout}`);
+                if (!resp.ok) throw createError(resp.status, await resp.text());
+                spend = (await resp.text()) || null;
+                if(spend) await this.cache.set(`spend://${txid}`, spend);
+                this.requests.delete(`spend:${txid}`);
+                return spend;
+            })();
+            this.requests.set(`spend:${txid}`, request);
+        }
+        return this.requests.get(`spend:${txid}`);
     }
 
     async utxos(address): Promise<IUTXO[]> {
