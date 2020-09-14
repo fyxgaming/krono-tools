@@ -13,33 +13,6 @@ class KronoJig extends Jig {
         return clone;
     }
 
-    // dispose() {
-    //     this.satoshis = 546;
-    //     this.owner = DisposeConfig.pubkey;
-    // }
-
-    // authenticate() {
-    //     if (!this.authCount) {
-    //         this.authCount = 0;
-    //     }
-    //     this.authCount++;
-    // }
-
-    // beginChannel() {
-    //     this.KRONO_CHANNEL = {
-    //         loc: this.location,
-    //         seq: 1
-    //     }
-    // }
-
-    // incrementChannel() {
-    //     this.KRONO_CHANNEL.seq++;
-    // }
-
-    // endChannel() {
-    //     delete this.KRONO_CHANNEL;
-    // }
-
     static deepClone(obj, skipKeys) {
         return KronoClass.deepClone(obj, skipKeys);
     }
