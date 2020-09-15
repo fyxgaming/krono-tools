@@ -9,7 +9,7 @@ export class RestStateCache implements IStorage<any> {
     constructor(
         private apiUrl: string,
         public cache: IStorage<any> = new LRUCache(10000000),
-        private debug: false
+        private debug = false
     ) { }
 
     async get(key: string): Promise<any> {
