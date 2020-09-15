@@ -134,7 +134,7 @@ export class RestBlockchain {
     async fund(address: string, satoshis?: number) {
         const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`);
         if (!resp.ok) throw createError(resp.status, await resp.text());
-        return resp.json();
+        return resp.text();
     }
 
     async loadMessage(messageId): Promise<SignedMessage> {
