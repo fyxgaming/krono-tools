@@ -23,4 +23,5 @@ KronoJig.asyncDeps = {
     DisposeConfig: 'config/{env}/dispose.js'
 }
 
+KronoJig.sealed = false;
 module.exports = KronoJig;

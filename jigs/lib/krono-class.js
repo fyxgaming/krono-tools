@@ -30,5 +30,5 @@ class KronoClass {
         return clone;
     }
 }
-
+KronoClass.sealed = false;
 module.exports = KronoClass;
