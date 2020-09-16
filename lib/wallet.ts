@@ -14,7 +14,6 @@ export class Wallet extends EventEmitter {
     load: (loc: string) => Promise<IJig>;
     ownerPair: KeyPair;
     pursePair: KeyPair;
-    Transaction = Transaction;
 
     constructor(
         public paymail: string,
@@ -92,7 +91,7 @@ export class Wallet extends EventEmitter {
     }
 
     async loadTransaction(rawtx: string) {
-        const t = this.Transaction.import(rawtx);
+        const t = Transaction.import(rawtx);
         return t;
     }
 
