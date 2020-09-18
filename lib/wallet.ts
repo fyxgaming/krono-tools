@@ -91,8 +91,7 @@ export class Wallet extends EventEmitter {
     }
 
     async loadTransaction(rawtx: string) {
-        const t = Transaction.import(rawtx);
-        return t;
+        return Transaction.import(rawtx);
     }
 
     async encrypt(pubkey: string) {
