@@ -2,12 +2,7 @@ class KronoClass {
     static toObject() {
         const clone = Array.isArray(this) ? [] : {};
         Object.keys(this)
-            .filter(key => {
-                return key !== 'deps' &&
-                    !key.match(/.+Testnet/) &&
-                    !key.match(/.+Mainnet/) &&
-                    !key.match(/.+Stn/)
-            })
+            .filter(key => !['deps', 'presets'].includes(key))
             .forEach(key => clone[key] = this[key]);
         return clone;
     }
@@ -19,13 +14,7 @@ class KronoClass {
         }
         const clone = Array.isArray(obj) ? [] : {};
         Object.keys(obj)
-            .filter(key => {
-                return key !== 'deps' &&
-                    !key.match(/.+Testnet/) &&
-                    !key.match(/.+Mainnet/) &&
-                    !key.match(/.+Stn/) &&
-                    !skipKeys.includes(key)
-            })
+            .filter(key => ![...skipKeys, 'deps', 'presets'].includes(key))
             .forEach(key => clone[key] = this.deepClone(obj[key]));
         return clone;
     }
