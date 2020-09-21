@@ -32,9 +32,10 @@ export class RestBlockchain {
             body: JSON.stringify({ rawtx })
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
-        const hash = await resp.text();
-        this.debug && console.log('Broadcast:', hash);
-        await this.cache.set(`tx://${hash}`, rawtx);
+        const txid = await resp.text();
+        this.debug && console.log('Broadcast:', txid);
+        await this.cache.set(`tx://${txid}`, rawtx);
+        return txid;
     }
 
     async populateInputs(tx) {
