@@ -2,7 +2,7 @@ const { Jig } = require('@kronoverse/run');
 
 class KronoJig extends Jig {
     toObject(skipKeys) {
-        return KronoClass.deepClone(this, skipKeys);
+        return KronoClass.deepClone({...this}, skipKeys);
     }
 
     static toObject() {
