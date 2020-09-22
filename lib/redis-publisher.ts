@@ -4,7 +4,7 @@ export class RedisPublisher {
     constructor(private redis: Redis, private cacheSize = 50, private expires = 3600) { }
 
     async publish(channels: string[], event: string, data: { [key: string]: any }): Promise<number> {
-        const ts = microtime.now().toString();
+        const ts = microtime.now();
         const id = ts.toString();
         const pipeline = this.redis.pipeline()
             .set(id, JSON.stringify([id, event, data]))
