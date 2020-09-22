@@ -5,14 +5,15 @@ export class RedisPublisher {
 
     async publish(channels: string[], event: string, data: { [key: string]: any }): Promise<number> {
         const ts = microtime.now().toString();
+        const id = ts.toString();
         const pipeline = this.redis.pipeline()
-            .set(ts, JSON.stringify([ts, event, data]))
-            .expire(ts, this.expires);
+            .set(id, JSON.stringify([id, event, data]))
+            .expire(id, this.expires);
 
         for (const channel of channels) {
-            pipeline.rpush(channel, ts)
+            pipeline.rpush(channel, id)
                 .ltrim(channel, 0 - this.cacheSize, -1)
-                .publish(channel, JSON.stringify([ts, event, data]))
+                .publish(channel, JSON.stringify([id, event, data]))
         }
         await pipeline.exec();
 
