@@ -9,8 +9,7 @@
     "deploy": "./deploy-jigs.sh",
     "postinstall": "npm run build",
     "prepare": "npm run build",
-    "start:mock": "ts-node mock/server.ts",
-    "test": "jest"
+    "start:mock": "ts-node mock/server.ts"
   },
   "bin": {
     "krono-deploy": "./bin/deploy.js"
