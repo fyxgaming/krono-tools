@@ -1,17 +1,14 @@
 const {Token, Transaction} = require('@kronoverse/run');
-const CashierConfig = require('../config/mock/cashier-config');
 class KronoCoin extends Token {
     static async postDeploy() {
         const t = new Transaction();
-        // t.update(() => {
+        t.update(() => {
             for(let i = 0; i < 10; i++) {
-                const coin = new KronoCoin(1000000000);
-                await coin.sync();
-                coin.send(CashierConfig.address);
-                await coin.sync();
+                const coin = KronoCoin.mint(1000000000);
+                coin.send(KronoCoin.deps.CashierConfig.address);
             }
-        // });
-        // await t.publish();
+        });
+        await t.publish();
     }
 }
 

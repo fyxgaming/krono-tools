@@ -151,5 +151,6 @@ export class RestBlockchain {
             body: JSON.stringify(message)
         });
         if (!resp.ok) throw createError(resp.status, await resp.text());
+        return resp.json();
     }
 }
