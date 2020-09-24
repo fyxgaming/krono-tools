@@ -6,7 +6,7 @@ class CashierAgent extends Agent {
         this.messageHandlers.set('FundsRequest', this.onFundsRequest);
     }
 
-    onFundsRequest(message) {
+    async onFundsRequest(message) {
         const index = await this.wallet.loadJigIndex();
         const amount = (this.wallet.randomInt(100) + 1) * 10000;
         const coins = [];
