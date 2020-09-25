@@ -144,6 +144,7 @@ export class Deployer {
                 this.log(`RUN.LOAD ${jigLocation}`);
                 let chainArtifact = await this.run.load(jigLocation).catch((ex) => {
                     // if (ex.statusCode === 404) {
+                    this.log(`Error: ${ex.message}`);
                     this.log(`## Jig could not be loaded from ${jigLocation}`);
                     return { hash: 'DEPLOY_AGAIN' };
                     // }

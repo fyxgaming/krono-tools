@@ -87,6 +87,7 @@ function renderUsage() {
         purse,
         app: argv.app,
         timeout: 30000,
+        trust: '*'
         // logger: console
     });
 
