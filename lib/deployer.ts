@@ -11,7 +11,6 @@ export class Deployer {
     path = path;
     private git: simpleGit.SimpleGit;
     
-
     constructor(
         public run: any,
         public rootPath: string,
@@ -108,7 +107,7 @@ export class Deployer {
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
                 parent.presets = {
-                    [this.run.network]: {
+                    [this.run.blockchain.network]: {
                         location: dep.location,
                         origin: dep.location,
                         owner: dep.owner,
