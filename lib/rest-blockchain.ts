@@ -74,18 +74,19 @@ export class RestBlockchain {
     }
 
     async spends(txid: string, vout: number): Promise<string | null> {
-        let spend = await this.cache.get(`spend://${txid}`);
+        const cacheKey = `spend://${txid}_${vout}`;
+        let spend = await this.cache.get(cacheKey);
         if (spend) return spend;
-        if (!this.requests.has(`spend:${txid}`)) {
+        if (!this.requests.has(cacheKey)) {
             const request = (async () => {
                 const resp = await fetch(`${this.apiUrl}/spent/${txid}_o${vout}`);
                 if (!resp.ok) throw createError(resp.status, await resp.text());
                 spend = (await resp.text()) || null;
-                if(spend) await this.cache.set(`spend://${txid}`, spend);
-                this.requests.delete(`spend:${txid}`);
+                if(spend) await this.cache.set(cacheKey, spend);
+                this.requests.delete(cacheKey);
                 return spend;
             })();
-            this.requests.set(`spend:${txid}`, request);
+            this.requests.set(cacheKey, request);
         }
         return this.requests.get(`spend:${txid}`);
     }
