@@ -19,8 +19,7 @@ class KronoJig extends Jig {
 }
 
 KronoJig.asyncDeps = {
-    KronoClass: 'lib/krono-class.js',
-    DisposeConfig: 'config/{env}/dispose.js'
+    KronoClass: 'lib/krono-class.js'
 }
 
 KronoJig.sealed = false;
