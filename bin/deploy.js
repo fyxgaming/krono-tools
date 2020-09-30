@@ -17,6 +17,7 @@ const blockchainUrls = {
     mock: 'http://localhost:8080',
     infra: 'https://kronoverse-infra.appspot.com',
     // dev: 'https://kronoverse-dev.appspot.com',
+    adhoc: 'https://adhoc.aws.kronoverse.io',
     dev: 'https://dev.aws.kronoverse.io',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
