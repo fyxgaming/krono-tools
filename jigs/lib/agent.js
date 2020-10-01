@@ -174,4 +174,6 @@ Agent.asyncDeps = {
     Sha256: "lib/sha256.js"
 }
 
+Agent.sealed = false;
+
 module.exports = Agent;
