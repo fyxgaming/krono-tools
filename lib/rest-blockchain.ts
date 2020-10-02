@@ -88,7 +88,7 @@ export class RestBlockchain {
             })();
             this.requests.set(cacheKey, request);
         }
-        return this.requests.get(`spend:${txid}`);
+        return this.requests.get(cacheKey);
     }
 
     async utxos(address): Promise<IUTXO[]> {
