@@ -106,15 +106,16 @@ export class Deployer {
             const parent = Object.getPrototypeOf(deployed);
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
-                parent.presets = {
-                    [this.run.blockchain.network]: {
-                        location: dep.location,
-                        origin: dep.location,
-                        owner: dep.owner,
-                        satoshis: dep.satoshis,
-                        nonce: dep.nonce
-                    }
-                };
+                Object.setPrototypeOf(deployed, dep);
+                // parent.presets = {
+                //     [this.run.blockchain.network]: {
+                //         location: dep.location,
+                //         origin: dep.location,
+                //         owner: dep.owner,
+                //         satoshis: dep.satoshis,
+                //         nonce: dep.nonce
+                //     }
+                // };
                 // parent.presets[this.run.network] = dep.presets[this.run.network];
                 // parent[`location${this.networkKey}`] = dep.location;
             }
