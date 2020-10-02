@@ -30,7 +30,7 @@ export class WSClient extends EventEmitter {
         return socket;
     }
 
-    subscribe(channelId, lastId) {
+    subscribe(channelId, lastId?: number) {
         this.channels.add(channelId);
         if(!this.socket || this.socket.readyState !== 1) return;
         this.socket.send(JSON.stringify({
