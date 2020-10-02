@@ -44,7 +44,9 @@ export class Deployer {
         //Load the code file
         let chainData = {};
         if (source.endsWith('.chain.json')) {
-            return this.loadChain(source);
+            const deployed: any = await this.loadChain(source);
+            this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
+            return deployed;
         }
 
         // if (!await fs.pathExists(sourcePath)) {
@@ -163,7 +165,7 @@ export class Deployer {
         if (mustDeploy) {
             try {
                 //PreDeploy support for resource to bootstrap anything else it wants
-                if (typeof deployed.preDeploy === 'function') {
+                if (deployed.hasOwnProperty('preDeploy')) {
                     //Allow Jig Class to configure itself with its deps
                     await deployed.preDeploy(this);
                     //Remove preDeploy before putting on chain
@@ -173,7 +175,7 @@ export class Deployer {
                 }
 
                 let postDeploy;
-                if (typeof deployed.postDeploy === 'function') {
+                if (deployed.hasOwnProperty('postDeploy')) {
                     //Allow Jig Class to configure itself with its deps
                     postDeploy = deployed.postDeploy.bind(deployed);
                     //Remove preDeploy before putting on chain
@@ -247,10 +249,7 @@ export class Deployer {
         if (!fs.pathExistsSync(sourcePath)) return;
         const chainData = fs.readJSONSync(sourcePath);
         if (!chainData[this.env]) return;
-        const jig = await this.run.load(chainData[this.env]).catch((ex) => {
-            // if (ex.statusCode === 404) return;
-            // throw (ex);
-        });
+        const jig = await this.run.load(chainData[this.env]);
         if (jig) {
             this.cache.set(chainFile, jig);
         }
