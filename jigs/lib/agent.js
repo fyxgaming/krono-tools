@@ -52,11 +52,13 @@ class Agent extends EventEmitter {
         }
         await handler.bind(this)(jig);
     }
-    async onChannel(channe) { }
 
     async onMessage(message) {
         let handler = this.messageHandlers.get(message.subject);
-        if (!handler) return;
+        if (!handler) {
+            console.log('No Handler:', message.subject);
+            return;
+        }
         return handler.bind(this)(message);
     }
 
