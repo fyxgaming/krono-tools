@@ -54,6 +54,7 @@ class Agent extends EventEmitter {
     }
 
     async onMessage(message) {
+        console.log('onMessage:', message.subject);
         let handler = this.messageHandlers.get(message.subject);
         if (!handler) {
             console.log('No Handler:', message.subject);
