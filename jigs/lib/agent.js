@@ -3,8 +3,6 @@ const EventEmitter = require('./event-emitter');
 //fetch, ADDRESS, PAYMAIL, PUBKEY, bsv
 
 class Agent extends EventEmitter {
-    // EVENTS: schedule, client, 
-
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
         this.wallet = wallet;
@@ -54,11 +52,14 @@ class Agent extends EventEmitter {
         }
         await handler.bind(this)(jig);
     }
-    async onChannel(channe) { }
 
     async onMessage(message) {
+        console.log('onMessage:', message.subject);
         let handler = this.messageHandlers.get(message.subject);
-        if (!handler) return;
+        if (!handler) {
+            console.log('No Handler:', message.subject);
+            return;
+        }
         return handler.bind(this)(message);
     }
 
@@ -175,5 +176,7 @@ Agent.asyncDeps = {
     EventEmitter: 'lib/event-emitter.js',
     Sha256: "lib/sha256.js"
 }
+
+Agent.sealed = false;
 
 module.exports = Agent;

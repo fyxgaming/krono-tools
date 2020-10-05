@@ -1,6 +1,6 @@
 {
   "name": "@kronoverse/tools",
-  "version": "0.2.85",
+  "version": "1.0.52",
   "description": "Tools for interacting with the Kronoverse Platform",
   "private": false,
   "main": "index.js",
@@ -18,34 +18,31 @@
     "**/*"
   ],
   "dependencies": {
-    "@google-cloud/storage": "^5.2.0",
-    "@kronoverse/run": "^0.5.35-1",
+    "@kronoverse/run": "^0.6.14",
     "@types/node": "^13.5.2",
     "argon2-browser": "^1.13.0",
-    "body-parser": "^1.19.0",
     "bsv": "^2.0.0-beta.41",
-    "bsv-legacy": "npm:bsv@^1.5.3",
-    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
     "fs-extra": "^9.0.1",
     "http-errors": "^1.7.3",
-    "ioredis": "^4.17.3",
+    "isomorphic-ws": "^4.0.1",
     "microtime": "^3.0.0",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.0",
     "simple-git": "^2.11.0",
-    "typescript": "^3.7.5"
+    "ws": "^7.3.1"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.6",
-    "@types/express": "^4.17.2",
+    "@kronoverse/ioredis-mock": "^4.21.4",
     "@types/http-errors": "^1.6.3",
-    "@types/ioredis": "^4.17.2",
+    "@types/jest": "^26.0.13",
     "@types/minimist": "^1.2.0",
     "@types/node-fetch": "^2.5.7",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.3.0",
     "ts-node": "^8.6.2",
-    "tslint": "^6.0.0"
+    "tslint": "^6.0.0",
+    "typescript": "^3.7.5"
   },
   "engines": {
     "node": ">=10.0.0"

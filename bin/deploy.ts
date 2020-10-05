@@ -14,7 +14,8 @@ var argv = minimist(process.argv.slice(2));
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     infra: 'https://kronoverse-infra.appspot.com',
-    dev: 'https://kronoverse-dev.appspot.com',
+    // dev: 'https://kronoverse-dev.appspot.com',
+    dev: 'https://dev.aws.kronoverse.io',
     test: 'https://kronoverse-test.appspot.com',
     prod: 'https://kronoverse-main.appspot.com'
 };
@@ -57,8 +58,6 @@ function renderUsage() {
     const owner = argv.owner || process.env.OWNER;
     const purse = argv.purse || process.env.PURSE;
     const network = argv.network || process.env.RUNNETWORK;
-    const txq = argv.txq || process.env.TXQ;
-    const apiKey = argv.apiKey || process.env.API_KEY;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -76,6 +75,7 @@ function renderUsage() {
         blockchainUrl, 
         network, 
         new MapStorage(),
+        // true
     );
 
     const run = new Run({
@@ -84,7 +84,8 @@ function renderUsage() {
         owner,
         purse,
         app: argv.app,
-        logger: console
+        timeout: 30000,
+        // logger: console
     });
 
     const rootPath = path.dirname(sourcePath)
