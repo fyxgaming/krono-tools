@@ -79,7 +79,7 @@ export class RestBlockchain {
         if (spend) return spend;
         if (!this.requests.has(cacheKey)) {
             const request = (async () => {
-                const resp = await fetch(`${this.apiUrl}/spends/${txid}/${vout}`);
+                const resp = await fetch(`${this.apiUrl}/spends/${txid}_o${vout}`);
                 if (!resp.ok) throw createError(resp.status, await resp.text());
                 spend = (await resp.text()) || null;
                 if(spend) await this.cache.set(cacheKey, spend);
