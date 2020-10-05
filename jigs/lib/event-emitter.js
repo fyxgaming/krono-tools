@@ -26,5 +26,5 @@ class EventEmitter {
         }
     }
 }
-
+EventEmitter.sealed = false;
 module.exports = EventEmitter;

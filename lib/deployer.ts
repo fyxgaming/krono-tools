@@ -11,7 +11,6 @@ export class Deployer {
     path = path;
     private git: simpleGit.SimpleGit;
     
-
     constructor(
         public run: any,
         public rootPath: string,
@@ -20,21 +19,6 @@ export class Deployer {
         private modulePath = path.join(rootPath, 'node_modules'),
         private debug = true
     ) {
-        switch (run.blockchain.network) {
-            case 'main':
-                this.networkKey = 'Mainnet';
-                break;
-            case 'test':
-                this.networkKey = 'Testnet';
-                break;
-            case 'stn':
-                this.networkKey = 'Stn';
-                break;
-            default:
-                this.networkKey = 'Mocknet';
-                break;
-        }
-
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
     }
 
@@ -60,7 +44,9 @@ export class Deployer {
         //Load the code file
         let chainData = {};
         if (source.endsWith('.chain.json')) {
-            return this.loadChain(source);
+            const deployed: any = await this.loadChain(source);
+            this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
+            return deployed;
         }
 
         // if (!await fs.pathExists(sourcePath)) {
@@ -122,7 +108,18 @@ export class Deployer {
             const parent = Object.getPrototypeOf(deployed);
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
-                parent[`location${this.networkKey}`] = dep.location;
+                Object.setPrototypeOf(deployed, dep);
+                // parent.presets = {
+                //     [this.run.blockchain.network]: {
+                //         location: dep.location,
+                //         origin: dep.location,
+                //         owner: dep.owner,
+                //         satoshis: dep.satoshis,
+                //         nonce: dep.nonce
+                //     }
+                // };
+                // parent.presets[this.run.network] = dep.presets[this.run.network];
+                // parent[`location${this.networkKey}`] = dep.location;
             }
         }
 
@@ -149,6 +146,7 @@ export class Deployer {
                 this.log(`RUN.LOAD ${jigLocation}`);
                 let chainArtifact = await this.run.load(jigLocation).catch((ex) => {
                     // if (ex.statusCode === 404) {
+                    this.log(`Error: ${ex.message}`);
                     this.log(`## Jig could not be loaded from ${jigLocation}`);
                     return { hash: 'DEPLOY_AGAIN' };
                     // }
@@ -167,7 +165,7 @@ export class Deployer {
         if (mustDeploy) {
             try {
                 //PreDeploy support for resource to bootstrap anything else it wants
-                if (typeof deployed.preDeploy === 'function') {
+                if (deployed.hasOwnProperty('preDeploy')) {
                     //Allow Jig Class to configure itself with its deps
                     await deployed.preDeploy(this);
                     //Remove preDeploy before putting on chain
@@ -177,7 +175,7 @@ export class Deployer {
                 }
 
                 let postDeploy;
-                if (typeof deployed.postDeploy === 'function') {
+                if (deployed.hasOwnProperty('postDeploy')) {
                     //Allow Jig Class to configure itself with its deps
                     postDeploy = deployed.postDeploy.bind(deployed);
                     //Remove preDeploy before putting on chain
@@ -189,11 +187,10 @@ export class Deployer {
                 if (!deployed.name) {
                     this.log(chainFilePath);
                 }
-                await this.run.deploy(deployed);
-
+                deployed = this.run.deploy(deployed);
                 //Wait for the transaction to be accepted
-                // this.log(`RUN.SYNC`);
-                // await this.run.sync();
+                this.log(`RUN.SYNC`);
+                await this.run.sync();
                 if (postDeploy) {
                     await postDeploy(this);
                 }
@@ -216,7 +213,7 @@ export class Deployer {
             }
         }
 
-        this.cache.set(source, await this.run.load(deployed.location));
+        this.cache.set(source, deployed);
         this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
         return deployed;
     }
@@ -252,10 +249,7 @@ export class Deployer {
         if (!fs.pathExistsSync(sourcePath)) return;
         const chainData = fs.readJSONSync(sourcePath);
         if (!chainData[this.env]) return;
-        const jig = await this.run.load(chainData[this.env]).catch((ex) => {
-            // if (ex.statusCode === 404) return;
-            // throw (ex);
-        });
+        const jig = await this.run.load(chainData[this.env]);
         if (jig) {
             this.cache.set(chainFile, jig);
         }

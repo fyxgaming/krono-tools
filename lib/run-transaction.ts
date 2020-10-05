@@ -1,7 +1,5 @@
 import { RestBlockchain } from './rest-blockchain';
 
-const { Transaction } = require('bsv-legacy');
-
 export class RunTransaction {
     private transaction;
     private blockchain: RestBlockchain;
@@ -34,9 +32,7 @@ export class RunTransaction {
     }
 
     async import(rawtx: string): Promise<void> {
-        const tx = new Transaction(rawtx);
-        await this.blockchain.populateInputs(tx);
-        return this.transaction.import(tx);
+        return this.transaction.import(rawtx);
     }
 
     rollback() {
