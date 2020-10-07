@@ -32,6 +32,7 @@ class CashierAgent extends Agent {
 }
 
 CashierAgent.asyncDeps = {
+    Agent: 'lib/agent.js',
     KronoCoin: 'models/krono-coin.js'
 }
 
