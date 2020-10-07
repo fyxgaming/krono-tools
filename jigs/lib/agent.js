@@ -63,43 +63,6 @@ class Agent extends EventEmitter {
         return handler.bind(this)(message);
     }
 
-    // async onKindSub(jigData) {
-    //     let handler = this.kindSubHandlers.get(jigData.kind);
-    //     if(!handler) return;
-    //     const jig = await this.wallet.loadJig(jigData.location);
-    //     if (!jig) {
-    //         console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
-    //         return;
-    //     }
-    //     await jig.sync();
-    //     if (jig.location !== jigData.location) {
-    //         console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
-    //     }
-    //     await handler.bind(this)(jig);
-    // }
-    // async onOriginSub(jigData) {
-    //     let handler = this.kindSubHandlers.get(jigData.kind);
-    //     if(!handler) return;
-    //     const jig = await this.wallet.loadJig(jigData.location);
-    //     if (!jig) {
-    //         console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
-    //         return;
-    //     }
-    //     await jig.sync();
-    //     if (jig.location !== jigData.location) {
-    //         console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
-    //     }
-    //     await handler.bind(this)(jig);
-    // }
-
-    // async onChannelSub(channel) {
-    //     let handler = this.channelSubHandlers.get(channel.loc);
-    //     if(!handler) return;
-    //     await this.wallet.loadChannelTransaction(channel.loc, channel.seq, async jig => {
-    //         return handler.bind(this)(jig);
-    //     });
-    // }
-
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler:', event);
