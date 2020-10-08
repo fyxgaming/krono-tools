@@ -115,6 +115,20 @@ export class Wallet extends EventEmitter {
         return Random.getRandomBuffer(size).toString('hex');
     }
 
+    setTimeout(cb: () => Promise<void>, ms: number):  NodeJS.Timeout {
+        return setTimeout(async () => {
+            try {
+                await cb();
+            } catch(e) {
+                console.error('Timeout Error', e);
+            }
+        }, ms);
+    }
+
+    clearTimeout(timeoutId: NodeJS.Timeout): void {
+        return clearTimeout(timeoutId);
+    }
+
     // async cashout(address) {
     //     const utxos = await this.blockchain.utxos(this.run.purse.address);
     //     const tx = new Transaction()
