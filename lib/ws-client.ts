@@ -1,32 +1,31 @@
 import { EventEmitter } from "events";
-import WebSocket from 'isomorphic-ws';
 
 export class WSClient extends EventEmitter {
-    private socket: WebSocket;
+    private socket: any;
     private channels: Set<string>;
     private lastIds = new Map<string, number>();
 
-    constructor(private url: string, channels: string[] = []) {
+    constructor(private client, private url: string, channels: string[] = []) {
         super();
         this.channels = new Set<string>(channels);
         this.socket = this.connect();
     }
 
     connect() {
-        const socket = new WebSocket(this.url);
-        socket.addEventListener('open', () => {
-            socket.addEventListener('message', (e) => {
+        const socket = new this.client(this.url);
+        socket.onopen = () => {
+            socket.onmessage = (e) => {
                 const {id, channel, event, data} = JSON.parse(e.data);
                 const lastId = this.lastIds.get(channel) || 0;
                 if(id > lastId) this.lastIds.set(channel, id);
-                this.emit(event, data);
-            })
+                this.emit(event, data, channel);
+            }
             Array.from(this.channels).forEach(channel => this.subscribe(channel));
             
-        });
-        socket.addEventListener('close', () => {
+        }
+        socket.onclose = () => {
             this.socket = this.connect();
-        });
+        };
         return socket;
     }
 
