@@ -10,6 +10,7 @@ export class Deployer {
     fs = fs;
     path = path;
     private git: simpleGit.SimpleGit;
+    public blockchain;
     
     constructor(
         public run: any,
@@ -20,6 +21,7 @@ export class Deployer {
         private debug = true
     ) {
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
+        this.blockchain = run.blockchain;
     }
 
     private log(msg: any) {
