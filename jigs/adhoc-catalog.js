@@ -6,7 +6,7 @@ class Catalog {
     }
 }
 
-Catalog.realm = 'dev.kronoverse.io';
+Catalog.realm = 'adhoc.kronoverse.io';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
