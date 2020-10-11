@@ -72,7 +72,7 @@ class Agent extends EventEmitter {
         }
         try {
             console.time(`msg-${message.subject}-${message.id}`);
-            return handler.bind(this)(message);
+            return await handler.bind(this)(message);
         } finally {
             console.time(`msg-${message.subject}-${message.id}`);
         }
@@ -83,7 +83,7 @@ class Agent extends EventEmitter {
         if (!handler) throw new Error('Invalid handler:', event);
         try {
             console.time(`event-${event}`);
-            return handler.bind(this)(payload);
+            return await handler.bind(this)(payload);
         } finally {
             console.timeEnd(`event-${event}`);
         }
