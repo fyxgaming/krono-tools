@@ -45,34 +45,49 @@ class Agent extends EventEmitter {
         this.handled.add(jigData.location);
         let handler = this.jigHandlers.get(jigData.kind);
         if (!handler) return;
-        const jig = await this.wallet.loadJig(jigData.location);
-        if (!jig) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
-            return;
+        try {
+            console.time(`jig-${jigData.type}-${jigData.location}`);
+            const jig = await this.wallet.loadJig(jigData.location);
+            if (!jig) {
+                console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
+                return;
+            }
+            await jig.sync();
+            if (jig.location !== jigData.location) {
+                console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+            }
+            await handler.bind(this)(jig);
+        } finally {
+            console.timeEnd(`jig-${jigData.type}-${jigData.location}`);
         }
-        await jig.sync();
-        if (jig.location !== jigData.location) {
-            console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
-        }
-        await handler.bind(this)(jig);
     }
 
     async onMessage(message) {
         if(this.handled.has(message.id)) return;
         this.handled.add(message.id);
-        console.log('onMessage:', message.subject);
         let handler = this.messageHandlers.get(message.subject);
         if (!handler) {
             console.log('No Handler:', message.subject);
             return;
         }
-        return handler.bind(this)(message);
+        try {
+            console.time(`msg-${message.subject}-${message.id}`);
+            return handler.bind(this)(message);
+        } finally {
+            console.time(`msg-${message.subject}-${message.id}`);
+        }
     }
 
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler:', event);
-        return handler.bind(this)(payload);
+        try {
+            console.time(`event-${event}`);
+            return handler.bind(this)(payload);
+        } finally {
+            console.timeEnd(`event-${event}`);
+        }
+        
     }
 
     async schedule(id, time, event, payload) {
