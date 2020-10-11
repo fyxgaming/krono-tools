@@ -23,6 +23,7 @@ export class WSClient extends EventEmitter {
             Array.from(this.channels).forEach(channel => this.subscribe(channel));
             
         }
+        socket.onerror = console.error;
         socket.onclose = () => {
             this.socket = this.connect();
         };
