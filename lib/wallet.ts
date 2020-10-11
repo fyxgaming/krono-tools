@@ -126,7 +126,7 @@ export class Wallet extends EventEmitter {
     }
 
     clearTimeout(timeoutId: NodeJS.Timeout): void {
-        return clearTimeout(timeoutId);
+        return timeoutId && clearTimeout(timeoutId);
     }
 
     // async cashout(address) {
