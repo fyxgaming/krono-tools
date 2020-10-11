@@ -24,6 +24,8 @@ class Agent extends EventEmitter {
 
         this.queue = Promise.resolve();
         this.processCount = 0;
+
+        this.handled = new Set();
     }
 
     addToQueue(process, label = 'process') {
@@ -39,6 +41,8 @@ class Agent extends EventEmitter {
 
     init() { }
     async onJig(jigData) {
+        if(this.handled.has(jigData.location)) return;
+        this.handled.add(jigData.location);
         let handler = this.jigHandlers.get(jigData.kind);
         if (!handler) return;
         const jig = await this.wallet.loadJig(jigData.location);
@@ -54,6 +58,8 @@ class Agent extends EventEmitter {
     }
 
     async onMessage(message) {
+        if(this.handled.has(message.id)) return;
+        this.handled.add(message.id);
         console.log('onMessage:', message.subject);
         let handler = this.messageHandlers.get(message.subject);
         if (!handler) {
