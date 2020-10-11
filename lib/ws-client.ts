@@ -48,4 +48,7 @@ export class WSClient extends EventEmitter {
         }));
     }
 
+    close() {
+        this.socket.close();
+    }
 }
