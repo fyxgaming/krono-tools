@@ -18,6 +18,8 @@ export class Wallet extends EventEmitter {
     ownerPair: KeyPair;
     pursePair: KeyPair;
 
+    timeouts = new Map<number, any>();
+
     constructor(
         public paymail: string,
         private keyPair: KeyPair,
@@ -115,18 +117,19 @@ export class Wallet extends EventEmitter {
         return Random.getRandomBuffer(size).toString('hex');
     }
 
-    setTimeout(cb: () => Promise<void>, ms: number):  NodeJS.Timeout {
-        return setTimeout(async () => {
-            try {
-                await cb();
-            } catch(e) {
-                console.error('Timeout Error', e);
-            }
-        }, ms);
+    setTimeout(cb: () => Promise<void>, ms: number):  number {
+        const timeoutId = Date.now();
+        this.timeouts.set(
+            timeoutId, 
+            setTimeout(async () => cb().catch(e => console.error('Timeout Error', e)), ms)
+        );
+        return timeoutId;
     }
 
-    clearTimeout(timeoutId: NodeJS.Timeout): void {
-        return timeoutId && clearTimeout(timeoutId);
+    clearTimeout(timeoutId: number): void {
+        if(this.timeouts.has(timeoutId)) {
+            clearTimeout(this.timeouts.get(timeoutId));
+        }
     }
 
     // async cashout(address) {
