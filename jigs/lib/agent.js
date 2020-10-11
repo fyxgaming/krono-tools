@@ -45,8 +45,9 @@ class Agent extends EventEmitter {
         this.handled.add(jigData.location);
         let handler = this.jigHandlers.get(jigData.kind);
         if (!handler) return;
+        const label = `${this.processCount++}-jig-${jigData.type}-${jigData.location}`;
         try {
-            console.time(`jig-${jigData.type}-${jigData.location}`);
+            console.time(label);
             const jig = await this.wallet.loadJig(jigData.location);
             if (!jig) {
                 console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
@@ -58,7 +59,7 @@ class Agent extends EventEmitter {
             }
             await handler.bind(this)(jig);
         } finally {
-            console.timeEnd(`jig-${jigData.type}-${jigData.location}`);
+            console.timeEnd(label);
         }
     }
 
@@ -70,72 +71,74 @@ class Agent extends EventEmitter {
             console.log('No Handler:', message.subject);
             return;
         }
+        const label = `${this.processCount++}-msg-${message.subject}-${message.id}`;
         try {
-            console.time(`msg-${message.subject}-${message.id}`);
+            console.time(label);
             return await handler.bind(this)(message);
         } finally {
-            console.time(`msg-${message.subject}-${message.id}`);
+            console.timeEnd(label);
         }
     }
 
     async onEvent(event, payload) {
         let handler = this.eventHandlers.get(event);
         if (!handler) throw new Error('Invalid handler:', event);
+        const label = `${this.processCount++}-event-${event}`;
         try {
-            console.time(`event-${event}`);
+            console.time(label);
             return await handler.bind(this)(payload);
         } finally {
-            console.timeEnd(`event-${event}`);
+            console.timeEnd(label);
         }
         
     }
 
-    async schedule(id, time, event, payload) {
-        await this.storage.multi()
-            .hset('timeouts', id, time)
-            .hmset(`timeout:${id}`, {
-                event,
-                payload: payload && JSON.stringify(payload),
-            })
-            .exec();
-    }
+    // async schedule(id, time, event, payload) {
+    //     await this.storage.multi()
+    //         .hset('timeouts', id, time)
+    //         .hmset(`timeout:${id}`, {
+    //             event,
+    //             payload: payload && JSON.stringify(payload),
+    //         })
+    //         .exec();
+    // }
 
-    async setTimeout(id, timeout, event, payload) {
-        await this.storage.multi()
-            .hset('timeouts', id, this.wallet.now + timeout)
-            .hmset(`timeout:${id}`, {
-                event,
-                payload: payload && JSON.stringify(payload),
-            })
-            .exec();
-    }
+    // async setTimeout(id, timeout, event, payload) {
+    //     await this.storage.multi()
+    //         .hset('timeouts', id, this.wallet.now + timeout)
+    //         .hmset(`timeout:${id}`, {
+    //             event,
+    //             payload: payload && JSON.stringify(payload),
+    //         })
+    //         .exec();
+    // }
 
-    async clearTimeout(id) {
-        this.storage.multi()
-            .hdel('timeouts', id)
-            .del(`timeout:${id}`)
-            .exec();
-    }
+    // async clearTimeout(id) {
+    //     this.storage.multi()
+    //         .hdel('timeouts', id)
+    //         .del(`timeout:${id}`)
+    //         .exec();
+    // }
 
-    async setInterval(interval, event, payload) {
-        const id = `${event}|${interval}`;
-        await this.storage.multi()
-            .hset('intervals', id, 0)
-            .hmset(id, {
-                event,
-                payload: payload && JSON.stringify(payload),
-            })
-            .exec();
-    }
+    // async setInterval(interval, event, payload) {
+    //     const id = `${event}|${interval}`;
+    //     await this.storage.multi()
+    //         .hset('intervals', id, 0)
+    //         .hmset(id, {
+    //             event,
+    //             payload: payload && JSON.stringify(payload),
+    //         })
+    //         .exec();
+    // }
 
-    async clearInterval(interval, event) {
-        const id = `${event}|${interval}`;
-        this.storage.multi()
-            .hdel('intervals', id)
-            .del(id)
-            .exec();
-        this.storage.del(id);
-    }
+    // async clearInterval(interval, event) {
+    //     const id = `${event}|${interval}`;
+    //     this.storage.multi()
+    //         .hdel('intervals', id)
+    //         .del(id)
+    //         .exec();
+    //     this.storage.del(id);
+    // }
 
     static hexToBytes(hex) {
         let bytes = new Uint8Array(32);
