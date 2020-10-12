@@ -93,53 +93,6 @@ class Agent extends EventEmitter {
         
     }
 
-    // async schedule(id, time, event, payload) {
-    //     await this.storage.multi()
-    //         .hset('timeouts', id, time)
-    //         .hmset(`timeout:${id}`, {
-    //             event,
-    //             payload: payload && JSON.stringify(payload),
-    //         })
-    //         .exec();
-    // }
-
-    // async setTimeout(id, timeout, event, payload) {
-    //     await this.storage.multi()
-    //         .hset('timeouts', id, this.wallet.now + timeout)
-    //         .hmset(`timeout:${id}`, {
-    //             event,
-    //             payload: payload && JSON.stringify(payload),
-    //         })
-    //         .exec();
-    // }
-
-    // async clearTimeout(id) {
-    //     this.storage.multi()
-    //         .hdel('timeouts', id)
-    //         .del(`timeout:${id}`)
-    //         .exec();
-    // }
-
-    // async setInterval(interval, event, payload) {
-    //     const id = `${event}|${interval}`;
-    //     await this.storage.multi()
-    //         .hset('intervals', id, 0)
-    //         .hmset(id, {
-    //             event,
-    //             payload: payload && JSON.stringify(payload),
-    //         })
-    //         .exec();
-    // }
-
-    // async clearInterval(interval, event) {
-    //     const id = `${event}|${interval}`;
-    //     this.storage.multi()
-    //         .hdel('intervals', id)
-    //         .del(id)
-    //         .exec();
-    //     this.storage.del(id);
-    // }
-
     static hexToBytes(hex) {
         let bytes = new Uint8Array(32);
         for (let i = 0; i < 64; i += 2) {
