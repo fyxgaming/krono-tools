@@ -45,8 +45,4 @@ export class RestStateCache implements IStorage<any> {
     async set(key: string, value: any) {
         await this.cache.set(key, value);
     }
-
-    async delete(key: string) {
-        await this.cache.delete(key);
-    }
 }
