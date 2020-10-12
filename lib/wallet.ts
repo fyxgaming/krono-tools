@@ -14,6 +14,7 @@ export class Wallet extends EventEmitter {
     load: (loc: string) => Promise<IJig>;
     createTransaction: () => Transaction;
     loadTransaction: (rawtx: string) => Promise<Transaction>;
+    getTxPayload: (rawtx: string) => any;
 
     ownerPair: KeyPair;
     pursePair: KeyPair;
@@ -36,6 +37,7 @@ export class Wallet extends EventEmitter {
         this.load = run.load.bind(run);
         this.createTransaction = () => new Transaction();
         this.loadTransaction = (rawtx: string) => run.import(rawtx);
+        this.getTxPayload = (rawtx: string) => run.payload(rawtx);
         
         console.log(`PAYMAIL: ${paymail}`);
         console.log(`PUBKEY: ${keyPair.pubKey.toString()}`);
