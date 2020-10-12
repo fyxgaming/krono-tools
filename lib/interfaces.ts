@@ -70,7 +70,6 @@ export interface IJigQuery {
 export interface IStorage<T> {
     get(key: string): Promise<T>;
     set(key: string, value: T): Promise<void>;
-    delete(key: string): Promise<void>;
 }
 
 export interface IAction {

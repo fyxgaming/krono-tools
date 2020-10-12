@@ -26,6 +26,7 @@ export class RestBlockchain {
     }
 
     async broadcast(rawtx) {
+        if(this.debug) console.log('BROADCAST:', rawtx);
         const resp = await fetch(`${this.apiUrl}/broadcast`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -46,6 +47,7 @@ export class RestBlockchain {
     }
 
     async fetch(txid: string) {
+        if(this.debug) console.log('FETCH:', txid);
         let rawtx = await this.cache.get(`tx://${txid}`);
         if (rawtx) return rawtx;
         if (!this.requests.has(txid)) {
@@ -74,6 +76,7 @@ export class RestBlockchain {
     }
 
     async spends(txid: string, vout: number): Promise<string | null> {
+        if(this.debug) console.log('SPENDS:', txid, vout);
         const cacheKey = `spend://${txid}_${vout}`;
         let spend = await this.cache.get(cacheKey);
         if (spend) return spend;
@@ -91,11 +94,9 @@ export class RestBlockchain {
         return this.requests.get(cacheKey);
     }
 
-    async utxos(address): Promise<IUTXO[]> {
-        if (typeof address !== 'string') {
-            address = address.toAddress(this.bsvNetwork).toString();
-        }
-        const resp = await fetch(`${this.apiUrl}/utxos/${address}`);
+    async utxos(script: string): Promise<IUTXO[]> {
+        if(this.debug) console.log('UTXOS:', script);
+        const resp = await fetch(`${this.apiUrl}/utxos/${script}`);
         if (!resp.ok) throw new Error(await resp.text());
         return resp.json();
     };
