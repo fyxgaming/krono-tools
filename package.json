@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc -p .",
     "deploy": "./deploy-jigs.sh",
-    "postinstall": "npm run build",
     "prepare": "npm run build",
     "start:mock": "ts-node mock/server.ts"
   },
