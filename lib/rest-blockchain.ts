@@ -101,13 +101,6 @@ export class RestBlockchain {
         return resp.json();
     };
 
-    // async isSpent(loc) {
-    //     const resp = await fetch(`${this.apiUrl}/spent/${loc}`);
-    //     if (!resp.ok) throw new Error(await resp.text());
-    //     const spentTxId = await resp.text();
-    //     return !!spentTxId;
-    // }
-
     async jigIndex(address) {
         const resp = await fetch(`${this.apiUrl}/jigs/address/${address}`);
         if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
