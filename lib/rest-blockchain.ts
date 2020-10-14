@@ -109,7 +109,13 @@ export class RestBlockchain {
     // }
 
     async jigIndex(address) {
-        const resp = await fetch(`${this.apiUrl}/jigs/${address}`);
+        const resp = await fetch(`${this.apiUrl}/jigs/address/${address}`);
+        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+        return resp.json();
+    }
+
+    async getJigData(loc: string) {
+        const resp = await fetch(`${this.apiUrl}/jigs/${loc}`);
         if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
         return resp.json();
     }
