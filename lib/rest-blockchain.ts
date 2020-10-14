@@ -111,8 +111,7 @@ export class RestBlockchain {
     async jigIndex(address) {
         const resp = await fetch(`${this.apiUrl}/jigs/${address}`);
         if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
-        const jigs = await resp.json();
-        return jigs.map(jig => jig.value);
+        return resp.json();
     }
 
     async kindHistory(kind: string, query: any) {
