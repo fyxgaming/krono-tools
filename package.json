@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
+    "prepublishOnly": "npm run build",
     "deploy": "./deploy-jigs.sh",
-    "prepare": "npm run build",
     "start:mock": "ts-node mock/server.ts"
   },
   "bin": {
