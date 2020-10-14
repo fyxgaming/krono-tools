@@ -1,5 +1,4 @@
 const Agent = require('../lib/agent');
-const KronoCoin = require('../models/krono-coin');
 
 class CashierAgent extends Agent {
     init() {
