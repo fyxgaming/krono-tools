@@ -107,7 +107,7 @@ export class RestBlockchain {
         return resp.json();
     }
 
-    async getJigData(loc: string) {
+    async loadJigData(loc: string) {
         const resp = await fetch(`${this.apiUrl}/jigs/${loc}`);
         if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
         return resp.json();
