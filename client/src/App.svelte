@@ -5,7 +5,7 @@
 
 	const ref = document.referrer;
 	setTimeout(() => {
-		window.parent.postMessage(
+		window.postMessage(
 			{
 				name: "WALLET_READY",
 				success: true,
@@ -13,7 +13,7 @@
 			ref
 		);
 		setTimeout(() => {
-			window.parent.postMessage(
+			window.postMessage(
 				{
 					name: "AGENT_LOADED",
 					success: true,
