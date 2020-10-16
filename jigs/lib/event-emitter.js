@@ -1,5 +1,8 @@
-class EventEmitter {
+const KronoClass = require("./krono-class");
+
+class EventEmitter extends KronoClass {
     constructor() {
+        super();
         this.listeners = new Map();
     }
 
@@ -27,4 +30,8 @@ class EventEmitter {
     }
 }
 EventEmitter.sealed = false;
+
+EventEmitter.asyncDeps = {
+    KronoClass: 'lib/krono-class.js'
+}
 module.exports = EventEmitter;
