@@ -1,4 +1,5 @@
 const {Token, Transaction} = require('@kronoverse/run');
+
 class KronoCoin extends Token {
     static async postDeploy() {
         const t = new Transaction();

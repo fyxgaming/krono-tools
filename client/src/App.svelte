@@ -1,10 +1,28 @@
 <script lang="ts">
 	// import { WalletService } from "./services/wallet-service";
 	// const walletService = new WalletService();
+	// walletService.init();
 
+	const ref = document.referrer;
+	setTimeout(() => {
+		window.parent.postMessage(
+			{
+				name: "WALLET_READY",
+				success: true,
+			},
+			ref
+		);
+		window.parent.postMessage(
+			{
+				name: "WALLET_READY",
+				success: true,
+			},
+			ref
+		);
+	}, 1000);
 	export let name: string;
 	import Login from "./components/Login.svelte";
-	
+
 	let loggedIn: boolean;
 	// const changed = (event: CustomEvent) => {
 	// 	console.log("changed", event.detail);
