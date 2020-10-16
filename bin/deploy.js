@@ -1,17 +1,12 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
-const fs_extra_1 = __importDefault(require("fs-extra"));
-const minimist_1 = __importDefault(require("minimist"));
-const path_1 = __importDefault(require("path"));
-const rest_blockchain_1 = require("../lib/rest-blockchain");
-const deployer_1 = require("../lib/deployer");
+import dotenv from 'dotenv';
+import fs from 'fs-extra';
+import minimist from 'minimist';
+import path from 'path';
+import { RestBlockchain } from '../lib/rest-blockchain';
+import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
 const Run = require('@kronoverse/run');
-var argv = minimist_1.default(process.argv.slice(2));
+var argv = minimist(process.argv.slice(2));
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     adhoc: 'https://adhoc.aws.kronoverse.io',
@@ -21,7 +16,7 @@ const blockchainUrls = {
 };
 console.log('PATH:', process.cwd());
 console.log('ARGV:', argv);
-dotenv_1.default.config({ path: path_1.default.join(process.cwd(), `${argv.env}.env`) });
+dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 function renderUsage() {
     console.log(`
 
@@ -57,16 +52,16 @@ function renderUsage() {
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
-    const sourcePath = path_1.default.resolve(source, catalogFile);
+    const sourcePath = path.resolve(source, catalogFile);
     console.log(sourcePath);
-    if (!fs_extra_1.default.pathExistsSync(sourcePath))
+    if (!fs.pathExistsSync(sourcePath))
         throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
         process.exit(1);
     }
-    const blockchain = new rest_blockchain_1.RestBlockchain(blockchainUrl, network, new Run.LocalCache());
+    const blockchain = new RestBlockchain(blockchainUrl, network, new Run.LocalCache());
     const run = new Run({
         blockchain,
         network,
@@ -77,9 +72,9 @@ function renderUsage() {
         trust: '*'
         // logger: console
     });
-    const rootPath = path_1.default.dirname(sourcePath);
+    const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);
-    const deployer = new deployer_1.Deployer(run, rootPath, env, !disableChainFiles, path_1.default.join(process.cwd(), 'node_modules'));
+    const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
     const catalog = await deployer.deploy(catalogFile);
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;

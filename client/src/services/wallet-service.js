@@ -1,7 +1,7 @@
 import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 //import { config } from 'node-config-ts';
 const config = {
-    network:'testnet',
+    network: 'testnet',
     apiUrl: '',
     sockets: '',
     ephemeral: true,
@@ -10,102 +10,78 @@ const config = {
     errorLog: 'true'
 };
 import * as querystring from 'querystring';
-
-import type { IMessage } from '../imessage';
 import { Wallet } from '../../../lib/wallet';
 import { RestBlockchain } from '../../../lib/rest-blockchain';
 import { RestStateCache } from '../../../lib/storage/rest-state-cache';
-import type { IAgent } from '../../../lib/interfaces';
 import { IORedisMock } from '../../../lib/ioredis-mock';
 import { SignedMessage } from '../../../lib/signed-message';
 import { KronoAuth } from '../../../lib/auth';
 import { EventEmitter } from 'events';
-
 import { WSClient } from '../../../lib/ws-client';
 import Run from '@kronoverse/run';
-
-let queryParams: any = {};
+let queryParams = {};
 const urlParts = window.location.href.split('?');
 if (urlParts[1]) {
     const [query] = urlParts[1].split('#');
     queryParams = querystring.decode(query);
 }
-
 Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
 import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;
 console.log('LOAD');
-
 export class WalletService extends EventEmitter {
-    private printLog = console.log.bind(console);
-    private printError = console.error.bind(console);
-    // private requestService: RequestService;
-
-    private logId = 0;
-    private logs: any[] = [];
-    private sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
-    private agentDef?;
-    private timeLabels = {};
-
-    public wallet?: Wallet;
-    private agent?: IAgent;
-
-    private apiUrl = queryParams.apiUrl || config.apiUrl;
-    private domain = document.location.hash.slice(1).split('@')[1];
-
-    private auth: KronoAuth;
-
     constructor() {
         super();
+        this.printLog = console.log.bind(console);
+        this.printError = console.error.bind(console);
+        // private requestService: RequestService;
+        this.logId = 0;
+        this.logs = [];
+        this.sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
+        this.timeLabels = {};
+        this.apiUrl = queryParams.apiUrl || config.apiUrl;
+        this.domain = document.location.hash.slice(1).split('@')[1];
         this.overrideConsole();
         this.auth = new KronoAuth(this.apiUrl, this.domain, config.network);
     }
-
     get channel() {
-        const v = (window as any).vuplex;
-        return (v) ? v : (window as any);
+        const v = window.vuplex;
+        return (v) ? v : window;
     }
-
-    get channelScope(): string | null {
-        const ref = (document as any).referrer;
+    get channelScope() {
+        const ref = document.referrer;
         if (ref && !this.isInUnity) {
             return ref.match(/^.+:\/\/[^\/]+/)[0];
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    get isInUnity(): boolean {
-        return ((window as any).vuplex) ? true : false;
+    get isInUnity() {
+        return (window.vuplex) ? true : false;
     }
-
-    get handle(): string {
+    get handle() {
         return window.localStorage.getItem('HANDLE') || '';
     }
-
-    set handle(value: string) {
+    set handle(value) {
         window.localStorage.setItem('HANDLE', value);
     }
-
     get keyPair() {
         const wif = window.localStorage.getItem('WIF');
-        if (!wif) return null;
+        if (!wif)
+            return null;
         return KeyPair.fromPrivKey(PrivKey.fromString(wif));
     }
-
-    set keyPair(keyPair: KeyPair) {
+    set keyPair(keyPair) {
         window.localStorage.setItem('WIF', keyPair.privKey.toString());
     }
-
-    get agentId(): string {
+    get agentId() {
         return document.location.hash.slice(1).split('@')[0];
     }
-
-    get paymail(): string {
+    get paymail() {
         return `${this.handle}@${this.domain}`;
     }
-
-    async init(): Promise<any> {
+    async init() {
         console.log('INIT');
         let initialized = false;
         while (config.ephemeral && !initialized) {
@@ -115,48 +91,47 @@ export class WalletService extends EventEmitter {
         }
         this.clientEmit('WALLET_READY');
         this.channel.addEventListener('message', this.onClientEvent.bind(this));
-
         console.log('BLOCKCHAIN:', this.apiUrl);
         const url = `${this.apiUrl}/agents/${this.domain}/${this.agentId}`;
         console.log('fetching:', url);
         const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
+        if (!resp.ok)
+            throw new Error(`${resp.status} - ${resp.statusText}`);
         this.agentDef = await resp.json();
-        if (!this.agentDef) throw new Error('AGENT MISSING');
-
+        if (!this.agentDef)
+            throw new Error('AGENT MISSING');
         if (config.errorLog) {
             setInterval(async () => {
                 const logs = this.logs;
                 this.logs = [];
-                if (!logs.length) return;
+                if (!logs.length)
+                    return;
                 const resp = await fetch(config.errorLog, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs)
                 });
-                if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
+                if (!resp.ok)
+                    throw new Error(`${resp.status} - ${resp.statusText}`);
             }, 5000);
         }
-
         // this.emit('show', 'login');
         // console.log('SHOW LOGIN');
-        if (this.agentDef.anonymous) return this.initializeWallet();
-        if (!config.ephemeral && !this.keyPair) return this.clientEmit('NO_KEYS');
+        if (this.agentDef.anonymous)
+            return this.initializeWallet();
+        if (!config.ephemeral && !this.keyPair)
+            return this.clientEmit('NO_KEYS');
         try {
             await this.initializeUser();
-        } catch (e) {
+        }
+        catch (e) {
             console.error('Login Error:', e.message);
             this.clientEmit('NO_KEYS');
         }
     }
-
-    private async initializeWallet(owner?: string, purse?: string) {
+    async initializeWallet(owner, purse) {
         const cache = new Run.LocalCache({ maxSizeMB: 100 });
-        const blockchain = new RestBlockchain(
-            this.apiUrl,
-            config.network,
-            cache
-        )
+        const blockchain = new RestBlockchain(this.apiUrl, config.network, cache);
         const run = new Run({
             network: config.network,
             owner,
@@ -170,38 +145,28 @@ export class WalletService extends EventEmitter {
                 error: console.error
             }
         });
-
-        const wallet = this.wallet = new Wallet(
-            this.paymail,
-            this.keyPair,
-            run
-        );
-
+        const wallet = this.wallet = new Wallet(this.paymail, this.keyPair, run);
         const storage = new IORedisMock();
-
         const channels = [this.keyPair.pubKey.toString()];
         let ws;
-        if(config.sockets) {
+        if (config.sockets) {
             console.log('Sockets:', config.sockets);
             ws = new WSClient(WebSocket, config.sockets, channels);
         }
-
         console.log('DOMAIN:', this.domain);
         console.log('AGENT_ID:', this.agentId);
         console.log('LOC:', this.agentDef.location);
         const Agent = await run.load(this.agentDef.location);
         const agent = this.agent = new Agent(wallet, blockchain, storage, bsv, { fetch, Buffer, ws, SignedMessage });
         agent.on('client', this.clientEmit.bind(this));
-        agent.on('subscribe', (channel: string, lastId?: number) => {
+        agent.on('subscribe', (channel, lastId) => {
             ws.subscribe(channel, lastId);
         });
-        agent.on('unsubscribe', (channel: string) => {
+        agent.on('unsubscribe', (channel) => {
             ws.unsubscribe(channel);
         });
         await agent.init();
         this.clientEmit('AGENT_LOADED');
-
-        
         ws.on('jig', (jig, channel) => {
             console.log('JIG:', JSON.stringify(jig));
             agent.onJig(jig).catch(console.error);
@@ -211,51 +176,45 @@ export class WalletService extends EventEmitter {
             agent.onMessage(new SignedMessage(message)).catch(console.error);
         });
     }
-
-    async initializeUser(handle?) {
+    async initializeUser(handle) {
         console.log('Initializing User');
-        if (handle) this.handle = handle;
+        if (handle)
+            this.handle = handle;
         let bip32;
         if (config.ephemeral) {
             bip32 = Bip32.fromRandom();
             this.keyPair = KeyPair.fromPrivKey(bip32.privKey);
-        } else {
+        }
+        else {
             console.log('Recovering account');
-            const xpriv = await this.auth.recover(this.paymail, this.keyPair)
+            const xpriv = await this.auth.recover(this.paymail, this.keyPair);
             bip32 = Bip32.fromString(xpriv);
         }
-        this.initializeWallet(
-            bip32.derive('m/1/0').privKey.toString(),
-            bip32.derive('m/0/0').privKey.toString()
-        );
+        this.initializeWallet(bip32.derive('m/1/0').privKey.toString(), bip32.derive('m/0/0').privKey.toString());
     }
-
-    async login(handle: string, password: string) {
+    async login(handle, password) {
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
     }
-
-    async register(handle: string, password: string, email: string) {
+    async register(handle, password, email) {
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
     }
-
     async logout() {
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
-
-    private async onClientEvent(event: any) {
-        const message: any = {};
-        if (!this.tryParseMessageData(event.data, message)) return;
-
+    async onClientEvent(event) {
+        const message = {};
+        if (!this.tryParseMessageData(event.data, message))
+            return;
         if (['Register', 'Login'].includes(message.name)) {
             console.log(`WALLET RECEIVED EVENT:`, message.name);
-        } else {
+        }
+        else {
             console.log(`WALLET RECEIVED EVENT:`, JSON.stringify(message));
         }
-
-        const response: any = {
+        const response = {
             name: `On${message.name}`
         };
         try {
@@ -271,7 +230,8 @@ export class WalletService extends EventEmitter {
                     await this.logout();
                     break;
                 case 'Cashout':
-                    if (!this.wallet) throw new Error('Wallet not initialized');
+                    if (!this.wallet)
+                        throw new Error('Wallet not initialized');
                     // await this.wallet.cashout(payload);
                     this.clientEmit('BalanceUpdated', 0);
                     break;
@@ -279,17 +239,20 @@ export class WalletService extends EventEmitter {
                     response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
                     break;
                 default:
-                    if (!this.agent) throw new Error('Agent not initialized');
+                    if (!this.agent)
+                        throw new Error('Agent not initialized');
                     const result = await this.agent.onEvent(message.name, payload);
                     response.payload = result && JSON.stringify(result);
             }
             response.success = true;
-        } catch (e) {
+        }
+        catch (e) {
             response.success = false;
             response.payload = JSON.stringify(e.message);
             if (e.message.includes('Not enough funds')) {
                 response.statusCode = 402;
-            } else {
+            }
+            else {
                 response.statusCode = e.status || 500;
             }
         }
@@ -297,18 +260,17 @@ export class WalletService extends EventEmitter {
         this.postMessage(response);
         return;
     }
-
-    private tryParseMessageData(data: any, outByRef: any): boolean {
-        const message: any = (outByRef || {});
+    tryParseMessageData(data, outByRef) {
+        const message = (outByRef || {});
         if (typeof data === 'string') {
             Object.assign(message, JSON.parse(Buffer.from(data, 'base64').toString()));
-        } else if (typeof data === 'object') {
+        }
+        else if (typeof data === 'object') {
             Object.assign(message, data);
         }
         return message && message.name;
     }
-
-    private clientEmit(name: any, payload?: any): void {
+    clientEmit(name, payload) {
         // console.log('Emitting', name, payload && JSON.stringify(payload));
         const message = {
             name,
@@ -328,17 +290,16 @@ export class WalletService extends EventEmitter {
         });
         this.postMessage(message);
     }
-
-    private postMessage(message: IMessage) {
+    postMessage(message) {
         message.target = 'kronoverse';
         if (this.isInUnity) {
             this.channel.postMessage(message);
-        } else if (this.channelScope) {
+        }
+        else if (this.channelScope) {
             this.channel.parent.postMessage(message, this.channelScope);
         }
     }
-
-    private overrideConsole() {
+    overrideConsole() {
         console.log = (...messages) => {
             messages.unshift(Date.now());
             const message = messages.join(' ');
@@ -350,10 +311,10 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (config.emitLogs) this.clientEmit('Log', message);
+            if (config.emitLogs)
+                this.clientEmit('Log', message);
             this.printLog(...messages);
         };
-
         console.error = (...messages) => {
             messages.unshift(Date.now());
             const message = messages.join(' ');
@@ -365,7 +326,8 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (config.emitLogs) this.clientEmit('Error', message);
+            if (config.emitLogs)
+                this.clientEmit('Error', message);
             this.printError(...messages);
         };
         console.time = (label) => {
@@ -376,3 +338,4 @@ export class WalletService extends EventEmitter {
         };
     }
 }
+//# sourceMappingURL=wallet-service.js.map

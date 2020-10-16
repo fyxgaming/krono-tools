@@ -228,8 +228,8 @@ wss.on('connection', (ws, req) => {
     });
 });
 
-app.use('/wallet', express.static(path.join(__dirname, 'ks-client')), (req, res, next) => {
-    let pathToFile = path.join(__dirname, 'ks-client', "index.html");
+app.use('/wallet', express.static(path.join(__dirname, 'public')), (req, res, next) => {
+    let pathToFile = path.join(__dirname, 'public', "index.html");
 
     let data = fs.readFileSync(pathToFile);
     let cType = mime.lookup(pathToFile);

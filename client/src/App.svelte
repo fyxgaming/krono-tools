@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { WalletService } from "./services/wallet-service";
-	const walletService = new WalletService();
+	// import { WalletService } from "./services/wallet-service";
+	// const walletService = new WalletService();
 
 	export let name: string;
 	import Login from "./components/Login.svelte";
 	
 	let loggedIn: boolean;
-	const changed = (event: CustomEvent) => {
-		console.log("changed", event.detail);
-	};
+	// const changed = (event: CustomEvent) => {
+	// 	console.log("changed", event.detail);
+	// };
 </script>
 
 <style>
