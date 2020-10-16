@@ -1,8 +1,8 @@
 import { IStorage } from '../interfaces';
 import { LRUCache } from '../lru-cache';
 
-const createError = require('http-errors');
-const fetch = require('node-fetch');
+import createError from 'http-errors';
+import fetch from 'node-fetch';
 
 export class RestStateCache implements IStorage<any> {
     private requests = new Map<string, Promise<any>>();
