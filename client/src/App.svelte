@@ -14,7 +14,7 @@
 		);
 		window.parent.postMessage(
 			{
-				name: "WALLET_READY",
+				name: "AGENT_LOADED",
 				success: true,
 			},
 			ref
