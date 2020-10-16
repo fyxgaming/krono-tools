@@ -8,10 +8,9 @@
     "sourceMap": true,
     "lib": [
       "es2018"
-    ]
+    ],
   },
   "include": [
-    "lib/**/*.ts",
-    "mock/**/*.ts",
+    "**/*.ts",
   ]
 }

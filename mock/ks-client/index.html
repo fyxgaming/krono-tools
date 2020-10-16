@@ -1,0 +1,99 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="transparent" content="true">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Kronoverse Agent</title>
+  <style>
+    main {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto;
+      outline: 1px solid darkgray;
+      padding: 10px;
+    }
+
+    .toggle {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .panel {
+      grid-column: 1;
+      grid-row: 1;
+      outline: 1px solid darkgray;
+      padding: 10px;
+      background-color: rgba(128, 128, 128, 0.5);
+      
+    }
+  </style>
+</head>
+
+<body>
+  <main> 
+    <div id="menu" class="panel" style="display: none;">
+
+    </div>
+    <div id="login" class="panel" style="display: none;">
+      Login:
+      <input type="text" id="l-handle"><br>
+      Password:
+      <input type="password" id="l-password"><br>
+      <button id="login-btn">Login</button>
+      <a onclick="show('register')">Register</a>
+    </div>
+    <div id="register" class="panel" style="display: none;">
+      Login:
+      <input type="text" id="r-handle"><br>
+      Email:
+      <input type="text" id="r-email"><br>
+      Password:
+      <input type="password" id="r-password"><br>
+      <button id="register-btn">Register</button>
+      <a onclick="show('login')">Login</a>
+    </div>
+  </main>
+  
+  
+  <div>Wed Oct 14 2020 00:59:57 GMT-0400 (Eastern Daylight Time)</div>
+  
+
+  <script src="/wallet/static/bsv.browser.min.js"></script>
+  <script src="/wallet/static/run.browser.min.js"></script>
+  
+  
+  <script src="/wallet/vendors~app~253ae210.js"></script>
+  
+  
+  
+  <script src="/wallet/vendors~app~7274e1de.js"></script>
+  
+  
+  
+  <script src="/wallet/vendors~app~62ab6885.js"></script>
+  
+  
+  
+  <script src="/wallet/vendors~app~67b22fc5.js"></script>
+  
+  
+  
+  <script src="/wallet/vendors~app~7d359b94.js"></script>
+  
+  
+  
+  <script src="/wallet/app~e2e93592.js"></script>
+  
+  
+</body>
+
+</html>
