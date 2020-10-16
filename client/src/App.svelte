@@ -12,13 +12,15 @@
 			},
 			ref
 		);
-		window.parent.postMessage(
-			{
-				name: "AGENT_LOADED",
-				success: true,
-			},
-			ref
-		);
+		setTimeout(() => {
+			window.parent.postMessage(
+				{
+					name: "AGENT_LOADED",
+					success: true,
+				},
+				ref
+			);
+		}, 5000);
 	}, 1000);
 	export let name: string;
 	import Login from "./components/Login.svelte";
