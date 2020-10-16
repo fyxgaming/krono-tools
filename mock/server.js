@@ -281,7 +281,7 @@ const exp = module.exports = {
     cache,
     close,
     events,
-    listen: server.listen,
+    listen,
     initialized: false,
     jigs,
     publishEvent,
