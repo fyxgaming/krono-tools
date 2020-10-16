@@ -3,22 +3,19 @@
 	// const walletService = new WalletService();
 	// walletService.init();
 
-	const ref = document.referrer;
 	setTimeout(() => {
-		window.postMessage(
+		(window as any).vuplex.postMessage(
 			{
 				name: "WALLET_READY",
 				success: true,
-			},
-			ref
+			}
 		);
 		setTimeout(() => {
-			window.postMessage(
+			(window as any).vuplex.postMessage(
 				{
 					name: "AGENT_LOADED",
 					success: true,
-				},
-				ref
+				}
 			);
 		}, 5000);
 	}, 1000);
