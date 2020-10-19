@@ -1,6 +1,6 @@
 <script lang="ts">
-	// import { WalletService } from "./services/wallet-service";
-	// const walletService = new WalletService();
+	import { WalletService } from "./services/wallet-service";
+	const walletService = new WalletService();
 	// walletService.init();
 
 	setTimeout(() => {

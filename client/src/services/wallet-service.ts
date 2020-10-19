@@ -12,17 +12,17 @@ const config = {
 import * as querystring from 'querystring';
 
 import type { IMessage } from '../imessage';
-import { Wallet } from '../lib/wallet';
-import { RestBlockchain } from '../lib/rest-blockchain';
-import { RestStateCache } from '../lib/storage/rest-state-cache';
-import type { IAgent } from '../lib/interfaces';
-import { IORedisMock } from '../lib/ioredis-mock';
-import { SignedMessage } from '../lib/signed-message';
-import { KronoAuth } from '../lib/auth';
+import { Wallet } from '../../../lib/wallet';
+import { RestBlockchain } from '../../../lib/rest-blockchain';
+import { RestStateCache } from '../../../lib/storage/rest-state-cache';
+import type { IAgent } from '../../../lib/interfaces';
+import { IORedisMock } from '../../../lib/ioredis-mock';
+import { SignedMessage } from '../../../lib/signed-message';
+import { KronoAuth } from '../../../lib/auth';
 import { EventEmitter } from 'events';
-import { Buffer } from 'buffer';
+// import { Buffer } from 'buffer';
 
-import { WSClient } from '../lib/ws-client';
+import { WSClient } from '../../../lib/ws-client';
 import Run from '@kronoverse/run';
 
 let queryParams: any = {};

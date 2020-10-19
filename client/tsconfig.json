@@ -1,8 +1,7 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "include": [
-    "src/**/*",
-    "../lib/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules/*",
@@ -19,6 +18,10 @@
       "node_modules/@types",
       "../node_modules/@types"
     ],
-    "importsNotUsedAsValues": "remove"
+    "importsNotUsedAsValues": "remove",
+    "baseUrl": ".",
+    "paths": {
+      // "lib/*": ["../lib/*"]
+    }
   }
 }
