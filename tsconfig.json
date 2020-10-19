@@ -1,18 +1,20 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2018",
+    "module": "es6",
+    "target": "es2017",
     "allowJs": false,
     "declaration": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "lib": [
-      "es2018"
+      "es2017"
     ]
   },
   "include": [
-    "lib/**/*.ts",
-    "bin/**/*.ts",
+    "**/*.ts",
   ],
+  "exclude": [
+    "client/**/*"
+  ]
 }

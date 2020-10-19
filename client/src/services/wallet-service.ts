@@ -1,7 +1,7 @@
 import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 //import { config } from 'node-config-ts';
 const config = {
-    network:'testnet',
+    network: 'testnet',
     apiUrl: '',
     sockets: '',
     ephemeral: true,
@@ -12,16 +12,17 @@ const config = {
 import * as querystring from 'querystring';
 
 import type { IMessage } from '../imessage';
-import { Wallet } from '../../../lib/wallet';
-import { RestBlockchain } from '../../../lib/rest-blockchain';
-import { RestStateCache } from '../../../lib/storage/rest-state-cache';
-import type { IAgent } from '../../../lib/interfaces';
-import { IORedisMock } from '../../../lib/ioredis-mock';
-import { SignedMessage } from '../../../lib/signed-message';
-import { KronoAuth } from '../../../lib/auth';
+import { Wallet } from '../lib/wallet';
+import { RestBlockchain } from '../lib/rest-blockchain';
+import { RestStateCache } from '../lib/storage/rest-state-cache';
+import type { IAgent } from '../lib/interfaces';
+import { IORedisMock } from '../lib/ioredis-mock';
+import { SignedMessage } from '../lib/signed-message';
+import { KronoAuth } from '../lib/auth';
 import { EventEmitter } from 'events';
+import { Buffer } from 'buffer';
 
-import { WSClient } from '../../../lib/ws-client';
+import { WSClient } from '../lib/ws-client';
 import Run from '@kronoverse/run';
 
 let queryParams: any = {};
@@ -181,7 +182,7 @@ export class WalletService extends EventEmitter {
 
         const channels = [this.keyPair.pubKey.toString()];
         let ws;
-        if(config.sockets) {
+        if (config.sockets) {
             console.log('Sockets:', config.sockets);
             ws = new WSClient(WebSocket, config.sockets, channels);
         }
@@ -201,7 +202,7 @@ export class WalletService extends EventEmitter {
         await agent.init();
         this.clientEmit('AGENT_LOADED');
 
-        
+
         ws.on('jig', (jig, channel) => {
             console.log('JIG:', JSON.stringify(jig));
             agent.onJig(jig).catch(console.error);

@@ -8,8 +8,9 @@ import sveltePreprocess from 'svelte-preprocess';
 import externalGlobals from "rollup-plugin-external-globals";
 import { wasm } from '@rollup/plugin-wasm';
 import json from '@rollup/plugin-json';
-import builtins from 'rollup-plugin-node-builtins';
-import globals from 'rollup-plugin-node-globals';
+// import builtins from 'rollup-plugin-node-builtins';
+// import globals from 'rollup-plugin-node-globals';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 import typescript from '@rollup/plugin-typescript';
 
 const production = !process.env.ROLLUP_WATCH;
@@ -45,8 +46,9 @@ export default {
 	},
 	external: ['bsv',],
 	plugins: [
-		globals(),
-		builtins(),
+		nodePolyfills(),
+		// globals(),
+		// builtins(),
 		json(),
 		wasm(),
 		externalGlobals({
