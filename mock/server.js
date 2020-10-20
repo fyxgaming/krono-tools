@@ -6,6 +6,7 @@ const http = require('http');
 const createError = require('http-errors');
 const { NotFound } = createError;
 const Mockchain = require('./mockchain');
+const { spawn, Worker } = require('threads');
 
 const Run = require('@kronoverse/run');
 const { SignedMessage } = require('../lib/signed-message');
@@ -284,6 +285,17 @@ app.use((err, req, res, next) => {
 });
 
 async function listen(port) {
+    const indexWorker = await spawn(new Worker('./indexer'));
+    blockchain.events.on('txn', async (rawtx) => {
+        const jigs = await indexWorker.index(rawtx).catch(console.error);
+        (jigs || []).forEach(jigData => {
+            jigs.set(jigData.location, jigData);
+            publishEvent(jigData.owner, 'jig', jigData);
+            publishEvent(jigData.origin, 'jig', jigData);
+            if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
+        });
+    });
+
     return new Promise((resolve, reject) => {
         // const PORT = process.env.PORT || 8082;
         server.listen(port, (err) => {
