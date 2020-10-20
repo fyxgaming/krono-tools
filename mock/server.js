@@ -74,6 +74,14 @@ app.post('/broadcast', async (req, res, next) => {
     try {
         const { rawtx } = req.body;
         const txid = await blockchain.broadcast(rawtx);
+        
+        const indexed = await indexWorker.index(rawtx).catch(console.error);
+        (indexed || []).forEach(jigData => {
+            jigs.set(jigData.location, jigData);
+            publishEvent(jigData.owner, 'jig', jigData);
+            publishEvent(jigData.origin, 'jig', jigData);
+            if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
+        });
         res.send(txid);
     } catch (e) {
         next(e);
@@ -284,17 +292,9 @@ app.use((err, req, res, next) => {
     res.status(err.statusCode || 500).send(err.message);
 });
 
+let indexWorker;
 async function listen(port) {
-    const indexWorker = await spawn(new Worker('./indexer'));
-    blockchain.events.on('txn', async (rawtx) => {
-        const jigs = await indexWorker.index(rawtx).catch(console.error);
-        (jigs || []).forEach(jigData => {
-            jigs.set(jigData.location, jigData);
-            publishEvent(jigData.owner, 'jig', jigData);
-            publishEvent(jigData.origin, 'jig', jigData);
-            if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
-        });
-    });
+    indexWorker = await spawn(new Worker('./indexer'));
 
     return new Promise((resolve, reject) => {
         // const PORT = process.env.PORT || 8082;
