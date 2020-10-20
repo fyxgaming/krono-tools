@@ -289,7 +289,7 @@ async function listen(port) {
 async function close() {
     server.close();
 }
-const exp = module.exports = {
+const exp = {
     debug: true,
     agents: {},
     blockchain,
@@ -302,6 +302,7 @@ const exp = module.exports = {
     cache,
     publishEvent,
 };
+exports.default = exp;
 blockchain.events.on('txn', async (rawtx) => {
     blockchain.block();
     const tx = bsv_1.Tx.fromHex(rawtx);

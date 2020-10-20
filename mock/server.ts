@@ -308,7 +308,7 @@ async function close() {
     server.close();
 }
 
-const exp = module.exports = {
+const exp = {
     debug: true,
     agents: {},
     blockchain,
@@ -321,6 +321,7 @@ const exp = module.exports = {
     cache,
     publishEvent,
 };
+export default exp;
 
 blockchain.events.on('txn', async (rawtx) => {
     blockchain.block();
