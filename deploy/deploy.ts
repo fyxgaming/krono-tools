@@ -3,8 +3,8 @@ import fs from 'fs-extra';
 import minimist from 'minimist';
 import path from 'path';
 
-import { RestBlockchain } from '../lib/rest-blockchain';
-import { Deployer } from '../lib/deployer';
+import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
+import { Deployer } from './deployer';
 const fetch = require('node-fetch');
 const Run = require('@kronoverse/run');
 

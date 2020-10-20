@@ -2,16 +2,16 @@ import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 // import * as querystring from 'querystring';
 
 import type { IMessage } from '../imessage';
-import { Wallet } from '../../../lib/wallet';
-import { RestBlockchain } from '../../../lib/rest-blockchain';
-import { RestStateCache } from '../../../lib/storage/rest-state-cache';
-import type { IAgent } from '../../../lib/interfaces';
-import { IORedisMock } from '../../../lib/ioredis-mock';
-import { SignedMessage } from '../../../lib/signed-message';
-import { KronoAuth } from '../../../lib/auth';
+import { Wallet } from '@kronoverse/lib/dist/wallet';
+import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
+import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
+import type { IAgent } from '@kronoverse/lib/dist/interfaces';
+// import { IORedisMock } from '@kronoverse/lib/dist/ioredis-mock';
+import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
+import { AuthService } from './auth-service';
 import { EventEmitter } from 'events';
 
-import { WSClient } from '../../../lib/ws-client';
+import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from '@kronoverse/run';
 
 import { Buffer } from 'buffer';
@@ -37,7 +37,7 @@ export class WalletService extends EventEmitter {
     private domain = document.location.hash.slice(1).split('@')[1];
     private config: any;
 
-    private auth: KronoAuth;
+    private auth: AuthService;
 
     constructor() {
         super();
@@ -94,7 +94,7 @@ export class WalletService extends EventEmitter {
 
         this.overrideConsole();
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
-        this.auth = new KronoAuth(this.apiUrl, this.domain, config.network);
+        this.auth = new AuthService(this.apiUrl, this.domain, config.network);
 
         let initialized = false;
         while (config.ephemeral && !initialized) {
@@ -166,7 +166,7 @@ export class WalletService extends EventEmitter {
             run
         );
 
-        const storage = new IORedisMock();
+        // const storage = new IORedisMock();
 
         const channels = [this.keyPair.pubKey.toString()];
         let ws;
@@ -179,7 +179,7 @@ export class WalletService extends EventEmitter {
         console.log('AGENT_ID:', this.agentId);
         console.log('LOC:', this.agentDef.location);
         const Agent = await run.load(this.agentDef.location);
-        const agent = this.agent = new Agent(wallet, blockchain, storage, bsv, { fetch, Buffer, ws, SignedMessage });
+        const agent = this.agent = new Agent(wallet, blockchain, null, bsv, { fetch, Buffer, ws, SignedMessage });
         agent.on('client', this.clientEmit.bind(this));
         agent.on('subscribe', (channel: string, lastId?: number) => {
             ws.subscribe(channel, lastId);

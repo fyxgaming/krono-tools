@@ -1,11 +1,10 @@
 import { createHash } from 'crypto';
 import * as path from 'path';
-import { IJig } from "./interfaces";
 import * as fs from 'fs-extra';
 import simpleGit from 'simple-git/promise';
 
 export class Deployer {
-    cache = new Map<string, IJig>()
+    cache = new Map<string, any>()
     networkKey: string;
     fs = fs;
     path = path;
@@ -80,7 +79,7 @@ export class Deployer {
         //If there are asyncDeps, recursively load and deploy those as necessary
         const asyncDeps: { [key: string]: string } = resource.asyncDeps || {};
         if (Object.keys(asyncDeps).length) {
-            let deps: { [key: string]: IJig } = {};
+            let deps: { [key: string]: any } = {};
             for (let [key, depPath] of Object.entries(asyncDeps)) {
                 //Resolve code file path to dependency
                 depPath = depPath.replace('{env}', this.env);
@@ -240,7 +239,7 @@ export class Deployer {
         return Promise.reject(new Error('Source file is not under source control.'));
     }
 
-    async loadChain(chainFile: string): Promise<IJig | undefined> {
+    async loadChain(chainFile: string): Promise<any> {
         if (this.cache.has(chainFile)) return this.cache.get(chainFile);
         let sourcePath;
         if (fs.pathExistsSync(path.join(this.rootPath, chainFile))) {
@@ -258,7 +257,7 @@ export class Deployer {
         return jig;
     }
 
-    async writeChain(chainFile: string, jig: IJig) {
+    async writeChain(chainFile: string, jig: any) {
         const chainPath = path.join(this.rootPath, chainFile);
         const chainData = fs.pathExistsSync(chainPath) ? fs.readJSONSync(chainPath) : {}
         chainData[this.env] = jig.location;
