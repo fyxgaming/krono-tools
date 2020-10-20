@@ -1,5 +1,7 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
+import tsPlugin from '@rollup/plugin-typescript';
+import typescript from 'typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
 import livereload from 'rollup-plugin-livereload';
@@ -11,7 +13,7 @@ import json from '@rollup/plugin-json';
 // import builtins from 'rollup-plugin-node-builtins';
 // import globals from 'rollup-plugin-node-globals';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
-import typescript from '@rollup/plugin-typescript';
+
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -45,6 +47,9 @@ export default {
 		file: 'public/build/bundle.js',
 	},
 	external: ['bsv',],
+	watch: {
+        include: 'src/**'
+    },
 	plugins: [
 		nodePolyfills(),
 		// globals(),
@@ -57,11 +62,14 @@ export default {
 			"bsv": "bsvjs",
 			"argon2-browser": "argon2"
 		}),
-		copy({
-			targets: [
-				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
-				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' }
-			]
+		// If you have external dependencies installed from
+		// npm, you'll most likely need these plugins. In
+		// some cases you'll need additional configuration -
+		// consult the documentation for details:
+		// https://github.com/rollup/plugins/tree/master/packages/commonjs
+		resolve({
+			browser: true,
+			dedupe: ['svelte']
 		}),
 		svelte({
 			// enable run-time checks when not in production
@@ -73,22 +81,19 @@ export default {
 			},
 			preprocess: sveltePreprocess(),
 		}),
-
-		// If you have external dependencies installed from
-		// npm, you'll most likely need these plugins. In
-		// some cases you'll need additional configuration -
-		// consult the documentation for details:
-		// https://github.com/rollup/plugins/tree/master/packages/commonjs
-		resolve({
-			browser: true,
-			dedupe: ['svelte']
+		tsPlugin({
+			sourceMap: !production,
+			inlineSources: !production,
+			moduleResolution: "node",
+			typescript: typescript,
 		}),
 		commonjs(),
-		typescript({
-			sourceMap: !production,
-			inlineSources: !production
+		copy({
+			targets: [
+				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
+				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' }
+			]
 		}),
-
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
 		!production && serve(),

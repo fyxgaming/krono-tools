@@ -17,6 +17,7 @@ import { IORedisMock } from '../../../lib/ioredis-mock';
 import { SignedMessage } from '../../../lib/signed-message';
 import { KronoAuth } from '../../../lib/auth';
 import { EventEmitter } from 'events';
+// import { Buffer } from 'buffer';
 import { WSClient } from '../../../lib/ws-client';
 import Run from '@kronoverse/run';
 let queryParams = {};
