@@ -19,6 +19,7 @@
       "node_modules/@types",
       "../node_modules/@types"
     ],
-    "importsNotUsedAsValues": "remove"
+    "importsNotUsedAsValues": "remove",
+    "sourceMap": true
   }
 }

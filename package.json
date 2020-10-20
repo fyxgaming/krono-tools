@@ -5,7 +5,7 @@
   "private": false,
   "main": "index.js",
   "scripts": {
-    "build": "tsc -p .",
+    "build": "./build.sh",
     "prepublishOnly": "npm run build",
     "deploy": "./deploy-jigs.sh"
   },

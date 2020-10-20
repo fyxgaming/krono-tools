@@ -1,27 +1,24 @@
-const { LocalCache } = require('@kronoverse/run');
-const { SignedMessage } = require('../lib/signed-message');
-const { Address } = require('bsv');
 const cors = require('cors');
+const { Address, Br, Tx } = require('bsv');
 const { EventEmitter } = require('events');
 const express = require('express');
-const fs = require('fs');
 const http = require('http');
 const createError = require('http-errors');
-const mime = require('mime-types');
-const path = require('path');
-const Mockchain = require('./mockchain');
-const WebSocket = require('ws');
-
 const { NotFound } = createError;
-const agents = new Map();
+const Mockchain = require('./mockchain');
+
+const Run = require('@kronoverse/run');
+const { SignedMessage } = require('../lib/signed-message');
+
 const events = new EventEmitter();
 events.setMaxListeners(100);
 const jigs = new Map();
 const messages = new Map();
 
 const blockchain = new Mockchain();
-// blockchain.mempoolChainLimit = Number.MAX_VALUE;
-const cache = new LocalCache({ maxSizeMB: 100 });
+blockchain.mempoolChainLimit = Number.MAX_VALUE;
+const cache = new Run.LocalCache({ maxSizeMB: 100 });
+const txns = [];
 
 const channels = new Map();
 function publishEvent(channel, event, data) {
@@ -34,7 +31,12 @@ function publishEvent(channel, event, data) {
 const app = express();
 const server = http.createServer(app);
 
+const WebSocket = require('ws');
 const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
+
+const fs = require('fs');
+const path = require('path');
+const mime = require('mime-types');
 
 app.enable('trust proxy');
 app.use(cors());
@@ -110,8 +112,7 @@ app.get('/spends/:loc', async (req, res, next) => {
 app.get('/fund/:address', async (req, res, next) => {
     try {
         const { address } = req.params;
-        const satoshis = parseInt(req.query.satoshis, 10) || 100000000;
-        // parseInt(req.query.satoshis || 100000000, 10);
+        const satoshis = parseInt(req.query.satoshis) || 100000000;
         const txid = await blockchain.fund(address, satoshis);
         res.send(txid);
     } catch (e) {
@@ -120,7 +121,7 @@ app.get('/fund/:address', async (req, res, next) => {
 });
 
 app.get('/agents/:realm/:agentId', (req, res) => {
-    const agent = agents.get(req.params.agentId);
+    const agent = exp.agents[req.params.agentId];
     if (!agent) throw new NotFound();
     res.json(agent);
 });
@@ -136,7 +137,7 @@ app.get('/jigs', async (req, res, next) => {
 app.get('/jigs/:loc', async (req, res, next) => {
     try {
         const { loc } = req.params;
-        if (jigs.has(loc)) {
+        if(jigs.has(loc)) {
             return res.json(jigs.get(loc));
         }
         res.sendStatus(404);
@@ -171,6 +172,18 @@ app.post('/jigs/origin/:origin', async (req, res, next) => {
     try {
         const matching = Array.from(jigs.values()).filter(jig => jig.origin === req.params.origin);
         res.json(matching);
+    } catch (e) {
+        next(e);
+    }
+});
+
+app.get('/messages/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const message = messges.get(id);
+        if (!message) throw new NotFound();
+        res.json(message);
+
     } catch (e) {
         next(e);
     }
@@ -213,11 +226,11 @@ server.on('upgrade', (request, socket, head) => {
 
 wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
-        const { action, channelId } = JSON.parse(message.toString());
+        const { action, channelId } = JSON.parse(message);
 
         if (action !== 'subscribe') return;
 
-        events.on(channelId, (id, event, data) => {
+        events.on(channelId, (id,event,data) => {
             ws.send(JSON.stringify({
                 id,
                 channel: channelId,
@@ -228,29 +241,29 @@ wss.on('connection', (ws, req) => {
     });
 });
 
-app.use('/wallet', express.static(path.join(__dirname, 'public')), (req, res, next) => {
-    let pathToFile = path.join(__dirname, 'public', "index.html");
+app.use('/wallet',express.static(path.join(__dirname, '../client/public')), (req,res,next) => {
+    let pathToFile = path.join(__dirname, '../client', "index.html");
 
     let data = fs.readFileSync(pathToFile);
     let cType = mime.lookup(pathToFile);
 
-    res.status(200);
-    cType && res.set("Content-Type");
+    res.writeHeader(200, { "Content-Type": cType });
     res.write(data);
     res.end();
 });
 
 app.get('/txns', async (req, res, next) => {
-    res.json([...blockchain.txns.values()]);
+    res.json(await Promise.all(txns.map(txid => blockchain.fetch(txid))));
 });
 
 app.post('/:agentId', async (req, res, next) => {
-    events.emit('agentMsg', req.params.agentId, req.body, (err, result) => {
-        if (err) {
-            return next(err);
-        }
-        res.json(result || null);
-    })
+    const agent = exp.agents[req.params.agentId];
+    if(agent && agent.onMessage) {
+        const result = await agent.onMessage(req.body);
+        res.json(result);
+    } else {
+        res.sendStatus(204);
+    }
 })
 
 app.use((err, req, res, next) => {
@@ -275,31 +288,31 @@ async function close() {
 }
 
 const exp = module.exports = {
-    agents,
-    blockchain,
     debug: true,
-    cache,
-    close,
+    agents: {},
+    blockchain,
     events,
     listen,
+    close,
     initialized: false,
     jigs,
+    txns,
+    cache,
     publishEvent,
 };
 
-// blockchain.events.on('txn', async (rawtx) => {
-//     blockchain.block();
-//     const tx = Tx.fromHex(rawtx);
-//     const txid = tx.id();
-//     txns.push(txid);
-// });
-
+blockchain.events.on('txn', async (rawtx) => {
+    blockchain.block();
+    const tx = Tx.fromHex(rawtx);
+    const txid = tx.id();
+    txns.push(txid);
+});
 
 // Testing Stuff
-// let PORT = process.env.MOCKPORT === undefined ? 3000 : process.env.MOCKPORT;
+let PORT = process.env.MOCKPORT === undefined ? 3000 : process.env.MOCKPORT;
 
-// (async () => {
-//     app.listen(PORT,() => {
-//         console.log(`Server listening on port ${PORT}`);
-//     })
-// })();
+(async () => {
+    app.listen(PORT,() => {
+        console.log(`Server listening on port ${PORT}`);
+    })
+})();

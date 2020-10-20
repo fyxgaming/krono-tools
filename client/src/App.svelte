@@ -1,31 +1,15 @@
 <script lang="ts">
 	import { WalletService } from "./services/wallet-service";
 	const walletService = new WalletService();
-	// walletService.init();
+	walletService.init();
 
-	setTimeout(() => {
-		(window as any).vuplex.postMessage(
-			{
-				name: "WALLET_READY",
-				success: true,
-			}
-		);
-		setTimeout(() => {
-			(window as any).vuplex.postMessage(
-				{
-					name: "AGENT_LOADED",
-					success: true,
-				}
-			);
-		}, 5000);
-	}, 1000);
 	export let name: string;
 	import Login from "./components/Login.svelte";
 
 	let loggedIn: boolean;
-	// const changed = (event: CustomEvent) => {
-	// 	console.log("changed", event.detail);
-	// };
+	const changed = (event: CustomEvent) => {
+		console.log("changed", event.detail);
+	};
 </script>
 
 <style>
