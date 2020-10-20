@@ -14,6 +14,8 @@ import { EventEmitter } from 'events';
 import { WSClient } from '../../../lib/ws-client';
 import Run from '@kronoverse/run';
 
+import { Buffer } from 'buffer';
+
 import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;
 console.log('LOAD');
@@ -89,7 +91,7 @@ export class WalletService extends EventEmitter {
         console.log('INIT');
         let resp = await fetch(`${this.apiUrl}/config`);
         const config = this.config = await resp.json();
-        
+
         this.overrideConsole();
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
         this.auth = new KronoAuth(this.apiUrl, this.domain, config.network);
