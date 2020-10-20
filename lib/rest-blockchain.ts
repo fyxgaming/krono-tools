@@ -2,7 +2,7 @@ import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
 import { SignedMessage } from './signed-message';
 
-import createError from 'http-errors';
+import {HttpError} from './http-error';
 import fetch from 'node-fetch';
 
 export class RestBlockchain {
@@ -32,7 +32,7 @@ export class RestBlockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawtx })
         });
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         const txid = await resp.text();
         this.debug && console.log('Broadcast:', txid);
         await this.cache.set(`tx://${txid}`, rawtx);
@@ -54,7 +54,7 @@ export class RestBlockchain {
             const request = Promise.resolve().then(async () => {
                 const resp = await fetch(`${this.apiUrl}/tx/${txid}`);
                 if (!resp.ok)
-                    throw createError(resp.status, await resp.text());
+                    throw new HttpError(resp.status, await resp.text());
                 rawtx = await resp.text();
                 await this.cache.set(`tx://${txid}`, rawtx);
                 this.requests.delete(txid);
@@ -83,7 +83,7 @@ export class RestBlockchain {
         if (!this.requests.has(cacheKey)) {
             const request = (async () => {
                 const resp = await fetch(`${this.apiUrl}/spends/${txid}_o${vout}`);
-                if (!resp.ok) throw createError(resp.status, await resp.text());
+                if (!resp.ok) throw new HttpError(resp.status, await resp.text());
                 spend = (await resp.text()) || null;
                 if(spend) await this.cache.set(cacheKey, spend);
                 this.requests.delete(cacheKey);
@@ -119,7 +119,7 @@ export class RestBlockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         return resp.json();
     }
 
@@ -129,19 +129,19 @@ export class RestBlockchain {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(query)
         });
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         return resp.json();
     }
 
     async fund(address: string, satoshis?: number) {
         const resp = await fetch(`${this.apiUrl}/fund/${address}${satoshis ? `?satoshis=${satoshis}` : ''}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         return resp.text();
     }
 
     async loadMessage(messageId): Promise<SignedMessage> {
         const resp = await fetch(`${this.apiUrl}/messages/${messageId}`);
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         return new SignedMessage(await resp.json());
     }
 
@@ -153,7 +153,7 @@ export class RestBlockchain {
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(message)
         });
-        if (!resp.ok) throw createError(resp.status, await resp.text());
+        if (!resp.ok) throw new HttpError(resp.status, await resp.text());
         return resp.json();
     }
 }

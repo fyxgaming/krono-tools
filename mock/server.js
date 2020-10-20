@@ -3,8 +3,7 @@ const { Address, Br, Tx } = require('bsv');
 const { EventEmitter } = require('events');
 const express = require('express');
 const http = require('http');
-const createError = require('http-errors');
-const { NotFound } = createError;
+const {HttpError} = require('./http-error');
 const Mockchain = require('./mockchain');
 const { spawn, Worker } = require('threads');
 
@@ -92,7 +91,7 @@ app.get('/tx/:txid', async (req, res, next) => {
     try {
         const { txid } = req.params;
         const rawtx = await blockchain.fetch(txid);
-        if (!rawtx) throw new NotFound();
+        if (!rawtx) throw new HttpError(404, 'Not Found');
 
         res.send(rawtx);
     } catch (e) {

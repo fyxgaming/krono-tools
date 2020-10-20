@@ -1,7 +1,7 @@
 import { IStorage } from '../interfaces';
 import { LRUCache } from '../lru-cache';
 
-import createError from 'http-errors';
+import {HttpError} from '../http-error';
 import fetch from 'node-fetch';
 
 export class RestStateCache implements IStorage<any> {
@@ -28,7 +28,7 @@ export class RestStateCache implements IStorage<any> {
                         if(this.debug) console.log('Remote Miss:', key);
                         return;
                     }
-                    throw createError(resp.status, resp.statusText);
+                    throw new HttpError(resp.status, resp.statusText);
                 }
                 if(this.debug) console.log('Remote Hit:', key);
                 value = await resp.json();
