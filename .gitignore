@@ -1,8 +1,9 @@
-/dist
 **/node_modules
 *.env
 !mock.env
 
+bin/**/*.js
 lib/**/*.js
 *.d.ts
 *.js.map
+

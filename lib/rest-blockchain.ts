@@ -2,8 +2,8 @@ import { IStorage, IUTXO } from './interfaces';
 import { LRUCache } from './lru-cache';
 import { SignedMessage } from './signed-message';
 
-const createError = require('http-errors');
-const fetch = require('node-fetch');
+import createError from 'http-errors';
+import fetch from 'node-fetch';
 
 export class RestBlockchain {
     private requests = new Map<string, Promise<any>>();

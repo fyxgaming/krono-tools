@@ -3,7 +3,6 @@ import fs from 'fs-extra';
 import minimist from 'minimist';
 import path from 'path';
 
-import { MapStorage } from '../lib/storage/map-storage';
 import { RestBlockchain } from '../lib/rest-blockchain';
 import { Deployer } from '../lib/deployer';
 const fetch = require('node-fetch');
@@ -13,11 +12,10 @@ var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
-    infra: 'https://kronoverse-infra.appspot.com',
-    // dev: 'https://kronoverse-dev.appspot.com',
+    adhoc: 'https://adhoc.aws.kronoverse.io',
     dev: 'https://dev.aws.kronoverse.io',
-    test: 'https://kronoverse-test.appspot.com',
-    prod: 'https://kronoverse-main.appspot.com'
+    test: 'https://test.aws.kronoverse.io',
+    prod: 'https://main.aws.kronoverse.io'
 };
 
 
@@ -68,13 +66,13 @@ function renderUsage() {
     console.log('CONFIG:', blockchainUrl, network, source);
     if (!blockchainUrl || !network || !source) {
         renderUsage();
-        return;
+        process.exit(1);
     }
 
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        new MapStorage(),
+        new Run.LocalCache(),
         // true
     );
 
@@ -85,6 +83,7 @@ function renderUsage() {
         purse,
         app: argv.app,
         timeout: 30000,
+        trust: '*'
         // logger: console
     });
 
