@@ -241,6 +241,18 @@ wss.on('connection', (ws, req) => {
     });
 });
 
+app.get('/config', (req, res, next) => {
+    res.json({
+        network: 'testnet',
+        apiUrl: `http://localhost:8082`,
+        sockets: 'ws://localhost:8082/v1',
+        ephemeral: true,
+        emitLogs: true,
+        app: 'local',
+        errorLog: false
+    });
+});
+
 app.use('/wallet',express.static(path.join(__dirname, '../client/public')), (req,res,next) => {
     let pathToFile = path.join(__dirname, '../client', "index.html");
 

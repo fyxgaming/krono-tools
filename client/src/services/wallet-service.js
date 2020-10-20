@@ -1,15 +1,4 @@
 import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
-//import { config } from 'node-config-ts';
-const config = {
-    network: 'testnet',
-    apiUrl: '',
-    sockets: '',
-    ephemeral: true,
-    emitLogs: false,
-    app: '',
-    errorLog: 'true'
-};
-import * as querystring from 'querystring';
 import { Wallet } from '../../../lib/wallet';
 import { RestBlockchain } from '../../../lib/rest-blockchain';
 import { RestStateCache } from '../../../lib/storage/rest-state-cache';
@@ -17,16 +6,8 @@ import { IORedisMock } from '../../../lib/ioredis-mock';
 import { SignedMessage } from '../../../lib/signed-message';
 import { KronoAuth } from '../../../lib/auth';
 import { EventEmitter } from 'events';
-// import { Buffer } from 'buffer';
 import { WSClient } from '../../../lib/ws-client';
 import Run from '@kronoverse/run';
-let queryParams = {};
-const urlParts = window.location.href.split('?');
-if (urlParts[1]) {
-    const [query] = urlParts[1].split('#');
-    queryParams = querystring.decode(query);
-}
-Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
 import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;
 console.log('LOAD');
@@ -35,15 +16,12 @@ export class WalletService extends EventEmitter {
         super();
         this.printLog = console.log.bind(console);
         this.printError = console.error.bind(console);
-        // private requestService: RequestService;
         this.logId = 0;
         this.logs = [];
         this.sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
         this.timeLabels = {};
-        this.apiUrl = queryParams.apiUrl || config.apiUrl;
+        this.apiUrl = '';
         this.domain = document.location.hash.slice(1).split('@')[1];
-        this.overrideConsole();
-        this.auth = new KronoAuth(this.apiUrl, this.domain, config.network);
     }
     get channel() {
         const v = window.vuplex;
@@ -84,10 +62,15 @@ export class WalletService extends EventEmitter {
     }
     async init() {
         console.log('INIT');
+        let resp = await fetch(`${this.apiUrl}/config`);
+        const config = this.config = await resp.json();
+        this.overrideConsole();
+        Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
+        this.auth = new KronoAuth(this.apiUrl, this.domain, config.network);
         let initialized = false;
         while (config.ephemeral && !initialized) {
             await new Promise((resolve) => setTimeout(() => resolve(), 5000));
-            const resp = await fetch(`${this.apiUrl}/initialize`);
+            resp = await fetch(`${this.apiUrl}/initialize`);
             initialized = resp.ok && await resp.json();
         }
         this.clientEmit('WALLET_READY');
@@ -95,7 +78,7 @@ export class WalletService extends EventEmitter {
         console.log('BLOCKCHAIN:', this.apiUrl);
         const url = `${this.apiUrl}/agents/${this.domain}/${this.agentId}`;
         console.log('fetching:', url);
-        const resp = await fetch(url);
+        resp = await fetch(url);
         if (!resp.ok)
             throw new Error(`${resp.status} - ${resp.statusText}`);
         this.agentDef = await resp.json();
@@ -132,14 +115,14 @@ export class WalletService extends EventEmitter {
     }
     async initializeWallet(owner, purse) {
         const cache = new Run.LocalCache({ maxSizeMB: 100 });
-        const blockchain = new RestBlockchain(this.apiUrl, config.network, cache);
+        const blockchain = new RestBlockchain(this.apiUrl, this.config.network, cache);
         const run = new Run({
-            network: config.network,
+            network: this.config.network,
             owner,
             blockchain,
             purse,
             cache: new RestStateCache(this.apiUrl, cache),
-            app: config.app || 'kronoverse',
+            app: this.config.app || 'kronoverse',
             trust: '*',
             timeout: 60000,
             logger: {
@@ -150,9 +133,9 @@ export class WalletService extends EventEmitter {
         const storage = new IORedisMock();
         const channels = [this.keyPair.pubKey.toString()];
         let ws;
-        if (config.sockets) {
-            console.log('Sockets:', config.sockets);
-            ws = new WSClient(WebSocket, config.sockets, channels);
+        if (this.config.sockets) {
+            console.log('Sockets:', this.config.sockets);
+            ws = new WSClient(WebSocket, this.config.sockets, channels);
         }
         console.log('DOMAIN:', this.domain);
         console.log('AGENT_ID:', this.agentId);
@@ -182,7 +165,7 @@ export class WalletService extends EventEmitter {
         if (handle)
             this.handle = handle;
         let bip32;
-        if (config.ephemeral) {
+        if (this.config.ephemeral) {
             bip32 = Bip32.fromRandom();
             this.keyPair = KeyPair.fromPrivKey(bip32.privKey);
         }
@@ -312,7 +295,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (config.emitLogs)
+            if (this.config.emitLogs)
                 this.clientEmit('Log', message);
             this.printLog(...messages);
         };
@@ -327,7 +310,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (config.emitLogs)
+            if (this.config.emitLogs)
                 this.clientEmit('Error', message);
             this.printError(...messages);
         };
