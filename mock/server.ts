@@ -310,7 +310,7 @@ async function close() {
 
 const exp = {
     debug: true,
-    agents: {},
+    agents: {} as {[key: string]: any},
     blockchain,
     events,
     listen,
