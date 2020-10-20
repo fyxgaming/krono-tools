@@ -13,10 +13,7 @@
     "krono-deploy": "./bin/deploy.js"
   },
   "files": [
-    "bin/**/*",
-    "lib/**/*",
-    "jigs/**/*",
-    "mock/**/*"
+    "**/*"
   ],
   "dependencies": {
     "@kronoverse/run": "^0.6.19",
