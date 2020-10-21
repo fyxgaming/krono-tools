@@ -1,54 +1,56 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const bsv_1 = __importDefault(require("bsv"));
-const bsv_2 = require("bsv");
-const rest_blockchain_1 = require("@kronoverse/lib/dist/rest-blockchain");
-const rest_state_cache_1 = require("@kronoverse/lib/dist/rest-state-cache");
-const wallet_1 = require("@kronoverse/lib/dist/wallet");
-const run_1 = __importDefault(require("@kronoverse/run"));
-const ioredis_mock_1 = __importDefault(require("ioredis-mock"));
-const signed_message_1 = require("@kronoverse/lib/dist/signed-message");
-const node_fetch_1 = __importDefault(require("node-fetch"));
-const worker_1 = require("threads/worker");
-const ws_client_1 = require("@kronoverse/lib/dist/ws-client");
-const ws_1 = __importDefault(require("ws"));
+const bsv = require('bsv');
+const { Bip32, KeyPair } = require('bsv');
+const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
+const { RestStateCache } = require('@kronoverse/lib/dist/rest-state-cache');
+const { Wallet } = require('@kronoverse/lib/dist/wallet');
+const Run = require('@kronoverse/run');
+const Redis = require('ioredis-mock');
+const { SignedMessage } = require('@kronoverse/lib/dist/signed-message');
+const fetch = require('node-fetch');
+
+const { expose } = require('threads/worker');
+
+const {WSClient} = require('@kronoverse/lib/dist/ws-client');
+const WebSocket = require('ws');
+
 let wallet;
 let agent;
 let id;
-worker_1.expose({
+expose({
     init: async (agentId, apiUrl, xpriv, paymail, agentLoc, subscribe, initParams) => {
         id = agentId;
-        const bip32 = bsv_2.Bip32.fromString(xpriv);
+        const bip32 = Bip32.fromString(xpriv);
         const purse = bip32.derive('m/0/0').privKey.toString();
         const owner = bip32.derive('m/1/0').privKey.toString();
-        const keyPair = bsv_2.KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
-        const localCache = new run_1.default.LocalCache({ maxSizeMB: 100 });
-        const cache = new rest_state_cache_1.RestStateCache(apiUrl, localCache, false);
-        const blockchain = new rest_blockchain_1.RestBlockchain(apiUrl, 'mock', localCache, false);
-        const run = new run_1.default({
+        const keyPair = KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
+
+        const localCache = new Run.LocalCache({ maxSizeMB: 100 });
+        const cache = new RestStateCache(apiUrl, localCache, false);
+        const blockchain = new RestBlockchain(apiUrl, 'mock', localCache, false);
+        const run = new Run({
             network: 'mock',
             blockchain,
             owner,
             purse,
-            cache,
+            cache,//: localCache,
             timeout: 360000,
             trust: '*',
+            // logger: console
         });
-        wallet = new wallet_1.Wallet(paymail, keyPair, run);
+
+        wallet = new Wallet(paymail, keyPair, run);
         await blockchain.fund(run.purse.address);
-        const storage = new ioredis_mock_1.default();
+
+        const storage = new Redis();
         console.log('Agent Load', agentLoc);
         const Agent = await run.load(agentLoc);
         // await Agent.sync();
         const channels = [];
-        if (subscribe) {
+        if(subscribe) {
             channels.push(keyPair.pubKey.toString(), run.owner.address);
         }
-        const ws = new ws_client_1.WSClient(ws_1.default, `${apiUrl.replace('http', 'ws')}/ws`, channels);
-        agent = new Agent(wallet, blockchain, storage, bsv_1.default, { fetch: node_fetch_1.default, Buffer, SignedMessage: signed_message_1.SignedMessage });
+        const ws = new WSClient(WebSocket, `${apiUrl.replace('http','ws')}/ws`, channels);
+        agent = new Agent(wallet, blockchain, storage, bsv, { fetch, Buffer, SignedMessage });
         agent.on('subscribe', (channel, lastId) => {
             ws.subscribe(channel, lastId);
         });
@@ -70,8 +72,9 @@ worker_1.expose({
         ws.on('msg', async (message) => {
             // const message = JSON.parse(e.data);
             console.log(`${id}-Message:`, message);
-            await agent.onMessage(new signed_message_1.SignedMessage(message)).catch(console.error);
+            await agent.onMessage(new SignedMessage(message)).catch(console.error);
         });
+
         ws.on('jig', async (jig) => {
             // const jigData = JSON.parse(e.data);
             console.log(`${id}-jig-${jig.kind}-${jig.location}`);
@@ -80,11 +83,10 @@ worker_1.expose({
     },
     message: async (message) => {
         console.log(`${id}-Message:`, message);
-        const result = await agent.onMessage(new signed_message_1.SignedMessage(message));
+        const result = await agent.onMessage(new SignedMessage(message));
         return result || null;
     },
     event: async (handler, payload) => {
         return agent.onEvent(handler, payload);
     }
 });
-//# sourceMappingURL=kronicler.js.map
