@@ -8,10 +8,12 @@ import { AuthService } from './auth-service';
 import { EventEmitter } from 'events';
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from '@kronoverse/run';
-import { Buffer } from 'buffer/';
+import { Buffer } from 'buffer';
 import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;
 console.log('LOAD');
+const test = Buffer.from('test');
+console.log('Buffer:', test);
 export class WalletService extends EventEmitter {
     constructor() {
         super();
