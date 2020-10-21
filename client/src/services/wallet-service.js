@@ -116,13 +116,13 @@ export class WalletService extends EventEmitter {
     }
     async initializeWallet(owner, purse) {
         const cache = new Run.LocalCache({ maxSizeMB: 100 });
-        const blockchain = new RestBlockchain(this.apiUrl, this.config.network, cache);
+        const blockchain = new RestBlockchain(fetch, this.apiUrl, this.config.network, cache);
         const run = new Run({
             network: this.config.network,
             owner,
             blockchain,
             purse,
-            cache: new RestStateCache(this.apiUrl, cache),
+            cache: new RestStateCache(fetch, this.apiUrl, cache),
             app: this.config.app || 'kronoverse',
             trust: '*',
             timeout: 60000,
