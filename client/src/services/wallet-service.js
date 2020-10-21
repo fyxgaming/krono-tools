@@ -258,7 +258,7 @@ export class WalletService extends EventEmitter {
         return message && message.name;
     }
     clientEmit(name, payload) {
-        console.log('Emitting', name, payload && JSON.stringify(payload));
+        // console.log('Emitting', name, payload && JSON.stringify(payload));
         const message = {
             name,
             payload: payload && JSON.stringify(payload),
