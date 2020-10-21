@@ -3,11 +3,12 @@ const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const Run = require('@kronoverse/run');
 
 const { expose } = require('threads/worker');
+const fetch = require('node-fetch');
 
 const PORT = process.env.PORT || 8082;
 const network = 'mock';
 const apiUrl = `http://localhost:${PORT}`;
-const blockchain = new RestBlockchain(apiUrl, network);
+const blockchain = new RestBlockchain(fetch, apiUrl, network);
 const run = new Run({
     network,
     blockchain,

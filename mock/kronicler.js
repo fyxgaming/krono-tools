@@ -25,8 +25,8 @@ expose({
         const keyPair = KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
 
         const localCache = new Run.LocalCache({ maxSizeMB: 100 });
-        const cache = new RestStateCache(apiUrl, localCache, false);
-        const blockchain = new RestBlockchain(apiUrl, 'mock', localCache, false);
+        const cache = new RestStateCache(fetch, apiUrl, localCache, false);
+        const blockchain = new RestBlockchain(fetch, apiUrl, 'mock', localCache, false);
         const run = new Run({
             network: 'mock',
             blockchain,
