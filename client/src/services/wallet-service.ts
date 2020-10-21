@@ -91,7 +91,7 @@ export class WalletService extends EventEmitter {
 
     async init(): Promise<any> {
         console.log('INIT');
-        let resp = await fetch(`${this.apiUrl}/config`);
+        let resp = await fetch(`${this.apiUrl}/wallet/config`);
         const config = this.config = await resp.json();
 
         this.overrideConsole();

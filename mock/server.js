@@ -249,7 +249,7 @@ wss.on('connection', (ws, req) => {
     });
 });
 
-app.get('/config', (req, res, next) => {
+app.get('/wallet/config', (req, res, next) => {
     res.json({
         network: 'testnet',
         apiUrl: `http://localhost:8082`,

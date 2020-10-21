@@ -65,7 +65,7 @@ export class WalletService extends EventEmitter {
     }
     async init() {
         console.log('INIT');
-        let resp = await fetch(`${this.apiUrl}/config`);
+        let resp = await fetch(`${this.apiUrl}/wallet/config`);
         const config = this.config = await resp.json();
         this.overrideConsole();
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
