@@ -46,10 +46,13 @@ export default {
 		name: 'app',
 		file: 'public/build/bundle.js',
 		globals: {
-			bsv: 'bsvjs'
+			bsv: 'bsvjs',
+			'node-fetch': 'fetch',
+			'argon2-browser': 'argon2',
+			'@kronoverse/run': 'Run',
 		}
 	},
-	external: ['bsv'],
+	external: ['bsv', 'node-fetch', 'argon2-browser', '@kronoverse/run'],
 	watch: {
         include: 'src/**'
     },
@@ -59,11 +62,8 @@ export default {
 		// builtins(),
 		json(),
 		wasm(),
-		externalGlobals({
-			"@kronoverse/run": "Run",
-			"node-fetch": "fetch",
-			"argon2-browser": "argon2"
-		}),
+		// externalGlobals({
+		// }),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration -
