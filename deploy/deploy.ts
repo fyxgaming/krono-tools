@@ -70,6 +70,7 @@ function renderUsage() {
     }
 
     const blockchain = new RestBlockchain(
+        fetch,
         blockchainUrl, 
         network, 
         new Run.LocalCache(),

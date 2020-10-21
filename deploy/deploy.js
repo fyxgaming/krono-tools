@@ -66,7 +66,7 @@ function renderUsage() {
         renderUsage();
         process.exit(1);
     }
-    const blockchain = new rest_blockchain_1.RestBlockchain(blockchainUrl, network, new Run.LocalCache());
+    const blockchain = new rest_blockchain_1.RestBlockchain(fetch, blockchainUrl, network, new Run.LocalCache());
     const run = new Run({
         blockchain,
         network,
