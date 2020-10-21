@@ -288,7 +288,7 @@ app.post('/:agentId', async (req, res, next) => {
 
 app.use((err, req, res, next) => {
     console.error(err.message, err.statusCode !== 404 && err.stack);
-    res.status(err.statusCode || 500).send(err.message);
+    res.status(err.status || 500).send(err.message);
 });
 
 let indexWorker;
