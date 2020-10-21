@@ -131,6 +131,9 @@ export class WalletService extends EventEmitter {
         const wallet = this.wallet = new Wallet(this.paymail, this.keyPair, run);
         // const storage = new IORedisMock();
         const channels = [this.keyPair.pubKey.toString()];
+        if (this.config.ephemeral) {
+            channels.push(run.owner.address);
+        }
         let ws;
         if (this.config.sockets) {
             console.log('Sockets:', this.config.sockets);
