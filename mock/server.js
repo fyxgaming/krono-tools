@@ -130,7 +130,7 @@ app.get('/fund/:address', async (req, res, next) => {
 
 app.get('/agents/:realm/:agentId', (req, res) => {
     const agent = exp.agents[req.params.agentId];
-    if (!agent) throw new NotFound();
+    if (!agent) throw new HttpError(404, 'Not Found');
     res.json(agent);
 });
 
@@ -189,7 +189,7 @@ app.get('/messages/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const message = messges.get(id);
-        if (!message) throw new NotFound();
+        if (!message) throw new HttpError(404, 'Not Found');
         res.json(message);
 
     } catch (e) {
