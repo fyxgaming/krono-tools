@@ -45,8 +45,11 @@ export default {
 		format: 'iife',
 		name: 'app',
 		file: 'public/build/bundle.js',
+		globals: {
+			bsv: 'bsvjs'
+		}
 	},
-	external: ['bsv',],
+	external: ['bsv'],
 	watch: {
         include: 'src/**'
     },
@@ -59,7 +62,6 @@ export default {
 		externalGlobals({
 			"@kronoverse/run": "Run",
 			"node-fetch": "fetch",
-			"bsv": "bsvjs",
 			"argon2-browser": "argon2"
 		}),
 		// If you have external dependencies installed from

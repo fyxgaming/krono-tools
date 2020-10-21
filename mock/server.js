@@ -3,7 +3,7 @@ const { Address, Br, Tx } = require('bsv');
 const { EventEmitter } = require('events');
 const express = require('express');
 const http = require('http');
-const {HttpError} = require('./http-error');
+const {HttpError} = require('@kronoverse/lib/dist/http-error');
 const Mockchain = require('./mockchain');
 const { spawn, Worker } = require('threads');
 
@@ -332,10 +332,10 @@ blockchain.events.on('txn', async (rawtx) => {
 });
 
 // Testing Stuff
-// let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
+let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
 
-// (async () => {
-//     app.listen(PORT,() => {
-//         console.log(`Server listening on port ${PORT}`);
-//     })
-// })();
+(async () => {
+    app.listen(PORT,() => {
+        console.log(`Server listening on port ${PORT}`);
+    })
+})();
