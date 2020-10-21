@@ -287,7 +287,7 @@ app.post('/:agentId', async (req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-    console.error(err.message, err.statusCode !== 404 && err.stack);
+    console.error(err.message, err.status !== 404 && err.stack);
     res.status(err.status || 500).send(err.message);
 });
 

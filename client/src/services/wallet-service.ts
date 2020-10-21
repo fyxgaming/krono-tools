@@ -13,11 +13,12 @@ import { EventEmitter } from 'events';
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from '@kronoverse/run';
 
-import { Buffer } from 'buffer';
+import { Buffer } from 'buffer/';
 import bsv from 'bsv';
 
 bsv.Constants.Default = Constants.Default;
 console.log('LOAD');
+
 
 export class WalletService extends EventEmitter {
     private printLog = console.log.bind(console);
