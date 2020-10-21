@@ -262,7 +262,7 @@ app.get('/config', (req, res, next) => {
 });
 
 app.use('/wallet',express.static(path.join(__dirname, '../client/public')), (req,res,next) => {
-    let pathToFile = path.join(__dirname, '../client', "index.html");
+    let pathToFile = path.join(__dirname, '../client/public/index.html');
 
     let data = fs.readFileSync(pathToFile);
     let cType = mime.lookup(pathToFile);
