@@ -48,13 +48,12 @@ export default {
 		globals: {
 			bsv: 'bsvjs',
 			'node-fetch': 'fetch',
-			'argon2-browser': 'argon2',
 			'@kronoverse/run': 'Run',
 		}
 	},
-	external: ['bsv', 'node-fetch', 'argon2-browser', '@kronoverse/run'],
+	external: ['bsv', 'node-fetch', '@kronoverse/run'],
 	watch: {
-        include: 'src/**'
+		include: 'src/**'
     },
 	plugins: [
 		nodePolyfills(),
@@ -62,8 +61,10 @@ export default {
 		// builtins(),
 		json(),
 		wasm(),
-		// externalGlobals({
-		// }),
+		externalGlobals({
+			'argon2-browser': 'argon2',
+			'@kronoverse/run': 'Run',
+		}),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration -
