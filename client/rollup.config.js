@@ -47,11 +47,10 @@ export default {
 		file: 'public/build/bundle.js',
 		globals: {
 			bsv: 'bsvjs',
-			'node-fetch': 'fetch',
 			'@kronoverse/run': 'Run',
 		}
 	},
-	external: ['bsv', 'node-fetch', '@kronoverse/run'],
+	external: ['bsv', '@kronoverse/run'],
 	watch: {
 		include: 'src/**'
     },
