@@ -23,5 +23,3 @@ export class Mockchain extends Run.Mockchain {
         return txid;
     }
 }
-
-module.exports = Mockchain;
