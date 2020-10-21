@@ -132,6 +132,7 @@ export class WalletService extends EventEmitter {
         // const storage = new IORedisMock();
         const channels = [this.keyPair.pubKey.toString()];
         if (this.config.ephemeral) {
+            console.log('Ephemeral. Listening to owner', run.owner.address);
             channels.push(run.owner.address);
         }
         let ws;
@@ -257,7 +258,7 @@ export class WalletService extends EventEmitter {
         return message && message.name;
     }
     clientEmit(name, payload) {
-        // console.log('Emitting', name, payload && JSON.stringify(payload));
+        console.log('Emitting', name, payload && JSON.stringify(payload));
         const message = {
             name,
             payload: payload && JSON.stringify(payload),
