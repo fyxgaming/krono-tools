@@ -219,7 +219,7 @@ app.get('/state/:key', async (req, res, next) => {
     try {
         const { key } = req.params;
         const value = await cache.get(key);
-        if (!value) throw new NotFound();
+        if (!value) throw new HttpError(404, 'Not Found');
         res.json(value);
     } catch (e) {
         next(e);
