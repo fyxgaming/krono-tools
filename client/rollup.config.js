@@ -72,7 +72,7 @@ export default {
 		resolve({
 			browser: true,
 			dedupe: ['svelte'],
-			preferBuiltins: true
+			preferBuiltins: false
 		}),
 		svelte({
 			// enable run-time checks when not in production
