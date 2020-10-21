@@ -17,10 +17,6 @@ import { Buffer } from 'buffer';
 import bsv from 'bsv';
 
 bsv.Constants.Default = Constants.Default;
-console.log('LOAD');
-
-const test = Buffer.from('test');
-console.log('Buffer:', test);
 
 export class WalletService extends EventEmitter {
     private printLog = console.log.bind(console);
@@ -90,7 +86,6 @@ export class WalletService extends EventEmitter {
     }
 
     async init(): Promise<any> {
-        console.log('INIT');
         let resp = await fetch(`${this.apiUrl}/wallet/config`);
         const config = this.config = await resp.json();
 

@@ -1,1 +1,348 @@
-var Module=typeof self!=="undefined"&&typeof self.Module!=="undefined"?self.Module:{};var jsModule=Module;var moduleOverrides={};var key;for(key in Module){if(Module.hasOwnProperty(key)){moduleOverrides[key]=Module[key]}}var arguments_=[];var thisProgram="./this.program";var quit_=function(status,toThrow){throw toThrow};var ENVIRONMENT_IS_WEB=false;var ENVIRONMENT_IS_WORKER=false;var ENVIRONMENT_IS_NODE=false;var ENVIRONMENT_IS_SHELL=false;ENVIRONMENT_IS_WEB=typeof window==="object";ENVIRONMENT_IS_WORKER=typeof importScripts==="function";ENVIRONMENT_IS_NODE=typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string";ENVIRONMENT_IS_SHELL=!ENVIRONMENT_IS_WEB&&!ENVIRONMENT_IS_NODE&&!ENVIRONMENT_IS_WORKER;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;var nodeFS;var nodePath;if(ENVIRONMENT_IS_NODE){if(ENVIRONMENT_IS_WORKER){scriptDirectory=require("path").dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}read_=function shell_read(filename,binary){if(!nodeFS)nodeFS=require("fs");if(!nodePath)nodePath=require("path");filename=nodePath["normalize"](filename);return nodeFS["readFileSync"](filename,binary?null:"utf8")};readBinary=function readBinary(filename){var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}assert(ret.buffer);return ret};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);if(typeof module!=="undefined"){module["exports"]=Module}process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",abort);quit_=function(status){process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"}}else if(ENVIRONMENT_IS_SHELL){if(typeof read!="undefined"){read_=function shell_read(f){return read(f)}}readBinary=function readBinary(f){var data;if(typeof readbuffer==="function"){return new Uint8Array(readbuffer(f))}data=read(f,"binary");assert(typeof data==="object");return data};if(typeof scriptArgs!="undefined"){arguments_=scriptArgs}else if(typeof arguments!="undefined"){arguments_=arguments}if(typeof quit==="function"){quit_=function(status){quit(status)}}if(typeof print!=="undefined"){if(typeof console==="undefined")console={};console.log=print;console.warn=console.error=typeof printErr!=="undefined"?printErr:print}}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(document.currentScript){scriptDirectory=document.currentScript.src}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.lastIndexOf("/")+1)}else{scriptDirectory=""}{read_=function shell_read(url){var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=function readBinary(url){var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=function readAsync(url,onload,onerror){var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=function xhr_onload(){if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=function(title){document.title=title}}else{}var out=Module["print"]||console.log.bind(console);var err=Module["printErr"]||console.warn.bind(console);for(key in moduleOverrides){if(moduleOverrides.hasOwnProperty(key)){Module[key]=moduleOverrides[key]}}moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime;if(Module["noExitRuntime"])noExitRuntime=Module["noExitRuntime"];if(typeof WebAssembly!=="object"){abort("no native wasm support detected")}var wasmMemory;var wasmTable;var ABORT=false;var EXITSTATUS=0;function assert(condition,text){if(!condition){abort("Assertion failed: "+text)}}var ALLOC_NORMAL=0;var ALLOC_STACK=1;function allocate(slab,allocator){var ret;if(allocator==ALLOC_STACK){ret=stackAlloc(slab.length)}else{ret=_malloc(slab.length)}if(slab.subarray||slab.slice){HEAPU8.set(slab,ret)}else{HEAPU8.set(new Uint8Array(slab),ret)}return ret}var UTF8Decoder=typeof TextDecoder!=="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heap,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heap[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heap.subarray&&UTF8Decoder){return UTF8Decoder.decode(heap.subarray(idx,endPtr))}else{var str="";while(idx<endPtr){var u0=heap[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heap[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heap[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heap[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(HEAPU8,ptr,maxBytesToRead):""}var WASM_PAGE_SIZE=65536;function alignUp(x,multiple){if(x%multiple>0){x+=multiple-x%multiple}return x}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_INITIAL_MEMORY/WASM_PAGE_SIZE,"maximum":2147418112/WASM_PAGE_SIZE})}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var __ATPRERUN__=[];var __ATINIT__=[];var __ATMAIN__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;callRuntimeCallbacks(__ATINIT__)}function preMain(){callRuntimeCallbacks(__ATMAIN__)}function postRun(){if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}Module["preloadedImages"]={};Module["preloadedAudios"]={};function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what+="";err(what);ABORT=true;EXITSTATUS=1;what="abort("+what+"). Build with -s ASSERTIONS=1 for more info.";var e=new WebAssembly.RuntimeError(what);throw e}function hasPrefix(str,prefix){return String.prototype.startsWith?str.startsWith(prefix):str.indexOf(prefix)===0}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return hasPrefix(filename,dataURIPrefix)}var fileURIPrefix="file://";function isFileURI(filename){return hasPrefix(filename,fileURIPrefix)}var wasmBinaryFile="argon2.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(){try{if(wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(wasmBinaryFile)}else{throw"both async and sync fetching of the wasm failed"}}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)&&typeof fetch==="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary()})}return Promise.resolve().then(getBinary)}function createWasm(){var info={"a":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;wasmTable=Module["asm"]["e"];removeRunDependency("wasm-instantiate")}addRunDependency("wasm-instantiate");function receiveInstantiatedSource(output){Module=jsModule;if(typeof self!=="undefined")self.Module=Module;receiveInstance(output["instance"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming==="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&typeof fetch==="function"){fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiatedSource,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiatedSource)})})}else{return instantiateArrayBuffer(receiveInstantiatedSource)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);return false}}instantiateAsync();return{}}function callRuntimeCallbacks(callbacks){while(callbacks.length>0){var callback=callbacks.shift();if(typeof callback=="function"){callback(Module);continue}var func=callback.func;if(typeof func==="number"){if(callback.arg===undefined){wasmTable.get(func)()}else{wasmTable.get(func)(callback.arg)}}else{func(callback.arg===undefined?null:callback.arg)}}}function _emscripten_memcpy_big(dest,src,num){HEAPU8.copyWithin(dest,src,src+num)}function _emscripten_get_heap_size(){return HEAPU8.length}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){requestedSize=requestedSize>>>0;var oldSize=_emscripten_get_heap_size();var maxHeapSize=2147418112;if(requestedSize>maxHeapSize){return false}var minHeapSize=16777216;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(minHeapSize,requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _pthread_join(){}__ATINIT__.push({func:function(){___wasm_call_ctors()}});var asmLibraryArg={"b":_emscripten_memcpy_big,"c":_emscripten_resize_heap,"a":wasmMemory,"d":_pthread_join};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["f"]).apply(null,arguments)};var _argon2_hash=Module["_argon2_hash"]=function(){return(_argon2_hash=Module["_argon2_hash"]=Module["asm"]["g"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["h"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["i"]).apply(null,arguments)};var _argon2_verify=Module["_argon2_verify"]=function(){return(_argon2_verify=Module["_argon2_verify"]=Module["asm"]["j"]).apply(null,arguments)};var _argon2_error_message=Module["_argon2_error_message"]=function(){return(_argon2_error_message=Module["_argon2_error_message"]=Module["asm"]["k"]).apply(null,arguments)};var _argon2_encodedlen=Module["_argon2_encodedlen"]=function(){return(_argon2_encodedlen=Module["_argon2_encodedlen"]=Module["asm"]["l"]).apply(null,arguments)};var _argon2_hash_ext=Module["_argon2_hash_ext"]=function(){return(_argon2_hash_ext=Module["_argon2_hash_ext"]=Module["asm"]["m"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["n"]).apply(null,arguments)};Module["allocate"]=allocate;Module["UTF8ToString"]=UTF8ToString;Module["ALLOC_NORMAL"]=ALLOC_NORMAL;var calledRun;function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}preRun();if(runDependencies>0)return;function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();preMain();if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}Module["run"]=run;if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}noExitRuntime=true;run();if(typeof module!=="undefined")module.exports=Module;Module.unloadRuntime=function(){if(typeof self!=="undefined"){delete self.Module}Module=jsModule=wasmMemory=wasmTable=asm=buffer=HEAP8=HEAPU8=HEAP16=HEAPU16=HEAP32=HEAPU32=HEAPF32=HEAPF64=undefined;if(typeof module!=="undefined"){delete module.exports}};
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        root.argon2 = factory();
+    }
+})(typeof self !== 'undefined' ? self : this, function () {
+    const global = typeof self !== 'undefined' ? self : this;
+
+    /**
+     * @enum
+     */
+    const ArgonType = {
+        Argon2d: 0,
+        Argon2i: 1,
+        Argon2id: 2,
+    };
+
+    function loadModule(mem) {
+        if (loadModule._promise) {
+            return loadModule._promise;
+        }
+        if (loadModule._module) {
+            return Promise.resolve(loadModule._module);
+        }
+        let promise;
+        if (
+            global.process &&
+            global.process.versions &&
+            global.process.versions.node
+        ) {
+            promise = loadWasmModule().then(
+                (Module) =>
+                    new Promise((resolve) => {
+                        Module.postRun = () => resolve(Module);
+                    })
+            );
+        } else {
+            promise = loadWasmBinary().then((wasmBinary) => {
+                const wasmMemory = mem ? createWasmMemory(mem) : undefined;
+                return initWasm(wasmBinary, wasmMemory);
+            });
+        }
+        loadModule._promise = promise;
+        return promise.then((Module) => {
+            loadModule._module = Module;
+            delete loadModule._promise;
+            return Module;
+        });
+    }
+
+    function initWasm(wasmBinary, wasmMemory) {
+        return new Promise((resolve) => {
+            global.Module = {
+                wasmBinary,
+                wasmMemory,
+                postRun() {
+                    resolve(Module);
+                },
+            };
+            return loadWasmModule();
+        });
+    }
+
+    function loadWasmModule() {
+        if (global.loadArgon2WasmModule) {
+            return global.loadArgon2WasmModule();
+        }
+        if (typeof require === 'function') {
+            return Promise.resolve(require('../dist/argon2.js'));
+        }
+        return import('../dist/argon2.js');
+    }
+
+    function loadWasmBinary() {
+        if (global.loadArgon2WasmBinary) {
+            return global.loadArgon2WasmBinary();
+        }
+        if (typeof require === 'function') {
+            return Promise.resolve(require('../dist/argon2.wasm')).then(
+                (wasmModule) => {
+                    return decodeWasmBinary(wasmModule);
+                }
+            );
+        }
+        const wasmPath =
+            global.argon2WasmPath ||
+            'node_modules/argon2-browser/dist/argon2.wasm';
+        return fetch(wasmPath)
+            .then((response) => response.arrayBuffer())
+            .then((ab) => new Uint8Array(ab));
+    }
+
+    function decodeWasmBinary(base64) {
+        const text = atob(base64);
+        const binary = new Uint8Array(new ArrayBuffer(text.length));
+        for (let i = 0; i < text.length; i++) {
+            binary[i] = text.charCodeAt(i);
+        }
+        return binary;
+    }
+
+    function createWasmMemory(mem) {
+        const KB = 1024;
+        const MB = 1024 * KB;
+        const GB = 1024 * MB;
+        const WASM_PAGE_SIZE = 64 * KB;
+
+        const totalMemory = (2 * GB - 64 * KB) / WASM_PAGE_SIZE;
+        const initialMemory = Math.min(
+            Math.max(Math.ceil((mem * KB) / WASM_PAGE_SIZE), 256) + 256,
+            totalMemory
+        );
+
+        return new WebAssembly.Memory({
+            initial: initialMemory,
+            maximum: totalMemory,
+        });
+    }
+
+    function allocateArray(Module, arr) {
+        return Module.allocate(arr, 'i8', Module.ALLOC_NORMAL);
+    }
+
+    function allocateArrayStr(Module, arr) {
+        const nullTerminatedArray = new Uint8Array([...arr, 0]);
+        return allocateArray(Module, nullTerminatedArray);
+    }
+
+    function encodeUtf8(str) {
+        if (typeof str !== 'string') {
+            return str;
+        }
+        if (typeof TextEncoder === 'function') {
+            return new TextEncoder().encode(str);
+        } else if (typeof Buffer === 'function') {
+            return Buffer.from(str);
+        } else {
+            throw new Error("Don't know how to encode UTF8");
+        }
+    }
+
+    /**
+     * Argon2 hash
+     * @param {string|Uint8Array} params.pass - password string
+     * @param {string|Uint8Array} params.salt - salt string
+     * @param {number} [params.time=1] - the number of iterations
+     * @param {number} [params.mem=1024] - used memory, in KiB
+     * @param {number} [params.hashLen=24] - desired hash length
+     * @param {number} [params.parallelism=1] - desired parallelism
+     * @param {number} [params.type=argon2.ArgonType.Argon2d] - hash type:
+     *      argon2.ArgonType.Argon2d
+     *      argon2.ArgonType.Argon2i
+     *      argon2.ArgonType.Argon2id
+     *
+     * @return Promise
+     *
+     * @example
+     *  argon2.hash({ pass: 'password', salt: 'somesalt' })
+     *      .then(h => console.log(h.hash, h.hashHex, h.encoded))
+     *      .catch(e => console.error(e.message, e.code))
+     */
+    function argon2Hash(params) {
+        const mCost = params.mem || 1024;
+        return loadModule(mCost).then((Module) => {
+            const tCost = params.time || 1;
+            const parallelism = params.parallelism || 1;
+            const pwdEncoded = encodeUtf8(params.pass);
+            const pwd = allocateArrayStr(Module, pwdEncoded);
+            const pwdlen = pwdEncoded.length;
+            const saltEncoded = encodeUtf8(params.salt);
+            const salt = allocateArrayStr(Module, saltEncoded);
+            const saltlen = saltEncoded.length;
+            const argon2Type = params.type || ArgonType.Argon2d;
+            const hash = Module.allocate(
+                new Array(params.hashLen || 24),
+                'i8',
+                Module.ALLOC_NORMAL
+            );
+            const secret = params.secret
+                ? allocateArray(Module, params.secret)
+                : 0;
+            const secretlen = params.secret ? params.secret.byteLength : 0;
+            const ad = params.ad ? allocateArray(Module, params.ad) : 0;
+            const adlen = params.ad ? params.ad.byteLength : 0;
+            const hashlen = params.hashLen || 24;
+            const encodedlen = Module._argon2_encodedlen(
+                tCost,
+                mCost,
+                parallelism,
+                saltlen,
+                hashlen,
+                argon2Type
+            );
+            const encoded = Module.allocate(
+                new Array(encodedlen + 1),
+                'i8',
+                Module.ALLOC_NORMAL
+            );
+            const version = 0x13;
+            let err;
+            let res;
+            try {
+                res = Module._argon2_hash_ext(
+                    tCost,
+                    mCost,
+                    parallelism,
+                    pwd,
+                    pwdlen,
+                    salt,
+                    saltlen,
+                    hash,
+                    hashlen,
+                    encoded,
+                    encodedlen,
+                    argon2Type,
+                    secret,
+                    secretlen,
+                    ad,
+                    adlen,
+                    version
+                );
+            } catch (e) {
+                err = e;
+            }
+            let result;
+            if (res === 0 && !err) {
+                let hashStr = '';
+                const hashArr = new Uint8Array(hashlen);
+                for (let i = 0; i < hashlen; i++) {
+                    const byte = Module.HEAP8[hash + i];
+                    hashArr[i] = byte;
+                    hashStr += ('0' + (0xff & byte).toString(16)).slice(-2);
+                }
+                const encodedStr = Module.UTF8ToString(encoded);
+                result = {
+                    hash: hashArr,
+                    hashHex: hashStr,
+                    encoded: encodedStr,
+                };
+            } else {
+                try {
+                    if (!err) {
+                        err = Module.UTF8ToString(
+                            Module._argon2_error_message(res)
+                        );
+                    }
+                } catch (e) {}
+                result = { message: err, code: res };
+            }
+            try {
+                Module._free(pwd);
+                Module._free(salt);
+                Module._free(hash);
+                Module._free(encoded);
+                if (ad) {
+                    Module._free(ad);
+                }
+                if (secret) {
+                    Module._free(secret);
+                }
+            } catch (e) {}
+            if (err) {
+                throw result;
+            } else {
+                return result;
+            }
+        });
+    }
+
+    /**
+     * Argon2 verify function
+     * @param {string} params.pass - password string
+     * @param {string|Uint8Array} params.encoded - encoded hash
+     * @param {number} [params.type=argon2.ArgonType.Argon2d] - hash type:
+     *      argon2.ArgonType.Argon2d
+     *      argon2.ArgonType.Argon2i
+     *      argon2.ArgonType.Argon2id
+     *
+     * @returns Promise
+     *
+     * @example
+     *  argon2.verify({ pass: 'password', encoded: 'encoded-hash' })
+     *      .then(() => console.log('OK'))
+     *      .catch(e => console.error(e.message, e.code))
+     */
+    function argon2Verify(params) {
+        return loadModule().then((Module) => {
+            const pwdEncoded = encodeUtf8(params.pass);
+            const pwd = allocateArrayStr(Module, pwdEncoded);
+            const pwdlen = pwdEncoded.length;
+            const encEncoded = encodeUtf8(params.encoded);
+            const enc = allocateArrayStr(Module, encEncoded);
+            let argon2Type = params.type;
+            if (argon2Type === undefined) {
+                let typeStr = params.encoded.split('$')[1];
+                if (typeStr) {
+                    typeStr = typeStr.replace('a', 'A');
+                    argon2Type = ArgonType[typeStr] || ArgonType.Argon2d;
+                }
+            }
+            let err;
+            let res;
+            try {
+                res = Module._argon2_verify(enc, pwd, pwdlen, argon2Type);
+            } catch (e) {
+                err = e;
+            }
+            let result;
+            if (res || err) {
+                try {
+                    if (!err) {
+                        err = Module.UTF8ToString(
+                            Module._argon2_error_message(res)
+                        );
+                    }
+                } catch (e) {}
+                result = { message: err, code: res };
+            }
+            try {
+                Module._free(pwd);
+                Module._free(enc);
+            } catch (e) {}
+            if (err) {
+                throw result;
+            } else {
+                return result;
+            }
+        });
+    }
+
+    function unloadRuntime() {
+        if (loadModule._module) {
+            loadModule._module.unloadRuntime();
+            delete loadModule._promise;
+            delete loadModule._module;
+        }
+    }
+
+    return {
+        ArgonType,
+        hash: argon2Hash,
+        verify: argon2Verify,
+        unloadRuntime,
+    };
+});

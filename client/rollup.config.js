@@ -94,7 +94,9 @@ export default {
 		copy({
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
-				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' }
+				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' },
+				{ src: '../node_modules/argon2-browser/lib/argon2.js', dest: 'public' },
+				{ src: '../node_modules/argon2-browser/dist/argon2.wasm', dest: 'public' },
 			]
 		}),
 		// In dev mode, call `npm run start` once
