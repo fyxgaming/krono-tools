@@ -1,7 +1,6 @@
 import * as argon2 from 'argon2-browser';
 import { Bip32, Constants, Ecdsa, Ecies, Hash, KeyPair, PrivKey, PubKey } from 'bsv';
 import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
-
 export class AuthService {
     constructor(apiUrl, domain, network) {
         this.apiUrl = apiUrl;
