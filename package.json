@@ -16,7 +16,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^1.0.5",
+    "@kronoverse/lib": "^1.0.6",
     "@kronoverse/run": "^0.6.19",
     "argon2-browser": "^1.13.0",
     "bsv": "^2.0.0-beta.41",
