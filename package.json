@@ -18,7 +18,6 @@
   "dependencies": {
     "@kronoverse/lib": "^1.0.9",
     "@kronoverse/run": "^0.6.19",
-    "argon2-browser": "^1.13.0",
     "bsv": "^2.0.0-beta.41",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
