@@ -96,9 +96,9 @@ export default {
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
 				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' },
-				// { src: './node_modules/argon2-browser/lib/argon2.js', dest: 'public/build' },
-				// { src: './node_modules/argon2-browser/dist/argon2.js', dest: 'public/dist' },
-				// { src: './node_modules/argon2-browser/dist/argon2.wasm', dest: 'public/node_modules/argon2-browser/dist' },
+				{ src: './node_modules/argon2-browser/lib/argon2.js', dest: 'public/build' },
+				{ src: './node_modules/argon2-browser/dist/argon2.js', dest: 'public/dist' },
+				{ src: './node_modules/argon2-browser/dist/argon2.wasm', dest: 'public/node_modules/argon2-browser/dist' },
 			]
 		}),
 		// In dev mode, call `npm run start` once
