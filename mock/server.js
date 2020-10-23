@@ -173,7 +173,7 @@ app.post('/jigs/search', async (req, res, next) => {
 
         let count = 0;
         const matching = [];
-        for(let jig of jig.values()) {
+        for(let jig of jigs.values()) {
             for(const [key, value] of Object.entries(req.body)) {
                 if(jig[key] !== value) break;
             }
