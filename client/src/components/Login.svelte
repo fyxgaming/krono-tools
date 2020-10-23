@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { GlobalService } from '../services/global-service';
-    const gs = new GlobalService();
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -16,21 +14,23 @@
 
     const register = async () => {
         console.log("register");
-        await gs.wallet.register(handle, password, email);
+        await window.walletService.register(handle, password, email);
+        // window.walletService.wallet.buildMessage();
+        // window.walletService.blockchain.se
         loggedIn = true;
         onStatusChanged();
     };
 
     const login = async () => {
         console.log("login");
-        await gs.wallet.login(handle, password);
+        await window.walletService.login(handle, password);
         loggedIn = true;
         onStatusChanged();
     };
 
     const logout = () => {
         console.log("logout");
-        gs.wallet.logout();
+        window.walletService.logout();
         loggedIn = false;
         onStatusChanged();
     };
