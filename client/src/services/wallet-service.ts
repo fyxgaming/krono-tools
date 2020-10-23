@@ -19,6 +19,7 @@ import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
+    authenticated = false;
     private printLog = console.log.bind(console);
     private printError = console.error.bind(console);
 
@@ -68,13 +69,13 @@ export class WalletService extends EventEmitter {
         window.localStorage.setItem('HANDLE', value);
     }
 
-    get keyPair() {
+    private get keyPair() {
         const wif = window.localStorage.getItem('WIF');
         if (!wif) return null;
         return KeyPair.fromPrivKey(PrivKey.fromString(wif));
     }
 
-    set keyPair(keyPair: KeyPair) {
+    private set keyPair(keyPair: KeyPair) {
         window.localStorage.setItem('WIF', keyPair.privKey.toString());
     }
 
@@ -216,6 +217,7 @@ export class WalletService extends EventEmitter {
             const xpriv = await this.auth.recover(this.paymail, this.keyPair)
             bip32 = Bip32.fromString(xpriv);
         }
+        this.authenticated = true;
         this.initializeWallet(
             bip32.derive('m/1/0').privKey.toString(),
             bip32.derive('m/0/0').privKey.toString()
@@ -233,6 +235,7 @@ export class WalletService extends EventEmitter {
     }
 
     async logout() {
+        this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
