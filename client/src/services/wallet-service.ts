@@ -28,6 +28,7 @@ export class WalletService extends EventEmitter {
     private agentDef?;
     private timeLabels = {};
 
+    public blockchain?: RestBlockchain;
     public wallet?: Wallet;
     private agent?: IAgent;
 
@@ -138,7 +139,7 @@ export class WalletService extends EventEmitter {
 
     private async initializeWallet(owner?: string, purse?: string) {
         const cache = new Run.LocalCache({ maxSizeMB: 100 });
-        const blockchain = new RestBlockchain(
+        const blockchain = this.blockchain = new RestBlockchain(
             fetch.bind(window),
             this.apiUrl,
             this.config.network,
