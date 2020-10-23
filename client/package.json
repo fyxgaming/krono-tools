@@ -31,6 +31,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
+    "express-http-proxy": "^1.6.2",
     "sirv-cli": "^1.0.0"
   }
 }
