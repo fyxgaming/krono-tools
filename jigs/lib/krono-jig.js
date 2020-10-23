@@ -1,20 +1,31 @@
 const { Jig } = require('@kronoverse/run');
+const KronoClass = require('@kronoverse/tools/jigs/lib/krono-class');
 
 class KronoJig extends Jig {
-    toObject(skipKeys) {
-        return KronoClass.deepClone({...this}, skipKeys);
-    }
-
-    static toObject() {
-        const clone = Array.isArray(this) ? [] : {};
-        Object.keys(this)
-            .filter(key => !['deps', 'presets'].includes(key))
-            .forEach(key => clone[key] = this[key]);
+    toObject(skipKeys = [], visited = new Set()) {
+        if(visited.has(this)) return;
+        visited.add(this);
+        const clone = Object.entries(this).reduce((clone, [key, value]) => {
+            if([...skipKeys, 'deps', 'presets'].includes(key)) return clone;
+            clone[key] = KronoClass.deepClone(value, [], new Set(visited));
+            return clone;
+        }, {})
         return clone;
     }
 
-    static deepClone(obj, skipKeys) {
-        return KronoClass.deepClone(obj, skipKeys);
+    static toObject(skipKeys = [], visited = new Set()) {
+        if(visited.has(this)) return;
+        visited.add(this);
+        const clone = Object.entries(this).reduce((clone, [key, value]) => {
+            if([...skipKeys, 'deps', 'presets'].includes(key)) return clone;
+            clone[key] = KronoClass.deepClone(value, [], new Set(visited));
+            return clone;
+        }, {})
+        return clone;
+    }
+
+    static deepClone(obj, skipKeys, visited = new Set()) {
+        return KronoClass.deepClone(obj, skipKeys, visited);
     }
 }
 
