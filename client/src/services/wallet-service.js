@@ -14,6 +14,7 @@ bsv.Constants.Default = Constants.Default;
 export class WalletService extends EventEmitter {
     constructor() {
         super();
+        this.authenticated = false;
         this.printLog = console.log.bind(console);
         this.printError = console.error.bind(console);
         this.logId = 0;
@@ -114,7 +115,7 @@ export class WalletService extends EventEmitter {
     }
     async initializeWallet(owner, purse) {
         const cache = new Run.LocalCache({ maxSizeMB: 100 });
-        const blockchain = new RestBlockchain(fetch.bind(window), this.apiUrl, this.config.network, cache);
+        const blockchain = this.blockchain = new RestBlockchain(fetch.bind(window), this.apiUrl, this.config.network, cache);
         const run = new Run({
             network: this.config.network,
             owner,
@@ -177,6 +178,7 @@ export class WalletService extends EventEmitter {
             const xpriv = await this.auth.recover(this.paymail, this.keyPair);
             bip32 = Bip32.fromString(xpriv);
         }
+        this.authenticated = true;
         this.initializeWallet(bip32.derive('m/1/0').privKey.toString(), bip32.derive('m/0/0').privKey.toString());
     }
     async login(handle, password) {
@@ -188,6 +190,7 @@ export class WalletService extends EventEmitter {
         await this.initializeUser(handle);
     }
     async logout() {
+        this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
@@ -275,6 +278,12 @@ export class WalletService extends EventEmitter {
                 payload
             }
         });
+        if (this.config.emitLogs && !['Log', 'Error'].includes(name))
+            this.postMessage({
+                name: 'Log',
+                payload: JSON.stringify(`Emitting ${name}`),
+                success: true
+            });
         this.postMessage(message);
     }
     postMessage(message) {

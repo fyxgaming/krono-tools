@@ -321,6 +321,11 @@ export class WalletService extends EventEmitter {
                 payload
             }
         });
+        if (this.config.emitLogs && !['Log', 'Error'].includes(name)) this.postMessage({
+            name: 'Log',
+            payload: JSON.stringify(`Emitting ${name}`),
+            success: true
+        });
         this.postMessage(message);
     }
 
