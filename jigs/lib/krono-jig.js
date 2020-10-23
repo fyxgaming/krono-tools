@@ -1,5 +1,4 @@
 const { Jig } = require('@kronoverse/run');
-const KronoClass = require('@kronoverse/tools/jigs/lib/krono-class');
 
 class KronoJig extends Jig {
     toObject(skipKeys = [], visited = new Set()) {
