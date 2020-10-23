@@ -28,17 +28,18 @@ async function indexJig(loc) {
             throw e;
         });
         if (!jig) return;
-        console.log('JIG:', jig.constructor.name, jig.location);
+        console.log('JIG:', jig.name || (jig.constructor && jig.constructor.name), jig.location);
         const jigData = {
             location: jig.location,
             kind: jig.constructor && jig.constructor.origin,
-            type: jig.constructor.name,
-            origin: jig.origin,
+            type: jig.constructor && jig.constructor.name,
+            origin: jig.origin, 
             owner: jig.owner,
             ts: Date.now(),
             isOrigin: jig.location === jig.origin,
-            value: JSON.parse(JSON.stringify(jig.toObject ? jig.toObject() : jig) || '{}')
         };
+        jigData.value = JSON.parse(JSON.stringify(jig.toObject ? jig.toObject() : {}));
+        console.log('Serialized:', jigData.value);
         return jigData;
     } catch (e) {
         console.error('INDEX ERROR:', e);
