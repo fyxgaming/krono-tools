@@ -167,9 +167,19 @@ app.get('/jigs/address/:address', async (req, res, next) => {
     }
 });
 
-app.post('/jigs/kind/:kind', async (req, res, next) => {
+app.post('/jigs/search', async (req, res, next) => {
     try {
-        const matching = Array.from(jigs.values()).filter(jig => jig.kind === req.params.kind);
+        const {limit} = req.query;
+
+        let count = 0;
+        const matching = [];
+        for(let jig of jig.values()) {
+            for(const [key, value] of Object.entries(req.body)) {
+                if(jig[key] !== value) break;
+            }
+            matching.push(jig);
+            if(count++ >= limit || 10) break;
+        }
         res.json(matching);
     } catch (e) {
         next(e);
