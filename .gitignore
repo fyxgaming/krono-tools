@@ -7,3 +7,5 @@ lib/**/*.js
 *.d.ts
 *.js.map
 
+**/.vscode/settings.json
+/client/public/config

@@ -9,7 +9,7 @@
     let email: string;
 
     const onStatusChanged = () => {
-        dispatch("statusChanged", { loggedIn });
+        dispatch('statusChanged', { loggedIn });
     };
 
     const register = async () => {
@@ -54,16 +54,20 @@
     }
     .field-cntrl {
         display:block;
+        max-width: 320px;
+        width: 100%;
     }
     .action {
         display:block;
+        max-width: 320px;
+        width: 100%;
     }
 </style>
 
 {#if loggedIn}
     <section>
         <div class="actions">
-            <button on:click={logout}>Logout</button>
+            <button class="action" on:click={logout}>Logout</button>
         </div>
     </section>
 {:else}
@@ -90,7 +94,7 @@
                 </label>
                 <input
                     id="rpassword"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={password}
                     placeholder="enter your password"
                     type="password" />
@@ -103,7 +107,7 @@
                 </label>
                 <input
                     id="remail"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={email}
                     placeholder="enter your email"
                     type="email" />
@@ -139,7 +143,7 @@
                 </label>
                 <input
                     id="password"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={password}
                     placeholder="enter your password"
                     type="password" />

@@ -20,28 +20,31 @@ export default class ApiService {
     // }
 
     // Collect IP address from service
-    private async getIp() {
+    private static async getIp() {
         const ip: any = await fetch('https://api.ipify.org/?format=json');
         return ip;
     }
 
     // Collect geo location from browser
-    private async getGps(): Promise<GpsDetails> {
+    public static async getGps(): Promise<GpsDetails> {
         const geoInfo: any = await this.getGeoInfo();
         const geoloc: GpsDetails = {
-            latitude: geoInfo.latitude,
-            longitude: geoInfo.longitude,
-            radius: geoInfo.accuracy,
-            altitude: geoInfo.altitude,
-            speed: geoInfo.speed,
-            dateTime: format(Date.now(), 'MM-dd-yyyy ppp')
+            latitude: geoInfo.coords.latitude ?? 0.0,
+            longitude: geoInfo.coords.longitude ?? 0.0,
+            radius: geoInfo.coords.accuracy ?? 0.0,
+            altitude: geoInfo.coords.altitude ?? 0.0,
+            speed: geoInfo.coords.speed ?? 0.0,
+            dateTime: format(geoInfo.timestamp, 'MM-dd-yyyy ppp')
         };
         return geoloc;
     }
 
-    private async getGeoInfo() {
+    private static async getGeoInfo() { 
         const p = new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
+            navigator.geolocation.getCurrentPosition((data) => {
+                console.log('GPS:', data);
+                resolve(data);
+            }, reject, {
                 maximumAge: 20 * 60 * 10000,
                 timeout: 20000,
                 enableHighAccuracy: true

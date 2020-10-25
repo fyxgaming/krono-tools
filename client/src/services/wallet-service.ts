@@ -329,7 +329,9 @@ export class WalletService extends EventEmitter {
         if (this.isInUnity) {
             this.channel.postMessage(message);
         } else if (this.channelScope) {
-            this.channel.parent.postMessage(message, this.channelScope);
+            if (this.channel.parent != window) {
+                this.channel.parent.postMessage(message, this.channelScope);
+            } else { console.log('CANNOT SEND MESSAGE TO SELF');}
         }
     }
 
