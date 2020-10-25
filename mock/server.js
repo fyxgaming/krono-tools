@@ -108,10 +108,22 @@ app.get('/utxos/:script', async (req, res, next) => {
     }
 });
 
+app.get('/utxos/address/:address', async (req, res, next) => {
+    try {
+        const { address } = req.params;
+        const script = Script.fromPubKeyHash(Address.fromString(address).hashBuf).toHex();
+        res.json(await blockchain.utxos(script));
+    } catch (e) {
+        next(e);
+    }
+});
+
 app.get('/spends/:loc', async (req, res, next) => {
     try {
         const [txid, vout] = req.params.loc.split('_o');
-        res.send(await blockchain.spends(txid, parseInt(vout, 10)));
+        const spend = await blockchain.spends(txid, parseInt(vout, 10))
+        console.log('Spend:', txid, vout, spend);
+        res.send(spend);
     } catch (e) {
         next(e);
     }
@@ -169,18 +181,12 @@ app.get('/jigs/address/:address', async (req, res, next) => {
 
 app.post('/jigs/search', async (req, res, next) => {
     try {
-        const {limit} = req.query;
-
-        let count = 0;
-        const matching = [];
-        for(let jig of jigs.values()) {
+        res.json([...jigs.values()].filter(jig => {
             for(const [key, value] of Object.entries(req.body)) {
-                if(jig[key] !== value) break;
+                if(jig[key] !== value) return false;
             }
-            matching.push(jig);
-            if(count++ >= limit || 10) break;
-        }
-        res.json(matching);
+            return true;
+        }));
     } catch (e) {
         next(e);
     }
@@ -297,7 +303,7 @@ app.post('/:agentId', async (req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-    console.error(err.message, err.status !== 404 && err.stack);
+    console.error(err.message, req.path, err.status !== 404 && err.stack);
     res.status(err.status || 500).send(err.message);
 });
 
