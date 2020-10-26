@@ -266,10 +266,11 @@ wss.on('connection', (ws, req) => {
 });
 
 app.get('/wallet/config', (req, res, next) => {
+    console.log('REQ:', {...req})
     res.json({
         network: 'testnet',
         // sockets: 'ws://localhost:8082/v1',
-        sockets: `ws://${req.headers.host}/v1`,
+        sockets: `ws${PORT !== 8082 ? 's' : ''}://${req.headers.host}/v1`,
         ephemeral: true,
         emitLogs: true,
         app: 'local',
@@ -348,10 +349,10 @@ blockchain.events.on('txn', async (rawtx) => {
 });
 
 // Testing Stuff
-// let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
+let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
 
-// (async () => {
-//     app.listen(PORT,() => {
-//         console.log(`Server listening on port ${PORT}`);
-//     })
-// })();
+(async () => {
+    app.listen(PORT,() => {
+        console.log(`Server listening on port ${PORT}`);
+    })
+})();
