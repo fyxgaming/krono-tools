@@ -270,7 +270,7 @@ app.get('/wallet/config', (req, res, next) => {
     res.json({
         network: 'testnet',
         // sockets: 'ws://localhost:8082/v1',
-        sockets: `ws${PORT !== 8082 ? 's' : ''}://${req.headers.host}/v1`,
+        sockets: `ws${process.env.EB ? 's' : ''}://${req.headers.host}/v1`,
         ephemeral: true,
         emitLogs: true,
         app: 'local',
