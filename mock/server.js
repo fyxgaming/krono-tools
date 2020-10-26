@@ -268,8 +268,8 @@ wss.on('connection', (ws, req) => {
 app.get('/wallet/config', (req, res, next) => {
     res.json({
         network: 'testnet',
-        apiUrl: `http://localhost:8082`,
-        sockets: 'ws://localhost:8082/v1',
+        // sockets: 'ws://localhost:8082/v1',
+        sockets: `ws://${req.headers.host}/v1`,
         ephemeral: true,
         emitLogs: true,
         app: 'local',
