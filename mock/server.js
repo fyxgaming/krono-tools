@@ -348,11 +348,11 @@ blockchain.events.on('txn', async (rawtx) => {
     txns.push(txid);
 });
 
-// Testing Stuff
-let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
+// // Testing Stuff
+// let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
 
-(async () => {
-    app.listen(PORT,() => {
-        console.log(`Server listening on port ${PORT}`);
-    })
-})();
+// (async () => {
+//     app.listen(PORT,() => {
+//         console.log(`Server listening on port ${PORT}`);
+//     })
+// })();
