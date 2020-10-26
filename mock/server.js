@@ -122,7 +122,6 @@ app.get('/spends/:loc', async (req, res, next) => {
     try {
         const [txid, vout] = req.params.loc.split('_o');
         const spend = await blockchain.spends(txid, parseInt(vout, 10))
-        console.log('Spend:', txid, vout, spend);
         res.send(spend);
     } catch (e) {
         next(e);
@@ -266,7 +265,6 @@ wss.on('connection', (ws, req) => {
 });
 
 app.get('/wallet/config', (req, res, next) => {
-    console.log('REQ:', {...req})
     res.json({
         network: 'testnet',
         // sockets: 'ws://localhost:8082/v1',
