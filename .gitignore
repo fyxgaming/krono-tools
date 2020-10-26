@@ -9,3 +9,5 @@ lib/**/*.js
 
 **/.vscode/settings.json
 /client/public/config
+
+**/.DS_Store

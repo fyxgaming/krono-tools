@@ -1,37 +1,38 @@
 <script lang="ts">
+    import { currentUser, loggedIn, loading } from "../services/stores";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    export let loggedIn: boolean;
     let showReg: boolean = false;
     let handle: string;
     let password: string;
     let email: string;
 
     const onStatusChanged = () => {
-        dispatch('statusChanged', { loggedIn });
+        const ws = window.walletService;
+        loading.set(false);
+        loggedIn.update(v => ws.authenticated);
+        currentUser.update(v => ws.handle);
     };
 
     const register = async () => {
         console.log("register");
+        loading.set(true);
         await window.walletService.register(handle, password, email);
-        // window.walletService.wallet.buildMessage();
-        // window.walletService.blockchain.se
-        loggedIn = true;
         onStatusChanged();
     };
 
     const login = async () => {
         console.log("login");
+        loading.set(true);
         await window.walletService.login(handle, password);
-        loggedIn = true;
         onStatusChanged();
     };
 
-    const logout = () => {
+    const logout = async () => {
         console.log("logout");
-        window.walletService.logout();
-        loggedIn = false;
+        loading.set(true);
+        await window.walletService.logout();
         onStatusChanged();
     };
 </script>
@@ -57,17 +58,12 @@
         max-width: 320px;
         width: 100%;
     }
-    .action {
-        display:block;
-        max-width: 320px;
-        width: 100%;
-    }
 </style>
 
-{#if loggedIn}
+{#if ($loggedIn)}
     <section>
         <div class="actions">
-            <button class="action" on:click={logout}>Logout</button>
+            <button class="action" on:click|preventDefault={logout}>Logout</button>
         </div>
     </section>
 {:else}

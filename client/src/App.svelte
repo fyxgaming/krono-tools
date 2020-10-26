@@ -1,43 +1,52 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { currentUser, loggedIn, loading } from "./services/stores";
+
 	import { WalletService } from "./services/wallet-service";
-	const onWindowLoad = async (event: Event) => {
-		var ws = (window.walletService = new WalletService());
-		await ws.init();
-		loggedIn = ws.authenticated;
-		name = ws.handle ? ws.handle : "Cryptofights";
-	};
+	window.walletService = new WalletService();
 
-	export let name: string;
-
+	import Home from "./components/Home.svelte";
 	import Login from "./components/Login.svelte";
-	let loggedIn: boolean;
-	const changed = (event: CustomEvent) => {
-		console.log("changed", event.detail);
-		if (event.detail.loggedIn) {
-			name = window.walletService.handle;
-		} else {
-			name = "Cryptofights";
-		}
-		loggedIn = event.detail.loggedIn;
+	import Cashier from "./components/Cashier.svelte";
+	import Spinner from "./components/Spinner.svelte";
+
+	let component;
+
+	onMount(async () => {
+		loading.set(true);
+		loggedIn.set(false);
+		currentUser.set('Cryptofights');
+		component = Home;
+		var ws = window.walletService;
+		await ws.init();
+		loading.set(false);
+		loggedIn.set(ws.authenticated);
+		currentUser.set(ws.handle || 'Cryptofights');
+		console.log(`${ws.authenticated}${ws.handle}`)
+	});
+
+	const logout = async () => {
+		let ws = window.walletService;
+		loading.set(true);
+		await ws.logout();
+		loading.set(false);
+		loggedIn.set(ws.authenticated);
+		currentUser.set(ws.handle || 'Cryptofights');
 	};
 
-	import Cashier from "./components/Cashier.svelte";
-	let cashierIsActive: boolean;
-	let cashier: Cashier;
-	const addFunds = (event: any) => {
-		cashier.showCashier();
-	};
+	loggedIn.subscribe(v => {
+		if (v && component === Login) {
+			component = Home;
+		}
+	});
+
 </script>
 
 <style>
 	main {
+		position: relative;
 		padding: 1em;
 		max-width: 440px;
-	}
-
-	.action {
-		width: 100%;
-		max-width: 320px;
 	}
 
 	h1 {
@@ -48,18 +57,30 @@
 	}
 </style>
 
-<svelte:window on:load={onWindowLoad} />
-
+<Spinner />
 <main>
-	<h1>{name}</h1>
-
-	{#if !cashierIsActive}
-		<Login {loggedIn} on:statusChanged={changed} />
-		<div hidden={!loggedIn}>
-			<button class="action" on:click={addFunds}>Payment</button>
-		</div>
+	<h1>{$currentUser}</h1>
+	{#if component !== Home}
+		<p>
+			<a
+				href="#home"
+				on:click|preventDefault={() => (component = Home)}>&lt;back</a>
+		</p>
+	{:else}
+		<section class="actions">
+			{#if $loggedIn}
+				<button
+					class="action"
+					on:click|preventDefault={logout}>Logout</button>
+			{:else}
+				<button
+					class="action"
+					on:click|preventDefault={() => (component = Login)}>Login</button>
+			{/if}
+			<button
+				class="action"
+				on:click|preventDefault={() => (component = Cashier)}>Cashier</button>
+		</section>
 	{/if}
-	
-	<Cashier bind:this={cashier} bind:isActive={cashierIsActive} />
-	
+	<svelte:component this={component} />
 </main>

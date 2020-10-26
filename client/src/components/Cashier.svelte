@@ -1,6 +1,7 @@
 <script lang="ts">
     import ApiService from "../services/api-service";
     import { CashierResponse } from "../services/models";
+    import { loading } from "../services/stores";
 
     interface GidxWindow extends Window {
         gidxServiceSettings;
@@ -18,8 +19,9 @@
 
     export let isActive: boolean = false;
 
-    export const showCashier = async () => {
+    export const addFunds = async () => {
         try {
+            loading.set(true);
             isActive = true;
             errorMessage = null;
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
@@ -56,6 +58,7 @@
             }
         } catch (err) {
             console.log(err, err.stack);
+            loading.set(false);
             errorMessage = `Could not continue payment activity.`;
             return;
         }
@@ -77,7 +80,7 @@
         };
     }
 
-    win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus");
+    win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", () => { loading.set(false); });
     win.gidxErrorReport = echoGidxEvent("gidxErrorReport");
     win.gidxContainer = echoGidxEvent("gidxContainer");
     win.gidxBuildTimer = echoGidxEvent("gidxBuildTimer");
@@ -120,9 +123,15 @@
     }
 </script>
 
-{#if isActive}
-    <h2>Cashier</h2>
-    <slot />
+<h2>Cashier</h2>
+<slot />
+{#if !isActive}
+    <section>
+        <div class="actions">
+            <button class="action" on:click|preventDefault={addFunds}>Add Funds</button>
+        </div>
+    </section>
+{:else}
     {#if errorMessage}
         <section class="errorPanel">
             <h3>Error</h3>
