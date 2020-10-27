@@ -74,7 +74,8 @@ class Agent extends EventEmitter {
         const label = `${this.processCount++}-msg-${message.subject}-${message.id}`;
         try {
             console.time(label);
-            return await handler.bind(this)(message);
+            const result = await handler.bind(this)(message);
+            return result;
         } finally {
             console.timeEnd(label);
         }
@@ -86,7 +87,8 @@ class Agent extends EventEmitter {
         const label = `${this.processCount++}-event-${event}`;
         try {
             console.time(label);
-            return await handler.bind(this)(payload);
+            const result = await handler.bind(this)(payload);
+            return result;
         } finally {
             console.timeEnd(label);
         }
