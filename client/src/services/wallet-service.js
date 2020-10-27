@@ -279,12 +279,6 @@ export class WalletService extends EventEmitter {
                 payload
             }
         });
-        if (this.config.emitLogs && !['Log', 'Error'].includes(name))
-            this.postMessage({
-                name: 'Log',
-                payload: JSON.stringify(`Emitting ${name}`),
-                success: true
-            });
         this.postMessage(message);
     }
     postMessage(message) {
@@ -295,6 +289,12 @@ export class WalletService extends EventEmitter {
         else if (this.channelScope) {
             this.channel.parent.postMessage(message, this.channelScope);
         }
+        if (this.config.emitLogs && !['Log', 'Error'].includes(message.name))
+            this.postMessage({
+                name: 'Log',
+                payload: JSON.stringify(`Posting ${message.name}`),
+                success: true
+            });
     }
     overrideConsole() {
         console.log = (...messages) => {
