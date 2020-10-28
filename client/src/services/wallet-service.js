@@ -292,7 +292,7 @@ export class WalletService extends EventEmitter {
         if (this.config.emitLogs && !['Log', 'Error'].includes(message.name))
             this.postMessage({
                 name: 'Log',
-                payload: JSON.stringify(`Posting ${message.name}`),
+                payload: JSON.stringify(message),
                 success: true
             });
     }
