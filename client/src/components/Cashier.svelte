@@ -72,8 +72,8 @@
     };
 
     function echoGidxEvent(name, func?: Function) {
-        return (data) => {
-            console.log(`TRIGGERED: gidx.${name}: ${data}`);
+        return (data, ...args) => {
+            console.log(`TRIGGERED: gidx.${name}: ${data}`, args);
             if (typeof func === "function") {
                 func(data);
             }

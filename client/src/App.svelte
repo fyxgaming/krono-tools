@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ApiService from "./services/api-service";
 	import { onMount } from 'svelte';
 	import { currentUser, loggedIn, loading } from "./services/stores";
 
@@ -11,6 +12,7 @@
 	import Spinner from "./components/Spinner.svelte";
 
 	let component;
+	let geo = 'temp';
 
 	onMount(async () => {
 		loading.set(true);
@@ -22,7 +24,8 @@
 		loading.set(false);
 		loggedIn.set(ws.authenticated);
 		currentUser.set(ws.handle || 'Cryptofights');
-		console.log(`${ws.authenticated}${ws.handle}`)
+		console.log(`${ws.authenticated}${ws.handle}`);
+		geo = JSON.stringify(await ApiService.getGps());
 	});
 
 	const logout = async () => {
@@ -60,6 +63,9 @@
 <Spinner />
 <main>
 	<h1>{$currentUser}</h1>
+	<div>
+		GEO: {geo}
+	</div>
 	{#if component !== Home}
 		<p>
 			<a
