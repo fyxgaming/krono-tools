@@ -1,37 +1,38 @@
 <script lang="ts">
-    import { GlobalService } from '../services/global-service';
-    const gs = new GlobalService();
+    import { currentUser, loggedIn, loading } from "../services/stores";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    export let loggedIn: boolean;
     let showReg: boolean = false;
     let handle: string;
     let password: string;
     let email: string;
 
     const onStatusChanged = () => {
-        dispatch("statusChanged", { loggedIn });
+        const ws = window.walletService;
+        loading.set(false);
+        loggedIn.update(v => ws.authenticated);
+        currentUser.update(v => ws.handle);
     };
 
     const register = async () => {
         console.log("register");
-        await gs.wallet.register(handle, password, email);
-        loggedIn = true;
+        loading.set(true);
+        await window.walletService.register(handle, password, email);
         onStatusChanged();
     };
 
     const login = async () => {
         console.log("login");
-        await gs.wallet.login(handle, password);
-        loggedIn = true;
+        loading.set(true);
+        await window.walletService.login(handle, password);
         onStatusChanged();
     };
 
-    const logout = () => {
+    const logout = async () => {
         console.log("logout");
-        gs.wallet.logout();
-        loggedIn = false;
+        loading.set(true);
+        await window.walletService.logout();
         onStatusChanged();
     };
 </script>
@@ -54,16 +55,15 @@
     }
     .field-cntrl {
         display:block;
-    }
-    .action {
-        display:block;
+        max-width: 320px;
+        width: 100%;
     }
 </style>
 
-{#if loggedIn}
+{#if ($loggedIn)}
     <section>
         <div class="actions">
-            <button on:click={logout}>Logout</button>
+            <button class="action" on:click|preventDefault={logout}>Logout</button>
         </div>
     </section>
 {:else}
@@ -90,7 +90,7 @@
                 </label>
                 <input
                     id="rpassword"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={password}
                     placeholder="enter your password"
                     type="password" />
@@ -103,7 +103,7 @@
                 </label>
                 <input
                     id="remail"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={email}
                     placeholder="enter your email"
                     type="email" />
@@ -139,7 +139,7 @@
                 </label>
                 <input
                     id="password"
-                    class="field"
+                    class="field-cntrl"
                     bind:value={password}
                     placeholder="enter your password"
                     type="password" />

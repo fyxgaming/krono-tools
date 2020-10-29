@@ -15,6 +15,7 @@
     "@rollup/plugin-wasm": "^5.1.0",
     "@tsconfig/svelte": "^1.0.0",
     "argon2-browser": "^1.15.2",
+    "express-http-proxy": "^1.6.2",
     "rollup": "^2.3.4",
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-external-globals": "^0.6.0",
@@ -31,7 +32,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "express-http-proxy": "^1.6.2",
+    "date-fns": "^2.16.1",
     "sirv-cli": "^1.0.0"
   }
 }
