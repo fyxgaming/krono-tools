@@ -1,26 +1,31 @@
 const {Token, Transaction} = require('@kronoverse/run');
 
+/* global KronoClass */
 class KronoCoin extends Token {
+    setPayment(payment) {
+        this.payment = payment;
+    }
+
+    static mint(amount) {
+        const coin = super.mint(amount);
+        coin.setPayment(caller);
+        return coin;
+    }
+    
+    static transfer(owner) {
+        this.owner = owner;
+    }
+
     toObject(skipKeys = [], visited = new Set()) {
         if(visited.has(this)) return;
         visited.add(this);
-        const clone = Object.entries(this).reduce((clone, [key, value]) => {
-            if([...skipKeys, 'deps', 'presets'].includes(key)) return clone;
-            clone[key] = KronoClass.deepClone(value, [], new Set(visited));
-            return clone;
-        }, {})
-        return clone;
+        return KronoClass.cloneChildren(this, skipKeys, visited);
     }
 
-    static async postDeploy() {
-        const t = new Transaction();
-        t.update(() => {
-            for(let i = 0; i < 10; i++) {
-                const coin = KronoCoin.mint(100000000000);
-                coin.send(KronoCoin.deps.CashierConfig.address);
-            }
-        });
-        await t.publish();
+    static async postDeploy(deployer) {
+        console.log('Token Owner:', this.deps.CashierConfig.address);
+        this.transfer(this.deps.CashierConfig.address);
+        await this.sync();
     }
 }
 

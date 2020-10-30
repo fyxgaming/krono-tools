@@ -110,17 +110,6 @@ export class Deployer {
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
                 Object.setPrototypeOf(deployed, dep);
-                // parent.presets = {
-                //     [this.run.blockchain.network]: {
-                //         location: dep.location,
-                //         origin: dep.location,
-                //         owner: dep.owner,
-                //         satoshis: dep.satoshis,
-                //         nonce: dep.nonce
-                //     }
-                // };
-                // parent.presets[this.run.network] = dep.presets[this.run.network];
-                // parent[`location${this.networkKey}`] = dep.location;
             }
         }
 
@@ -178,7 +167,7 @@ export class Deployer {
                 let postDeploy;
                 if (deployed.hasOwnProperty('postDeploy')) {
                     //Allow Jig Class to configure itself with its deps
-                    postDeploy = deployed.postDeploy.bind(deployed);
+                    postDeploy = deployed.postDeploy;
                     //Remove preDeploy before putting on chain
                     delete deployed.postDeploy;
 
@@ -193,7 +182,9 @@ export class Deployer {
                 this.log(`RUN.SYNC`);
                 await this.run.sync();
                 if (postDeploy) {
-                    await postDeploy(this);
+                    deployed = await this.run.load(deployed.location);
+                    this.log(`RUN.POST-DEPLOY ${deployed.name}`);
+                    await postDeploy.bind(deployed)(this);
                 }
 
                 //Put the artifact location into the chain file
@@ -264,23 +255,4 @@ export class Deployer {
         this.cache.set(chainFile, jig);
         await fs.outputFile(chainPath, JSON.stringify(chainData, null, 4));
     }
-
-    // async loadConfig(chainFile, typeFile, ...params): Promise<IJig> {
-    //     let config;
-    //     try {
-    //         config = await this.loadChain(path.join(this.rootPath, chainFile));
-    //     } catch (e) {
-    //         console.error('ERROR loading jig', e.message);
-    //     }
-
-    //     if (!config) {
-    //         const Type = await this.deploy(typeFile);
-    //         await Type.sync();
-    //         config = new Type(...params);
-    //         await config.sync();
-    //         await this.writeChain(chainFile, config);
-    //     }
-
-    //     return config;
-    // }
 }
