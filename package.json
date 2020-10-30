@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "@kronoverse/lib": "^1.0.11",
-    "@kronoverse/run": "^0.6.19",
+    "@kronoverse/run": "^0.6.20",
     "bsv": "^2.0.0-beta.41",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
