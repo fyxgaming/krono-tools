@@ -1,4 +1,4 @@
-const {Token, Transaction} = require('@kronoverse/run');
+const {Token} = require('@kronoverse/run');
 
 /* global KronoClass */
 class KronoCoin extends Token {

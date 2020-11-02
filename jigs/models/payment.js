@@ -2,7 +2,7 @@ const KronoJig = require('../lib/krono-jig');
 
 /* global KronoCoin */
 class Payment extends KronoJig {
-    init(payer, paymentId) {
+    init(paymentId, payer) {
         this.paymentId = paymentId;
         this.payer = payer;
     }
