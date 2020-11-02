@@ -99,6 +99,11 @@ var wallet = (function (whatwgFetch, bsv_1) {
         const unsub = store.subscribe(...callbacks);
         return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
     }
+    function get_store_value(store) {
+        let value;
+        subscribe(store, _ => value = _)();
+        return value;
+    }
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
     }
@@ -516,6 +521,63 @@ var wallet = (function (whatwgFetch, bsv_1) {
         $capture_state() { }
         $inject_state() { }
     }
+
+    const subscriber_queue = [];
+    /**
+     * Create a `Writable` store that allows both updating and reading by subscription.
+     * @param {*=}value initial value
+     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     */
+    function writable(value, start = noop) {
+        let stop;
+        const subscribers = [];
+        function set(new_value) {
+            if (safe_not_equal(value, new_value)) {
+                value = new_value;
+                if (stop) { // store is ready
+                    const run_queue = !subscriber_queue.length;
+                    for (let i = 0; i < subscribers.length; i += 1) {
+                        const s = subscribers[i];
+                        s[1]();
+                        subscriber_queue.push(s, value);
+                    }
+                    if (run_queue) {
+                        for (let i = 0; i < subscriber_queue.length; i += 2) {
+                            subscriber_queue[i][0](subscriber_queue[i + 1]);
+                        }
+                        subscriber_queue.length = 0;
+                    }
+                }
+            }
+        }
+        function update(fn) {
+            set(fn(value));
+        }
+        function subscribe(run, invalidate = noop) {
+            const subscriber = [run, invalidate];
+            subscribers.push(subscriber);
+            if (subscribers.length === 1) {
+                stop = start(set) || noop;
+            }
+            run(value);
+            return () => {
+                const index = subscribers.indexOf(subscriber);
+                if (index !== -1) {
+                    subscribers.splice(index, 1);
+                }
+                if (subscribers.length === 0) {
+                    stop();
+                    stop = null;
+                }
+            };
+        }
+        return { set, update, subscribe };
+    }
+
+    const route = writable('/');
+    const currentUser = writable('Guest');
+    const loggedIn = writable(false);
+    const loading = writable(false);
 
     function toInteger(dirtyNumber) {
       if (dirtyNumber === null || dirtyNumber === true || dirtyNumber === false) {
@@ -2934,62 +2996,6 @@ var wallet = (function (whatwgFetch, bsv_1) {
             return p;
         }
     }
-
-    const subscriber_queue = [];
-    /**
-     * Create a `Writable` store that allows both updating and reading by subscription.
-     * @param {*=}value initial value
-     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
-     */
-    function writable(value, start = noop) {
-        let stop;
-        const subscribers = [];
-        function set(new_value) {
-            if (safe_not_equal(value, new_value)) {
-                value = new_value;
-                if (stop) { // store is ready
-                    const run_queue = !subscriber_queue.length;
-                    for (let i = 0; i < subscribers.length; i += 1) {
-                        const s = subscribers[i];
-                        s[1]();
-                        subscriber_queue.push(s, value);
-                    }
-                    if (run_queue) {
-                        for (let i = 0; i < subscriber_queue.length; i += 2) {
-                            subscriber_queue[i][0](subscriber_queue[i + 1]);
-                        }
-                        subscriber_queue.length = 0;
-                    }
-                }
-            }
-        }
-        function update(fn) {
-            set(fn(value));
-        }
-        function subscribe(run, invalidate = noop) {
-            const subscriber = [run, invalidate];
-            subscribers.push(subscriber);
-            if (subscribers.length === 1) {
-                stop = start(set) || noop;
-            }
-            run(value);
-            return () => {
-                const index = subscribers.indexOf(subscriber);
-                if (index !== -1) {
-                    subscribers.splice(index, 1);
-                }
-                if (subscribers.length === 0) {
-                    stop();
-                    stop = null;
-                }
-            };
-        }
-        return { set, update, subscribe };
-    }
-
-    const currentUser = writable('Guest');
-    const loggedIn = writable(false);
-    const loading = writable(false);
 
     function createCommonjsModule(fn, basedir, module) {
     	return module = {
@@ -6354,18 +6360,147 @@ var wallet = (function (whatwgFetch, bsv_1) {
     }
 
     /* src/components/Home.svelte generated by Svelte v3.29.4 */
+    const file = "src/components/Home.svelte";
+
+    // (19:4) {:else}
+    function create_else_block(ctx) {
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			button = element("button");
+    			button.textContent = "Login";
+    			attr_dev(button, "class", "action");
+    			add_location(button, file, 19, 8, 519);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = listen_dev(button, "click", prevent_default(/*click_handler_2*/ ctx[4]), false, true, false);
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(button);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block.name,
+    		type: "else",
+    		source: "(19:4) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (12:4) {#if $loggedIn}
+    function create_if_block(ctx) {
+    	let button0;
+    	let t1;
+    	let button1;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			button0 = element("button");
+    			button0.textContent = "Logout";
+    			t1 = space();
+    			button1 = element("button");
+    			button1.textContent = "Enter Match";
+    			attr_dev(button0, "class", "action");
+    			add_location(button0, file, 12, 8, 265);
+    			attr_dev(button1, "class", "action");
+    			add_location(button1, file, 15, 8, 383);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, button0, anchor);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, button1, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", prevent_default(/*click_handler*/ ctx[2]), false, true, false),
+    					listen_dev(button1, "click", prevent_default(/*click_handler_1*/ ctx[3]), false, true, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(button0);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(button1);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(12:4) {#if $loggedIn}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     function create_fragment(ctx) {
+    	let section;
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*$loggedIn*/ ctx[0]) return create_if_block;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
     	const block = {
-    		c: noop,
+    		c: function create() {
+    			section = element("section");
+    			if_block.c();
+    			attr_dev(section, "class", "actions");
+    			add_location(section, file, 10, 0, 211);
+    		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
-    		m: noop,
-    		p: noop,
+    		m: function mount(target, anchor) {
+    			insert_dev(target, section, anchor);
+    			if_block.m(section, null);
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(section, null);
+    				}
+    			}
+    		},
     		i: noop,
     		o: noop,
-    		d: noop
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(section);
+    			if_block.d();
+    		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
@@ -6379,16 +6514,37 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	return block;
     }
 
-    function instance($$self, $$props) {
+    function instance($$self, $$props, $$invalidate) {
+    	let $loggedIn;
+    	validate_store(loggedIn, "loggedIn");
+    	component_subscribe($$self, loggedIn, $$value => $$invalidate(0, $loggedIn = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("Home", slots, []);
+
+    	const nav = path => {
+    		route.set(path);
+    	};
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Home> was created with unknown prop '${key}'`);
     	});
 
-    	return [];
+    	const click_handler = () => nav("/Logout");
+    	const click_handler_1 = () => nav("/Cashier");
+    	const click_handler_2 = () => nav("/Login");
+
+    	$$self.$capture_state = () => ({
+    		currentUser,
+    		loggedIn,
+    		loading,
+    		route,
+    		nav,
+    		$loggedIn
+    	});
+
+    	return [$loggedIn, nav, click_handler, click_handler_1, click_handler_2];
     }
 
     class Home extends SvelteComponentDev {
@@ -6408,320 +6564,350 @@ var wallet = (function (whatwgFetch, bsv_1) {
     /* src/components/Login.svelte generated by Svelte v3.29.4 */
 
     const { console: console_1 } = globals;
-    const file = "src/components/Login.svelte";
+    const file$1 = "src/components/Login.svelte";
 
-    // (72:0) {:else}
-    function create_else_block(ctx) {
+    // (96:0) {:else}
+    function create_else_block$1(ctx) {
+    	let t0;
     	let section0;
     	let h20;
-    	let t1;
+    	let t2;
     	let form0;
     	let div0;
     	let label0;
     	let span0;
-    	let t3;
+    	let t4;
     	let span1;
-    	let t5;
-    	let input0;
     	let t6;
+    	let input0;
+    	let t7;
     	let div1;
     	let label1;
     	let span2;
-    	let t8;
+    	let t9;
     	let span3;
-    	let t10;
-    	let input1;
     	let t11;
+    	let input1;
+    	let input1_minlength_value;
+    	let t12;
     	let div2;
     	let label2;
     	let span4;
-    	let t13;
-    	let span5;
     	let t14;
-    	let input2;
+    	let span5;
     	let t15;
+    	let input2;
+    	let t16;
     	let div3;
     	let button0;
-    	let t17;
+    	let t18;
     	let p0;
     	let a0;
     	let section0_hidden_value;
-    	let t19;
+    	let t20;
     	let section1;
     	let h21;
-    	let t21;
+    	let t22;
     	let form1;
     	let div4;
     	let label3;
     	let span6;
-    	let t23;
+    	let t24;
     	let span7;
-    	let t25;
-    	let input3;
     	let t26;
+    	let input3;
+    	let t27;
     	let div5;
     	let label4;
     	let span8;
-    	let t28;
+    	let t29;
     	let span9;
-    	let t30;
-    	let input4;
     	let t31;
+    	let input4;
+    	let input4_minlength_value;
+    	let t32;
     	let div6;
     	let button1;
-    	let t33;
+    	let t34;
     	let p1;
     	let a1;
     	let mounted;
     	let dispose;
+    	let if_block = /*errorText*/ ctx[4] && create_if_block_1(ctx);
 
     	const block = {
     		c: function create() {
+    			if (if_block) if_block.c();
+    			t0 = space();
     			section0 = element("section");
     			h20 = element("h2");
     			h20.textContent = "Register";
-    			t1 = space();
+    			t2 = space();
     			form0 = element("form");
     			div0 = element("div");
     			label0 = element("label");
     			span0 = element("span");
     			span0.textContent = "Gamer Handle";
-    			t3 = space();
+    			t4 = space();
     			span1 = element("span");
     			span1.textContent = "Must contain 4+ characters.";
-    			t5 = space();
-    			input0 = element("input");
     			t6 = space();
+    			input0 = element("input");
+    			t7 = space();
     			div1 = element("div");
     			label1 = element("label");
     			span2 = element("span");
     			span2.textContent = "Password";
-    			t8 = space();
+    			t9 = space();
     			span3 = element("span");
     			span3.textContent = "Must contain 8+ characters with at\n                        least 1 number and 1 uppercase letter.";
-    			t10 = space();
-    			input1 = element("input");
     			t11 = space();
+    			input1 = element("input");
+    			t12 = space();
     			div2 = element("div");
     			label2 = element("label");
     			span4 = element("span");
     			span4.textContent = "Email";
-    			t13 = space();
-    			span5 = element("span");
     			t14 = space();
-    			input2 = element("input");
+    			span5 = element("span");
     			t15 = space();
+    			input2 = element("input");
+    			t16 = space();
     			div3 = element("div");
     			button0 = element("button");
     			button0.textContent = "Register";
-    			t17 = space();
+    			t18 = space();
     			p0 = element("p");
     			a0 = element("a");
     			a0.textContent = "Login";
-    			t19 = space();
+    			t20 = space();
     			section1 = element("section");
     			h21 = element("h2");
     			h21.textContent = "Login";
-    			t21 = space();
+    			t22 = space();
     			form1 = element("form");
     			div4 = element("div");
     			label3 = element("label");
     			span6 = element("span");
     			span6.textContent = "Gamer Handle";
-    			t23 = space();
+    			t24 = space();
     			span7 = element("span");
     			span7.textContent = "Must contain 4+ characters.";
-    			t25 = space();
-    			input3 = element("input");
     			t26 = space();
+    			input3 = element("input");
+    			t27 = space();
     			div5 = element("div");
     			label4 = element("label");
     			span8 = element("span");
     			span8.textContent = "Password";
-    			t28 = space();
+    			t29 = space();
     			span9 = element("span");
     			span9.textContent = "Must contain 8+ characters with at\n                        least 1 number and 1 uppercase letter.";
-    			t30 = space();
-    			input4 = element("input");
     			t31 = space();
+    			input4 = element("input");
+    			t32 = space();
     			div6 = element("div");
     			button1 = element("button");
     			button1.textContent = "Login";
-    			t33 = space();
+    			t34 = space();
     			p1 = element("p");
     			a1 = element("a");
     			a1.textContent = "Register";
-    			add_location(h20, file, 73, 8, 2396);
-    			attr_dev(span0, "class", "field-label svelte-vjn4cg");
-    			add_location(span0, file, 77, 20, 2555);
-    			attr_dev(span1, "class", "field-hint svelte-vjn4cg");
-    			add_location(span1, file, 78, 20, 2621);
+    			add_location(h20, file$1, 102, 8, 3010);
+    			attr_dev(span0, "class", "field-label svelte-18vvihk");
+    			add_location(span0, file$1, 106, 20, 3169);
+    			attr_dev(span1, "class", "field-hint svelte-18vvihk");
+    			add_location(span1, file$1, 107, 20, 3235);
     			attr_dev(label0, "for", "rhandle");
-    			add_location(label0, file, 76, 16, 2513);
+    			add_location(label0, file$1, 105, 16, 3127);
     			attr_dev(input0, "id", "rhandle");
-    			attr_dev(input0, "class", "field-cntrl svelte-vjn4cg");
+    			attr_dev(input0, "class", "field-cntrl svelte-18vvihk");
+    			input0.required = true;
+    			attr_dev(input0, "pattern", /*handleRegExp*/ ctx[6]);
     			attr_dev(input0, "placeholder", "enter your gamer handle");
-    			add_location(input0, file, 80, 16, 2722);
-    			attr_dev(div0, "class", "field svelte-vjn4cg");
-    			add_location(div0, file, 75, 12, 2477);
-    			attr_dev(span2, "class", "field-label svelte-vjn4cg");
-    			add_location(span2, file, 89, 20, 3015);
-    			attr_dev(span3, "class", "field-hint svelte-vjn4cg");
-    			add_location(span3, file, 90, 20, 3077);
+    			add_location(input0, file$1, 109, 16, 3336);
+    			attr_dev(div0, "class", "field svelte-18vvihk");
+    			add_location(div0, file$1, 104, 12, 3091);
+    			attr_dev(span2, "class", "field-label svelte-18vvihk");
+    			add_location(span2, file$1, 120, 20, 3701);
+    			attr_dev(span3, "class", "field-hint svelte-18vvihk");
+    			add_location(span3, file$1, 121, 20, 3763);
     			attr_dev(label1, "for", "rpassword");
-    			add_location(label1, file, 88, 16, 2971);
+    			add_location(label1, file$1, 119, 16, 3657);
     			attr_dev(input1, "id", "rpassword");
-    			attr_dev(input1, "class", "field-cntrl svelte-vjn4cg");
+    			attr_dev(input1, "class", "field-cntrl svelte-18vvihk");
+    			input1.required = true;
+    			attr_dev(input1, "minlength", input1_minlength_value = 8);
     			attr_dev(input1, "placeholder", "enter your password");
     			attr_dev(input1, "type", "password");
-    			add_location(input1, file, 93, 16, 3248);
-    			attr_dev(div1, "class", "field svelte-vjn4cg");
-    			add_location(div1, file, 87, 12, 2935);
-    			attr_dev(span4, "class", "field-label svelte-vjn4cg");
-    			add_location(span4, file, 103, 20, 3574);
-    			attr_dev(span5, "class", "field-hint svelte-vjn4cg");
-    			add_location(span5, file, 104, 20, 3633);
+    			add_location(input1, file$1, 124, 16, 3934);
+    			attr_dev(div1, "class", "field svelte-18vvihk");
+    			add_location(div1, file$1, 118, 12, 3621);
+    			attr_dev(span4, "class", "field-label svelte-18vvihk");
+    			add_location(span4, file$1, 136, 20, 4323);
+    			attr_dev(span5, "class", "field-hint svelte-18vvihk");
+    			add_location(span5, file$1, 137, 20, 4382);
     			attr_dev(label2, "for", "remail");
-    			add_location(label2, file, 102, 16, 3533);
+    			add_location(label2, file$1, 135, 16, 4282);
     			attr_dev(input2, "id", "remail");
-    			attr_dev(input2, "class", "field-cntrl svelte-vjn4cg");
+    			attr_dev(input2, "class", "field-cntrl svelte-18vvihk");
+    			input2.required = true;
     			attr_dev(input2, "placeholder", "enter your email");
     			attr_dev(input2, "type", "email");
-    			add_location(input2, file, 106, 16, 3702);
-    			attr_dev(div2, "class", "field svelte-vjn4cg");
-    			add_location(div2, file, 101, 12, 3497);
+    			add_location(input2, file$1, 139, 16, 4451);
+    			attr_dev(div2, "class", "field svelte-18vvihk");
+    			add_location(div2, file$1, 134, 12, 4246);
     			attr_dev(button0, "class", "action");
     			attr_dev(button0, "type", "submit");
-    			add_location(button0, file, 115, 16, 3977);
+    			add_location(button0, file$1, 149, 16, 4755);
     			attr_dev(div3, "class", "actions");
-    			add_location(div3, file, 114, 12, 3939);
-    			add_location(form0, file, 74, 8, 2422);
+    			add_location(div3, file$1, 148, 12, 4717);
+    			add_location(form0, file$1, 103, 8, 3036);
     			attr_dev(a0, "href", "/");
-    			add_location(a0, file, 118, 11, 4078);
-    			add_location(p0, file, 118, 8, 4075);
+    			add_location(a0, file$1, 153, 12, 4869);
+    			add_location(p0, file$1, 152, 8, 4853);
     			section0.hidden = section0_hidden_value = !/*showReg*/ ctx[0];
-    			add_location(section0, file, 72, 4, 2360);
-    			add_location(h21, file, 122, 8, 4209);
-    			attr_dev(span6, "class", "field-label svelte-vjn4cg");
-    			add_location(span6, file, 126, 20, 4361);
-    			attr_dev(span7, "class", "field-hint svelte-vjn4cg");
-    			add_location(span7, file, 127, 20, 4427);
+    			add_location(section0, file$1, 101, 4, 2974);
+    			add_location(h21, file$1, 160, 8, 5041);
+    			attr_dev(span6, "class", "field-label svelte-18vvihk");
+    			add_location(span6, file$1, 164, 20, 5193);
+    			attr_dev(span7, "class", "field-hint svelte-18vvihk");
+    			add_location(span7, file$1, 165, 20, 5259);
     			attr_dev(label3, "for", "handle");
-    			add_location(label3, file, 125, 16, 4320);
+    			add_location(label3, file$1, 163, 16, 5152);
     			attr_dev(input3, "id", "handle");
-    			attr_dev(input3, "class", "field-cntrl svelte-vjn4cg");
+    			attr_dev(input3, "class", "field-cntrl svelte-18vvihk");
+    			input3.required = true;
+    			attr_dev(input3, "pattern", /*handleRegExp*/ ctx[6]);
     			attr_dev(input3, "placeholder", "enter your gamer handle");
-    			add_location(input3, file, 129, 16, 4528);
-    			attr_dev(div4, "class", "field svelte-vjn4cg");
-    			add_location(div4, file, 124, 12, 4284);
-    			attr_dev(span8, "class", "field-label svelte-vjn4cg");
-    			add_location(span8, file, 138, 20, 4819);
-    			attr_dev(span9, "class", "field-hint svelte-vjn4cg");
-    			add_location(span9, file, 139, 20, 4881);
+    			add_location(input3, file$1, 167, 16, 5360);
+    			attr_dev(div4, "class", "field svelte-18vvihk");
+    			add_location(div4, file$1, 162, 12, 5116);
+    			attr_dev(span8, "class", "field-label svelte-18vvihk");
+    			add_location(span8, file$1, 178, 20, 5723);
+    			attr_dev(span9, "class", "field-hint svelte-18vvihk");
+    			add_location(span9, file$1, 179, 20, 5785);
     			attr_dev(label4, "for", "password");
-    			add_location(label4, file, 137, 16, 4776);
+    			add_location(label4, file$1, 177, 16, 5680);
     			attr_dev(input4, "id", "password");
-    			attr_dev(input4, "class", "field-cntrl svelte-vjn4cg");
+    			attr_dev(input4, "class", "field-cntrl svelte-18vvihk");
+    			input4.required = true;
+    			attr_dev(input4, "minlength", input4_minlength_value = 8);
     			attr_dev(input4, "placeholder", "enter your password");
     			attr_dev(input4, "type", "password");
-    			add_location(input4, file, 142, 16, 5052);
-    			attr_dev(div5, "class", "field svelte-vjn4cg");
-    			add_location(div5, file, 136, 12, 4740);
+    			add_location(input4, file$1, 182, 16, 5956);
+    			attr_dev(div5, "class", "field svelte-18vvihk");
+    			add_location(div5, file$1, 176, 12, 5644);
     			attr_dev(button1, "class", "action");
     			attr_dev(button1, "type", "submit");
-    			add_location(button1, file, 151, 16, 5338);
+    			add_location(button1, file$1, 193, 16, 6305);
     			attr_dev(div6, "class", "actions");
-    			add_location(div6, file, 150, 12, 5300);
-    			add_location(form1, file, 123, 8, 4232);
+    			add_location(div6, file$1, 192, 12, 6267);
+    			add_location(form1, file$1, 161, 8, 5064);
     			attr_dev(a1, "href", "/");
-    			add_location(a1, file, 154, 11, 5436);
-    			add_location(p1, file, 154, 8, 5433);
+    			add_location(a1, file$1, 197, 12, 6416);
+    			add_location(p1, file$1, 196, 8, 6400);
     			section1.hidden = /*showReg*/ ctx[0];
-    			add_location(section1, file, 121, 4, 4174);
+    			add_location(section1, file$1, 159, 4, 5006);
     		},
     		m: function mount(target, anchor) {
+    			if (if_block) if_block.m(target, anchor);
+    			insert_dev(target, t0, anchor);
     			insert_dev(target, section0, anchor);
     			append_dev(section0, h20);
-    			append_dev(section0, t1);
+    			append_dev(section0, t2);
     			append_dev(section0, form0);
     			append_dev(form0, div0);
     			append_dev(div0, label0);
     			append_dev(label0, span0);
-    			append_dev(label0, t3);
+    			append_dev(label0, t4);
     			append_dev(label0, span1);
-    			append_dev(div0, t5);
+    			append_dev(div0, t6);
     			append_dev(div0, input0);
     			set_input_value(input0, /*handle*/ ctx[1]);
-    			append_dev(form0, t6);
+    			append_dev(form0, t7);
     			append_dev(form0, div1);
     			append_dev(div1, label1);
     			append_dev(label1, span2);
-    			append_dev(label1, t8);
+    			append_dev(label1, t9);
     			append_dev(label1, span3);
-    			append_dev(div1, t10);
+    			append_dev(div1, t11);
     			append_dev(div1, input1);
     			set_input_value(input1, /*password*/ ctx[2]);
-    			append_dev(form0, t11);
+    			append_dev(form0, t12);
     			append_dev(form0, div2);
     			append_dev(div2, label2);
     			append_dev(label2, span4);
-    			append_dev(label2, t13);
+    			append_dev(label2, t14);
     			append_dev(label2, span5);
-    			append_dev(div2, t14);
+    			append_dev(div2, t15);
     			append_dev(div2, input2);
     			set_input_value(input2, /*email*/ ctx[3]);
-    			append_dev(form0, t15);
+    			append_dev(form0, t16);
     			append_dev(form0, div3);
     			append_dev(div3, button0);
-    			append_dev(section0, t17);
+    			append_dev(section0, t18);
     			append_dev(section0, p0);
     			append_dev(p0, a0);
-    			insert_dev(target, t19, anchor);
+    			insert_dev(target, t20, anchor);
     			insert_dev(target, section1, anchor);
     			append_dev(section1, h21);
-    			append_dev(section1, t21);
+    			append_dev(section1, t22);
     			append_dev(section1, form1);
     			append_dev(form1, div4);
     			append_dev(div4, label3);
     			append_dev(label3, span6);
-    			append_dev(label3, t23);
+    			append_dev(label3, t24);
     			append_dev(label3, span7);
-    			append_dev(div4, t25);
+    			append_dev(div4, t26);
     			append_dev(div4, input3);
     			set_input_value(input3, /*handle*/ ctx[1]);
-    			append_dev(form1, t26);
+    			append_dev(form1, t27);
     			append_dev(form1, div5);
     			append_dev(div5, label4);
     			append_dev(label4, span8);
-    			append_dev(label4, t28);
+    			append_dev(label4, t29);
     			append_dev(label4, span9);
-    			append_dev(div5, t30);
+    			append_dev(div5, t31);
     			append_dev(div5, input4);
     			set_input_value(input4, /*password*/ ctx[2]);
-    			append_dev(form1, t31);
+    			append_dev(form1, t32);
     			append_dev(form1, div6);
     			append_dev(div6, button1);
-    			append_dev(section1, t33);
+    			append_dev(section1, t34);
     			append_dev(section1, p1);
     			append_dev(p1, a1);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[8]),
-    					listen_dev(input1, "input", /*input1_input_handler*/ ctx[9]),
-    					listen_dev(input2, "input", /*input2_input_handler*/ ctx[10]),
-    					listen_dev(form0, "submit", prevent_default(/*register*/ ctx[5]), false, true, false),
-    					listen_dev(a0, "click", prevent_default(/*click_handler*/ ctx[11]), false, true, false),
-    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[12]),
-    					listen_dev(input4, "input", /*input4_input_handler*/ ctx[13]),
-    					listen_dev(form1, "submit", prevent_default(/*login*/ ctx[6]), false, true, false),
-    					listen_dev(a1, "click", prevent_default(/*click_handler_1*/ ctx[14]), false, true, false)
+    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[10]),
+    					listen_dev(input1, "input", /*input1_input_handler*/ ctx[11]),
+    					listen_dev(input2, "input", /*input2_input_handler*/ ctx[12]),
+    					listen_dev(form0, "submit", prevent_default(/*register*/ ctx[7]), false, true, false),
+    					listen_dev(a0, "click", prevent_default(/*click_handler*/ ctx[13]), false, true, false),
+    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[14]),
+    					listen_dev(input4, "input", /*input4_input_handler*/ ctx[15]),
+    					listen_dev(form1, "submit", prevent_default(/*login*/ ctx[8]), false, true, false),
+    					listen_dev(a1, "click", prevent_default(/*click_handler_1*/ ctx[16]), false, true, false)
     				];
 
     				mounted = true;
     			}
     		},
     		p: function update(ctx, dirty) {
+    			if (/*errorText*/ ctx[4]) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+    				} else {
+    					if_block = create_if_block_1(ctx);
+    					if_block.c();
+    					if_block.m(t0.parentNode, t0);
+    				}
+    			} else if (if_block) {
+    				if_block.d(1);
+    				if_block = null;
+    			}
+
     			if (dirty & /*handle*/ 2 && input0.value !== /*handle*/ ctx[1]) {
     				set_input_value(input0, /*handle*/ ctx[1]);
     			}
@@ -6751,8 +6937,10 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			}
     		},
     		d: function destroy(detaching) {
+    			if (if_block) if_block.d(detaching);
+    			if (detaching) detach_dev(t0);
     			if (detaching) detach_dev(section0);
-    			if (detaching) detach_dev(t19);
+    			if (detaching) detach_dev(t20);
     			if (detaching) detach_dev(section1);
     			mounted = false;
     			run_all(dispose);
@@ -6761,17 +6949,17 @@ var wallet = (function (whatwgFetch, bsv_1) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block.name,
+    		id: create_else_block$1.name,
     		type: "else",
-    		source: "(72:0) {:else}",
+    		source: "(96:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (66:0) {#if ($loggedIn)}
-    function create_if_block(ctx) {
+    // (88:0) {#if $loggedIn}
+    function create_if_block$1(ctx) {
     	let section;
     	let div;
     	let button;
@@ -6785,10 +6973,10 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			button = element("button");
     			button.textContent = "Logout";
     			attr_dev(button, "class", "action");
-    			add_location(button, file, 68, 12, 2246);
+    			add_location(button, file$1, 90, 12, 2711);
     			attr_dev(div, "class", "actions");
-    			add_location(div, file, 67, 8, 2212);
-    			add_location(section, file, 66, 4, 2194);
+    			add_location(div, file$1, 89, 8, 2677);
+    			add_location(section, file$1, 88, 4, 2659);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section, anchor);
@@ -6796,7 +6984,7 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			append_dev(div, button);
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", prevent_default(/*logout*/ ctx[7]), false, true, false);
+    				dispose = listen_dev(button, "click", prevent_default(/*logout*/ ctx[9]), false, true, false);
     				mounted = true;
     			}
     		},
@@ -6810,9 +6998,48 @@ var wallet = (function (whatwgFetch, bsv_1) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block.name,
+    		id: create_if_block$1.name,
     		type: "if",
-    		source: "(66:0) {#if ($loggedIn)}",
+    		source: "(88:0) {#if $loggedIn}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (97:4) {#if errorText}
+    function create_if_block_1(ctx) {
+    	let section;
+    	let p;
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			section = element("section");
+    			p = element("p");
+    			t = text(/*errorText*/ ctx[4]);
+    			add_location(p, file$1, 98, 12, 2922);
+    			attr_dev(section, "class", "errorPanel");
+    			add_location(section, file$1, 97, 8, 2881);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, section, anchor);
+    			append_dev(section, p);
+    			append_dev(p, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*errorText*/ 16) set_data_dev(t, /*errorText*/ ctx[4]);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(section);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(97:4) {#if errorText}",
     		ctx
     	});
 
@@ -6823,8 +7050,8 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	let if_block_anchor;
 
     	function select_block_type(ctx, dirty) {
-    		if (/*$loggedIn*/ ctx[4]) return create_if_block;
-    		return create_else_block;
+    		if (/*$loggedIn*/ ctx[5]) return create_if_block$1;
+    		return create_else_block$1;
     	}
 
     	let current_block_type = select_block_type(ctx);
@@ -6877,7 +7104,7 @@ var wallet = (function (whatwgFetch, bsv_1) {
     function instance$1($$self, $$props, $$invalidate) {
     	let $loggedIn;
     	validate_store(loggedIn, "loggedIn");
-    	component_subscribe($$self, loggedIn, $$value => $$invalidate(4, $loggedIn = $$value));
+    	component_subscribe($$self, loggedIn, $$value => $$invalidate(5, $loggedIn = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("Login", slots, []);
 
@@ -6922,6 +7149,8 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	let handle;
     	let password;
     	let email;
+    	let handleRegExp = "[a-zA-Z0-9]{4,25}";
+    	let errorText;
 
     	const onStatusChanged = () => {
     		const ws = window.walletService;
@@ -6933,14 +7162,28 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	const register = () => __awaiter(void 0, void 0, void 0, function* () {
     		console.log("register");
     		loading.set(true);
-    		yield window.walletService.register(handle, password, email);
+
+    		try {
+    			yield window.walletService.register(handle, password, email);
+    		} catch(err) {
+    			showError(`Registration failed`);
+    			return;
+    		}
+
     		onStatusChanged();
     	});
 
     	const login = () => __awaiter(void 0, void 0, void 0, function* () {
     		console.log("login");
     		loading.set(true);
-    		yield window.walletService.login(handle, password);
+
+    		try {
+    			yield window.walletService.login(handle, password);
+    		} catch(err) {
+    			showError(`Login failed`);
+    			return;
+    		}
+
     		onStatusChanged();
     	});
 
@@ -6949,6 +7192,19 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		loading.set(true);
     		yield window.walletService.logout();
     		onStatusChanged();
+    	});
+
+    	const showError = msg => __awaiter(void 0, void 0, void 0, function* () {
+    		console.log(msg);
+    		loading.set(false);
+    		$$invalidate(4, errorText = msg);
+
+    		setTimeout(
+    			() => {
+    				$$invalidate(4, errorText = null);
+    			},
+    			5000
+    		);
     	});
 
     	const writable_props = [];
@@ -6997,10 +7253,13 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		handle,
     		password,
     		email,
+    		handleRegExp,
+    		errorText,
     		onStatusChanged,
     		register,
     		login,
     		logout,
+    		showError,
     		$loggedIn
     	});
 
@@ -7010,6 +7269,8 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		if ("handle" in $$props) $$invalidate(1, handle = $$props.handle);
     		if ("password" in $$props) $$invalidate(2, password = $$props.password);
     		if ("email" in $$props) $$invalidate(3, email = $$props.email);
+    		if ("handleRegExp" in $$props) $$invalidate(6, handleRegExp = $$props.handleRegExp);
+    		if ("errorText" in $$props) $$invalidate(4, errorText = $$props.errorText);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -7021,7 +7282,9 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		handle,
     		password,
     		email,
+    		errorText,
     		$loggedIn,
+    		handleRegExp,
     		register,
     		login,
     		logout,
@@ -7055,151 +7318,30 @@ var wallet = (function (whatwgFetch, bsv_1) {
     /* src/components/Cashier.svelte generated by Svelte v3.29.4 */
 
     const { Error: Error_1, console: console_1$1 } = globals;
-    const file$1 = "src/components/Cashier.svelte";
+    const file$2 = "src/components/Cashier.svelte";
 
-    // (107:0) {:else}
-    function create_else_block$1(ctx) {
-    	let t;
-    	let if_block1_anchor;
-    	let if_block0 = /*errorMessage*/ ctx[3] && create_if_block_2(ctx);
-    	let if_block1 = /*webCasherSessionScript*/ ctx[2] && create_if_block_1(ctx);
-
-    	const block = {
-    		c: function create() {
-    			if (if_block0) if_block0.c();
-    			t = space();
-    			if (if_block1) if_block1.c();
-    			if_block1_anchor = empty();
-    		},
-    		m: function mount(target, anchor) {
-    			if (if_block0) if_block0.m(target, anchor);
-    			insert_dev(target, t, anchor);
-    			if (if_block1) if_block1.m(target, anchor);
-    			insert_dev(target, if_block1_anchor, anchor);
-    		},
-    		p: function update(ctx, dirty) {
-    			if (/*errorMessage*/ ctx[3]) {
-    				if (if_block0) {
-    					if_block0.p(ctx, dirty);
-    				} else {
-    					if_block0 = create_if_block_2(ctx);
-    					if_block0.c();
-    					if_block0.m(t.parentNode, t);
-    				}
-    			} else if (if_block0) {
-    				if_block0.d(1);
-    				if_block0 = null;
-    			}
-
-    			if (/*webCasherSessionScript*/ ctx[2]) {
-    				if (if_block1) ; else {
-    					if_block1 = create_if_block_1(ctx);
-    					if_block1.c();
-    					if_block1.m(if_block1_anchor.parentNode, if_block1_anchor);
-    				}
-    			} else if (if_block1) {
-    				if_block1.d(1);
-    				if_block1 = null;
-    			}
-    		},
-    		d: function destroy(detaching) {
-    			if (if_block0) if_block0.d(detaching);
-    			if (detaching) detach_dev(t);
-    			if (if_block1) if_block1.d(detaching);
-    			if (detaching) detach_dev(if_block1_anchor);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_else_block$1.name,
-    		type: "else",
-    		source: "(107:0) {:else}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (101:0) {#if !isActive}
-    function create_if_block$1(ctx) {
-    	let section;
-    	let div;
-    	let button;
-    	let mounted;
-    	let dispose;
-
-    	const block = {
-    		c: function create() {
-    			section = element("section");
-    			div = element("div");
-    			button = element("button");
-    			button.textContent = "Add Funds";
-    			attr_dev(button, "class", "action");
-    			add_location(button, file$1, 103, 12, 4481);
-    			attr_dev(div, "class", "actions");
-    			add_location(div, file$1, 102, 8, 4447);
-    			add_location(section, file$1, 101, 4, 4429);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, section, anchor);
-    			append_dev(section, div);
-    			append_dev(div, button);
-
-    			if (!mounted) {
-    				dispose = listen_dev(button, "click", prevent_default(/*addFunds*/ ctx[1]), false, true, false);
-    				mounted = true;
-    			}
-    		},
-    		p: noop,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(section);
-    			mounted = false;
-    			dispose();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block$1.name,
-    		type: "if",
-    		source: "(101:0) {#if !isActive}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (108:4) {#if errorMessage}
+    // (124:0) {#if errorMessage}
     function create_if_block_2(ctx) {
     	let section;
-    	let h3;
-    	let t1;
     	let p;
-    	let t2;
+    	let t;
 
     	const block = {
     		c: function create() {
     			section = element("section");
-    			h3 = element("h3");
-    			h3.textContent = "Error";
-    			t1 = space();
     			p = element("p");
-    			t2 = text(/*errorMessage*/ ctx[3]);
-    			add_location(h3, file$1, 109, 12, 4668);
-    			add_location(p, file$1, 110, 12, 4695);
+    			t = text(/*errorMessage*/ ctx[0]);
+    			add_location(p, file$2, 125, 8, 5043);
     			attr_dev(section, "class", "errorPanel");
-    			add_location(section, file$1, 108, 8, 4627);
+    			add_location(section, file$2, 124, 4, 5006);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section, anchor);
-    			append_dev(section, h3);
-    			append_dev(section, t1);
     			append_dev(section, p);
-    			append_dev(p, t2);
+    			append_dev(p, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*errorMessage*/ 8) set_data_dev(t2, /*errorMessage*/ ctx[3]);
+    			if (dirty & /*errorMessage*/ 1) set_data_dev(t, /*errorMessage*/ ctx[0]);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(section);
@@ -7210,25 +7352,34 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(108:4) {#if errorMessage}",
+    		source: "(124:0) {#if errorMessage}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (114:4) {#if webCasherSessionScript}
-    function create_if_block_1(ctx) {
+    // (130:0) {#if successMessage}
+    function create_if_block_1$1(ctx) {
     	let section;
+    	let p;
+    	let t;
 
     	const block = {
     		c: function create() {
     			section = element("section");
-    			attr_dev(section, "id", "webcashier");
-    			add_location(section, file$1, 114, 8, 4787);
+    			p = element("p");
+    			t = text(/*successMessage*/ ctx[1]);
+    			add_location(p, file$2, 131, 8, 5130);
+    			add_location(section, file$2, 130, 4, 5112);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section, anchor);
+    			append_dev(section, p);
+    			append_dev(p, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*successMessage*/ 2) set_data_dev(t, /*successMessage*/ ctx[1]);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(section);
@@ -7237,9 +7388,101 @@ var wallet = (function (whatwgFetch, bsv_1) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_1.name,
+    		id: create_if_block_1$1.name,
     		type: "if",
-    		source: "(114:4) {#if webCasherSessionScript}",
+    		source: "(130:0) {#if successMessage}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (138:0) {:else}
+    function create_else_block$2(ctx) {
+    	let section;
+    	let div;
+    	let button0;
+    	let t1;
+    	let button1;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			section = element("section");
+    			div = element("div");
+    			button0 = element("button");
+    			button0.textContent = "Add Funds";
+    			t1 = space();
+    			button1 = element("button");
+    			button1.textContent = "Cancel";
+    			attr_dev(button0, "class", "action");
+    			add_location(button0, file$2, 140, 12, 5295);
+    			attr_dev(button1, "class", "action");
+    			add_location(button1, file$2, 141, 12, 5384);
+    			attr_dev(div, "class", "actions");
+    			add_location(div, file$2, 139, 8, 5261);
+    			add_location(section, file$2, 138, 4, 5243);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, section, anchor);
+    			append_dev(section, div);
+    			append_dev(div, button0);
+    			append_dev(div, t1);
+    			append_dev(div, button1);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", prevent_default(/*addFunds*/ ctx[4]), false, true, false),
+    					listen_dev(button1, "click", prevent_default(/*cancel*/ ctx[3]), false, true, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(section);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block$2.name,
+    		type: "else",
+    		source: "(138:0) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (136:0) {#if isCashierShowing}
+    function create_if_block$2(ctx) {
+    	let section;
+
+    	const block = {
+    		c: function create() {
+    			section = element("section");
+    			attr_dev(section, "id", "webcashier");
+    			add_location(section, file$2, 136, 4, 5203);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, section, anchor);
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(section);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$2.name,
+    		type: "if",
+    		source: "(136:0) {#if isCashierShowing}",
     		ctx
     	});
 
@@ -7250,29 +7493,37 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	let h2;
     	let t1;
     	let t2;
-    	let if_block_anchor;
+    	let t3;
+    	let t4;
+    	let if_block2_anchor;
     	let current;
-    	const default_slot_template = /*#slots*/ ctx[5].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[4], null);
+    	const default_slot_template = /*#slots*/ ctx[6].default;
+    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[5], null);
+    	let if_block0 = /*errorMessage*/ ctx[0] && create_if_block_2(ctx);
+    	let if_block1 = /*successMessage*/ ctx[1] && create_if_block_1$1(ctx);
 
     	function select_block_type(ctx, dirty) {
-    		if (!/*isActive*/ ctx[0]) return create_if_block$1;
-    		return create_else_block$1;
+    		if (/*isCashierShowing*/ ctx[2]) return create_if_block$2;
+    		return create_else_block$2;
     	}
 
     	let current_block_type = select_block_type(ctx);
-    	let if_block = current_block_type(ctx);
+    	let if_block2 = current_block_type(ctx);
 
     	const block = {
     		c: function create() {
     			h2 = element("h2");
-    			h2.textContent = "Cashier";
+    			h2.textContent = "Payments";
     			t1 = space();
     			if (default_slot) default_slot.c();
     			t2 = space();
-    			if_block.c();
-    			if_block_anchor = empty();
-    			add_location(h2, file$1, 98, 0, 4383);
+    			if (if_block0) if_block0.c();
+    			t3 = space();
+    			if (if_block1) if_block1.c();
+    			t4 = space();
+    			if_block2.c();
+    			if_block2_anchor = empty();
+    			add_location(h2, file$2, 120, 0, 4955);
     		},
     		l: function claim(nodes) {
     			throw new Error_1("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -7286,26 +7537,56 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			}
 
     			insert_dev(target, t2, anchor);
-    			if_block.m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
+    			if (if_block0) if_block0.m(target, anchor);
+    			insert_dev(target, t3, anchor);
+    			if (if_block1) if_block1.m(target, anchor);
+    			insert_dev(target, t4, anchor);
+    			if_block2.m(target, anchor);
+    			insert_dev(target, if_block2_anchor, anchor);
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope*/ 16) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[4], dirty, null, null);
+    				if (default_slot.p && dirty & /*$$scope*/ 32) {
+    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[5], dirty, null, null);
     				}
     			}
 
-    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
-    			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
+    			if (/*errorMessage*/ ctx[0]) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+    				} else {
+    					if_block0 = create_if_block_2(ctx);
+    					if_block0.c();
+    					if_block0.m(t3.parentNode, t3);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
 
-    				if (if_block) {
-    					if_block.c();
-    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    			if (/*successMessage*/ ctx[1]) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block_1$1(ctx);
+    					if_block1.c();
+    					if_block1.m(t4.parentNode, t4);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block2) {
+    				if_block2.p(ctx, dirty);
+    			} else {
+    				if_block2.d(1);
+    				if_block2 = current_block_type(ctx);
+
+    				if (if_block2) {
+    					if_block2.c();
+    					if_block2.m(if_block2_anchor.parentNode, if_block2_anchor);
     				}
     			}
     		},
@@ -7323,8 +7604,12 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			if (detaching) detach_dev(t1);
     			if (default_slot) default_slot.d(detaching);
     			if (detaching) detach_dev(t2);
-    			if_block.d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
+    			if (if_block0) if_block0.d(detaching);
+    			if (detaching) detach_dev(t3);
+    			if (if_block1) if_block1.d(detaching);
+    			if (detaching) detach_dev(t4);
+    			if_block2.d(detaching);
+    			if (detaching) detach_dev(if_block2_anchor);
     		}
     	};
 
@@ -7339,19 +7624,15 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	return block;
     }
 
-    function echoGidxEvent(name, func) {
-    	return (data, ...args) => {
-    		console.log(`TRIGGERED: gidx.${name}: ${data}`, args);
+    function setInnerHTML(elm, html) {
+    	elm.innerHTML = html;
 
-    		if (typeof func === "function") {
-    			func(data);
-    		}
-    	};
-    }
-
-    function generateScript(gidxSessionId) {
-    	let script = `%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fCashier%3fsessionid%3d${gidxSessionId}%27+data-tsevo-script-tag+data-gidx-session-id%3d%27${gidxSessionId}%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e`;
-    	return script;
+    	Array.from(elm.querySelectorAll("script")).forEach(oldScript => {
+    		const newScript = document.createElement("script");
+    		Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+    		newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+    		oldScript.parentNode.replaceChild(newScript, oldScript);
+    	});
     }
 
     function instance$2($$self, $$props, $$invalidate) {
@@ -7395,22 +7676,42 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	};
 
     	const win = window;
+
+    	win.gidxServiceSettings = function (data) {
+    		console.log(`TRIGGERED: gidx.gidxServiceSettings: ${data}`);
+    		win.gidxContainer = "#webcashier";
+    		win.gidxBuildTimer = false;
+    		win.gidxBuildSteps = false;
+    	};
+
+    	win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", () => loading.set(false));
+    	win.gidxErrorReport = echoGidxEvent("gidxErrorReport");
+    	win.gidxContainer = echoGidxEvent("gidxContainer");
+    	win.gidxBuildTimer = echoGidxEvent("gidxBuildTimer");
+    	win.gidxBuildSteps = echoGidxEvent("gidxBuildSteps");
+    	win.gidxNextStep = echoGidxEvent("gidxNextStep", handleGidxNextStep);
     	let webCasherSessionScript;
     	let errorMessage;
-    	let { isActive = false } = $$props;
+    	let successMessage;
+    	let isCashierShowing = false;
+
+    	const cancel = () => __awaiter(void 0, void 0, void 0, function* () {
+    		route.set("/Home");
+    	});
 
     	const addFunds = () => __awaiter(void 0, void 0, void 0, function* () {
+    		var _a;
+
     		try {
     			loading.set(true);
-    			$$invalidate(0, isActive = true);
-    			$$invalidate(3, errorMessage = null);
+    			$$invalidate(0, errorMessage = null);
 
     			//let geoAccess = navigator.permissions.query({name:'geolocation'});
     			//if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
     			const deviceGPS = yield ApiService.getGps();
 
     			if (deviceGPS.latitude < 1) {
-    				$$invalidate(3, errorMessage = `You must share your location to continue`);
+    				$$invalidate(0, errorMessage = `You must share your location to continue`);
     				return;
     			}
 
@@ -7442,33 +7743,51 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		} catch(err) {
     			console.log(err, err.stack);
     			loading.set(false);
-    			$$invalidate(3, errorMessage = `Could not continue payment activity.`);
+
+    			$$invalidate(0, errorMessage = (_a = err.message) !== null && _a !== void 0
+    			? _a
+    			: `Could not add funds at this time.`);
+
     			return;
     		}
     	});
 
-    	win.gidxServiceSettings = function (data) {
-    		console.log(`TRIGGERED: gidx.gidxServiceSettings: ${data}`);
-    		win.gidxContainer = "#webcashier";
-    		win.gidxBuildTimer = false;
-    		win.gidxBuildSteps = false;
-    	};
+    	function handleGidxNextStep() {
+    		return __awaiter(this, void 0, void 0, function* () {
+    			console.log(`GET SESSION STATUS`);
+    			loading.set(true);
+    			$$invalidate(2, isCashierShowing = false);
+    			const deviceGPS = yield ApiService.getGps();
+    			const ws = window.walletService;
 
-    	win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", () => {
-    		loading.set(false);
-    	});
+    			const message = ws.wallet.buildMessage({
+    				subject: ws.paymail,
+    				payload: JSON.stringify({ deviceGPS })
+    			});
 
-    	win.gidxErrorReport = echoGidxEvent("gidxErrorReport");
-    	win.gidxContainer = echoGidxEvent("gidxContainer");
-    	win.gidxBuildTimer = echoGidxEvent("gidxBuildTimer");
-    	win.gidxBuildSteps = echoGidxEvent("gidxBuildSteps");
+    			try {
+    				const response = yield ws.blockchain.sendMessage(message, "/payment/status");
+    				console.log(response);
+    				$$invalidate(1, successMessage = response.body);
+    			} catch(err) {
+    				$$invalidate(0, errorMessage = err.message);
+    			}
+    		});
+    	}
 
-    	win.gidxNextStep = echoGidxEvent("gidxNextStep", () => {
-    		$$invalidate(0, isActive = false);
-    	});
+    	function echoGidxEvent(name, func) {
+    		return (data, phase, ...args) => __awaiter(this, void 0, void 0, function* () {
+    			console.log(`TRIGGERED: ${name}: ${data} ${phase}`, args);
 
-    	const renderCashier = script => {
-    		$$invalidate(2, webCasherSessionScript = unescape(decodeURI(script)).replace(/\+/g, " "));
+    			if (typeof func === "function") {
+    				yield func(data, phase, ...args);
+    			}
+    		});
+    	}
+
+    	function renderCashier(script) {
+    		webCasherSessionScript = unescape(decodeURI(script)).replace(/\+/g, " ");
+    		$$invalidate(2, isCashierShowing = true);
 
     		setTimeout(
     			() => {
@@ -7476,64 +7795,64 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			},
     			500
     		);
-    	};
+    	}
 
-    	const setInnerHTML = (elm, html) => {
-    		elm.innerHTML = html;
-
-    		Array.from(elm.querySelectorAll("script")).forEach(oldScript => {
-    			const newScript = document.createElement("script");
-    			Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-    			newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-    			oldScript.parentNode.replaceChild(newScript, oldScript);
-    		});
-    	};
-
-    	const writable_props = ["isActive"];
+    	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$1.warn(`<Cashier> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
-    		if ("isActive" in $$props) $$invalidate(0, isActive = $$props.isActive);
-    		if ("$$scope" in $$props) $$invalidate(4, $$scope = $$props.$$scope);
+    		if ("$$scope" in $$props) $$invalidate(5, $$scope = $$props.$$scope);
     	};
 
     	$$self.$capture_state = () => ({
     		__awaiter,
+    		loading,
+    		route,
     		ApiService,
     		CashierResponse,
-    		loading,
     		win,
     		webCasherSessionScript,
     		errorMessage,
-    		isActive,
+    		successMessage,
+    		isCashierShowing,
+    		cancel,
     		addFunds,
+    		handleGidxNextStep,
     		echoGidxEvent,
     		renderCashier,
-    		setInnerHTML,
-    		generateScript
+    		setInnerHTML
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("__awaiter" in $$props) __awaiter = $$props.__awaiter;
-    		if ("webCasherSessionScript" in $$props) $$invalidate(2, webCasherSessionScript = $$props.webCasherSessionScript);
-    		if ("errorMessage" in $$props) $$invalidate(3, errorMessage = $$props.errorMessage);
-    		if ("isActive" in $$props) $$invalidate(0, isActive = $$props.isActive);
+    		if ("webCasherSessionScript" in $$props) webCasherSessionScript = $$props.webCasherSessionScript;
+    		if ("errorMessage" in $$props) $$invalidate(0, errorMessage = $$props.errorMessage);
+    		if ("successMessage" in $$props) $$invalidate(1, successMessage = $$props.successMessage);
+    		if ("isCashierShowing" in $$props) $$invalidate(2, isCashierShowing = $$props.isCashierShowing);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive, addFunds, webCasherSessionScript, errorMessage, $$scope, slots];
+    	return [
+    		errorMessage,
+    		successMessage,
+    		isCashierShowing,
+    		cancel,
+    		addFunds,
+    		$$scope,
+    		slots
+    	];
     }
 
     class Cashier extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$2, create_fragment$2, safe_not_equal, { isActive: 0, addFunds: 1 });
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -7542,26 +7861,10 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			id: create_fragment$2.name
     		});
     	}
-
-    	get isActive() {
-    		throw new Error_1("<Cashier>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set isActive(value) {
-    		throw new Error_1("<Cashier>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get addFunds() {
-    		return this.$$.ctx[1];
-    	}
-
-    	set addFunds(value) {
-    		throw new Error_1("<Cashier>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
     }
 
     /* src/components/Spinner.svelte generated by Svelte v3.29.4 */
-    const file$2 = "src/components/Spinner.svelte";
+    const file$3 = "src/components/Spinner.svelte";
 
     function create_fragment$3(ctx) {
     	let div13;
@@ -7618,34 +7921,34 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			t10 = space();
     			div11 = element("div");
     			attr_dev(div0, "class", "svelte-gdftux");
-    			add_location(div0, file$2, 112, 4, 2477);
+    			add_location(div0, file$3, 112, 4, 2477);
     			attr_dev(div1, "class", "svelte-gdftux");
-    			add_location(div1, file$2, 113, 4, 2489);
+    			add_location(div1, file$3, 113, 4, 2489);
     			attr_dev(div2, "class", "svelte-gdftux");
-    			add_location(div2, file$2, 114, 4, 2501);
+    			add_location(div2, file$3, 114, 4, 2501);
     			attr_dev(div3, "class", "svelte-gdftux");
-    			add_location(div3, file$2, 115, 4, 2513);
+    			add_location(div3, file$3, 115, 4, 2513);
     			attr_dev(div4, "class", "svelte-gdftux");
-    			add_location(div4, file$2, 116, 4, 2525);
+    			add_location(div4, file$3, 116, 4, 2525);
     			attr_dev(div5, "class", "svelte-gdftux");
-    			add_location(div5, file$2, 117, 4, 2537);
+    			add_location(div5, file$3, 117, 4, 2537);
     			attr_dev(div6, "class", "svelte-gdftux");
-    			add_location(div6, file$2, 118, 4, 2549);
+    			add_location(div6, file$3, 118, 4, 2549);
     			attr_dev(div7, "class", "svelte-gdftux");
-    			add_location(div7, file$2, 119, 4, 2561);
+    			add_location(div7, file$3, 119, 4, 2561);
     			attr_dev(div8, "class", "svelte-gdftux");
-    			add_location(div8, file$2, 120, 4, 2573);
+    			add_location(div8, file$3, 120, 4, 2573);
     			attr_dev(div9, "class", "svelte-gdftux");
-    			add_location(div9, file$2, 121, 4, 2585);
+    			add_location(div9, file$3, 121, 4, 2585);
     			attr_dev(div10, "class", "svelte-gdftux");
-    			add_location(div10, file$2, 122, 4, 2597);
+    			add_location(div10, file$3, 122, 4, 2597);
     			attr_dev(div11, "class", "svelte-gdftux");
-    			add_location(div11, file$2, 123, 4, 2609);
+    			add_location(div11, file$3, 123, 4, 2609);
     			attr_dev(div12, "class", "kv-spinner svelte-gdftux");
-    			add_location(div12, file$2, 111, 2, 2448);
+    			add_location(div12, file$3, 111, 2, 2448);
     			set_style(div13, "display", /*visible*/ ctx[0]);
     			attr_dev(div13, "class", "spinnerRoot svelte-gdftux");
-    			add_location(div13, file$2, 110, 0, 2394);
+    			add_location(div13, file$3, 110, 0, 2394);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -7785,197 +8088,119 @@ var wallet = (function (whatwgFetch, bsv_1) {
     /* src/App.svelte generated by Svelte v3.29.4 */
 
     const { console: console_1$2 } = globals;
-    const file$3 = "src/App.svelte";
+    const file$4 = "src/App.svelte";
 
-    // (76:1) {:else}
-    function create_else_block$2(ctx) {
-    	let section;
-    	let t0;
-    	let button;
-    	let mounted;
-    	let dispose;
-
-    	function select_block_type_1(ctx, dirty) {
-    		if (/*$loggedIn*/ ctx[3]) return create_if_block_1$1;
-    		return create_else_block_1;
-    	}
-
-    	let current_block_type = select_block_type_1(ctx);
-    	let if_block = current_block_type(ctx);
+    // (109:1) {:else}
+    function create_else_block$3(ctx) {
+    	let home;
+    	let current;
+    	home = new Home({ $$inline: true });
 
     	const block = {
     		c: function create() {
-    			section = element("section");
-    			if_block.c();
-    			t0 = space();
-    			button = element("button");
-    			button.textContent = "Cashier";
-    			attr_dev(button, "class", "action");
-    			add_location(button, file$3, 86, 3, 2697);
-    			attr_dev(section, "class", "actions");
-    			add_location(section, file$3, 76, 2, 2439);
+    			create_component(home.$$.fragment);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, section, anchor);
-    			if_block.m(section, null);
-    			append_dev(section, t0);
-    			append_dev(section, button);
-
-    			if (!mounted) {
-    				dispose = listen_dev(button, "click", prevent_default(/*click_handler_2*/ ctx[7]), false, true, false);
-    				mounted = true;
-    			}
+    			mount_component(home, target, anchor);
+    			current = true;
     		},
-    		p: function update(ctx, dirty) {
-    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
-    			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
-
-    				if (if_block) {
-    					if_block.c();
-    					if_block.m(section, t0);
-    				}
-    			}
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(home.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(home.$$.fragment, local);
+    			current = false;
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(section);
-    			if_block.d();
-    			mounted = false;
-    			dispose();
+    			destroy_component(home, detaching);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block$2.name,
+    		id: create_else_block$3.name,
     		type: "else",
-    		source: "(76:1) {:else}",
+    		source: "(109:1) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (70:1) {#if component !== Home}
-    function create_if_block$2(ctx) {
-    	let p;
-    	let a;
-    	let mounted;
-    	let dispose;
+    // (107:33) 
+    function create_if_block_1$2(ctx) {
+    	let cashier;
+    	let current;
+    	cashier = new Cashier({ $$inline: true });
 
     	const block = {
     		c: function create() {
-    			p = element("p");
-    			a = element("a");
-    			a.textContent = "<back";
-    			attr_dev(a, "href", "#home");
-    			add_location(a, file$3, 71, 3, 2333);
-    			add_location(p, file$3, 70, 2, 2326);
+    			create_component(cashier.$$.fragment);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, p, anchor);
-    			append_dev(p, a);
-
-    			if (!mounted) {
-    				dispose = listen_dev(a, "click", prevent_default(/*click_handler*/ ctx[5]), false, true, false);
-    				mounted = true;
-    			}
+    			mount_component(cashier, target, anchor);
+    			current = true;
     		},
-    		p: noop,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(cashier.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(cashier.$$.fragment, local);
+    			current = false;
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(p);
-    			mounted = false;
-    			dispose();
+    			destroy_component(cashier, detaching);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block$2.name,
+    		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(70:1) {#if component !== Home}",
+    		source: "(107:33) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (82:3) {:else}
-    function create_else_block_1(ctx) {
-    	let button;
-    	let mounted;
-    	let dispose;
+    // (105:1) {#if $route === '/Login'}
+    function create_if_block$3(ctx) {
+    	let login;
+    	let current;
+    	login = new Login({ $$inline: true });
 
     	const block = {
     		c: function create() {
-    			button = element("button");
-    			button.textContent = "Login";
-    			attr_dev(button, "class", "action");
-    			add_location(button, file$3, 82, 4, 2585);
+    			create_component(login.$$.fragment);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, button, anchor);
-
-    			if (!mounted) {
-    				dispose = listen_dev(button, "click", prevent_default(/*click_handler_1*/ ctx[6]), false, true, false);
-    				mounted = true;
-    			}
+    			mount_component(login, target, anchor);
+    			current = true;
     		},
-    		p: noop,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(login.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(login.$$.fragment, local);
+    			current = false;
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(button);
-    			mounted = false;
-    			dispose();
+    			destroy_component(login, detaching);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block_1.name,
-    		type: "else",
-    		source: "(82:3) {:else}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (78:3) {#if $loggedIn}
-    function create_if_block_1$1(ctx) {
-    	let button;
-    	let mounted;
-    	let dispose;
-
-    	const block = {
-    		c: function create() {
-    			button = element("button");
-    			button.textContent = "Logout";
-    			attr_dev(button, "class", "action");
-    			add_location(button, file$3, 78, 4, 2488);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, button, anchor);
-
-    			if (!mounted) {
-    				dispose = listen_dev(button, "click", prevent_default(/*logout*/ ctx[4]), false, true, false);
-    				mounted = true;
-    			}
-    		},
-    		p: noop,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(button);
-    			mounted = false;
-    			dispose();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block_1$1.name,
+    		id: create_if_block$3.name,
     		type: "if",
-    		source: "(78:3) {#if $loggedIn}",
+    		source: "(105:1) {#if $route === '/Login'}",
     		ctx
     	});
 
@@ -7989,31 +8214,26 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	let h1;
     	let t1;
     	let t2;
-    	let div;
+    	let current_block_type_index;
+    	let if_block;
     	let t3;
+    	let div;
     	let t4;
+    	let pre;
     	let t5;
-    	let t6;
-    	let switch_instance;
     	let current;
     	spinner = new Spinner({ $$inline: true });
+    	const if_block_creators = [create_if_block$3, create_if_block_1$2, create_else_block$3];
+    	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
-    		if (/*component*/ ctx[0] !== Home) return create_if_block$2;
-    		return create_else_block$2;
+    		if (/*$route*/ ctx[3] === "/Login") return 0;
+    		if (/*$route*/ ctx[3] === "/Cashier") return 1;
+    		return 2;
     	}
 
-    	let current_block_type = select_block_type(ctx);
-    	let if_block = current_block_type(ctx);
-    	var switch_value = /*component*/ ctx[0];
-
-    	function switch_props(ctx) {
-    		return { $$inline: true };
-    	}
-
-    	if (switch_value) {
-    		switch_instance = new switch_value(switch_props());
-    	}
+    	current_block_type_index = select_block_type(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
     	const block = {
     		c: function create() {
@@ -8023,18 +8243,20 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			h1 = element("h1");
     			t1 = text(/*$currentUser*/ ctx[2]);
     			t2 = space();
-    			div = element("div");
-    			t3 = text("GEO: ");
-    			t4 = text(/*geo*/ ctx[1]);
-    			t5 = space();
     			if_block.c();
-    			t6 = space();
-    			if (switch_instance) create_component(switch_instance.$$.fragment);
-    			attr_dev(h1, "class", "svelte-ifgekd");
-    			add_location(h1, file$3, 65, 1, 2246);
-    			add_location(div, file$3, 66, 1, 2271);
-    			attr_dev(main, "class", "svelte-ifgekd");
-    			add_location(main, file$3, 64, 0, 2238);
+    			t3 = space();
+    			div = element("div");
+    			t4 = text("GEO:\n\t");
+    			pre = element("pre");
+    			t5 = text(/*geo*/ ctx[0]);
+    			attr_dev(h1, "class", "svelte-xzm7rw");
+    			add_location(h1, file$4, 102, 1, 3054);
+    			set_style(main, "display", /*visbility*/ ctx[1]);
+    			attr_dev(main, "class", "svelte-xzm7rw");
+    			add_location(main, file$4, 101, 0, 3018);
+    			add_location(pre, file$4, 115, 1, 3227);
+    			attr_dev(div, "class", "geo svelte-xzm7rw");
+    			add_location(div, file$4, 113, 0, 3202);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -8046,74 +8268,62 @@ var wallet = (function (whatwgFetch, bsv_1) {
     			append_dev(main, h1);
     			append_dev(h1, t1);
     			append_dev(main, t2);
-    			append_dev(main, div);
-    			append_dev(div, t3);
+    			if_blocks[current_block_type_index].m(main, null);
+    			insert_dev(target, t3, anchor);
+    			insert_dev(target, div, anchor);
     			append_dev(div, t4);
-    			append_dev(main, t5);
-    			if_block.m(main, null);
-    			append_dev(main, t6);
-
-    			if (switch_instance) {
-    				mount_component(switch_instance, main, null);
-    			}
-
+    			append_dev(div, pre);
+    			append_dev(pre, t5);
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
     			if (!current || dirty & /*$currentUser*/ 4) set_data_dev(t1, /*$currentUser*/ ctx[2]);
-    			if (!current || dirty & /*geo*/ 2) set_data_dev(t4, /*geo*/ ctx[1]);
+    			let previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type(ctx);
 
-    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
-    			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
+    			if (current_block_type_index !== previous_block_index) {
+    				group_outros();
 
-    				if (if_block) {
+    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
+    					if_blocks[previous_block_index] = null;
+    				});
+
+    				check_outros();
+    				if_block = if_blocks[current_block_type_index];
+
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
     					if_block.c();
-    					if_block.m(main, t6);
     				}
+
+    				transition_in(if_block, 1);
+    				if_block.m(main, null);
     			}
 
-    			if (switch_value !== (switch_value = /*component*/ ctx[0])) {
-    				if (switch_instance) {
-    					group_outros();
-    					const old_component = switch_instance;
-
-    					transition_out(old_component.$$.fragment, 1, 0, () => {
-    						destroy_component(old_component, 1);
-    					});
-
-    					check_outros();
-    				}
-
-    				if (switch_value) {
-    					switch_instance = new switch_value(switch_props());
-    					create_component(switch_instance.$$.fragment);
-    					transition_in(switch_instance.$$.fragment, 1);
-    					mount_component(switch_instance, main, null);
-    				} else {
-    					switch_instance = null;
-    				}
+    			if (!current || dirty & /*visbility*/ 2) {
+    				set_style(main, "display", /*visbility*/ ctx[1]);
     			}
+
+    			if (!current || dirty & /*geo*/ 1) set_data_dev(t5, /*geo*/ ctx[0]);
     		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(spinner.$$.fragment, local);
-    			if (switch_instance) transition_in(switch_instance.$$.fragment, local);
+    			transition_in(if_block);
     			current = true;
     		},
     		o: function outro(local) {
     			transition_out(spinner.$$.fragment, local);
-    			if (switch_instance) transition_out(switch_instance.$$.fragment, local);
+    			transition_out(if_block);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			destroy_component(spinner, detaching);
     			if (detaching) detach_dev(t0);
     			if (detaching) detach_dev(main);
-    			if_block.d();
-    			if (switch_instance) destroy_component(switch_instance);
+    			if_blocks[current_block_type_index].d();
+    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(div);
     		}
     	};
 
@@ -8130,11 +8340,11 @@ var wallet = (function (whatwgFetch, bsv_1) {
 
     function instance$4($$self, $$props, $$invalidate) {
     	let $currentUser;
-    	let $loggedIn;
+    	let $route;
     	validate_store(currentUser, "currentUser");
     	component_subscribe($$self, currentUser, $$value => $$invalidate(2, $currentUser = $$value));
-    	validate_store(loggedIn, "loggedIn");
-    	component_subscribe($$self, loggedIn, $$value => $$invalidate(3, $loggedIn = $$value));
+    	validate_store(route, "route");
+    	component_subscribe($$self, route, $$value => $$invalidate(3, $route = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("App", slots, []);
 
@@ -8175,22 +8385,51 @@ var wallet = (function (whatwgFetch, bsv_1) {
     	};
 
     	window.walletService = new WalletService();
-    	let component;
-    	let geo = "temp";
+    	let defaultHandle = "Cryptofights";
+    	let geo = "unavailable";
+    	let visbility = "none";
 
     	onMount(() => __awaiter(void 0, void 0, void 0, function* () {
+    		$$invalidate(0, geo = JSON.stringify(yield ApiService.getGps(), null, 4));
     		loading.set(true);
     		loggedIn.set(false);
-    		currentUser.set("Cryptofights");
-    		$$invalidate(0, component = Home);
+    		currentUser.set(defaultHandle);
     		var ws = window.walletService;
-    		yield ws.init();
+
+    		try {
+    			yield ws.init();
+    		} catch(err) {
+    			console.log(err);
+    		}
+
     		loading.set(false);
     		loggedIn.set(ws.authenticated);
-    		currentUser.set(ws.handle || "Cryptofights");
-    		console.log(`${ws.authenticated}${ws.handle}`);
-    		$$invalidate(1, geo = JSON.stringify(yield ApiService.getGps()));
+
+    		if (ws.authenticated) {
+    			currentUser.set(ws.handle || defaultHandle);
+    		} else {
+    			currentUser.set(defaultHandle);
+    		}
+
+    		$$invalidate(1, visbility = "block");
+    		console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
     	}));
+
+    	route.subscribe(r => {
+    		if (r === "/Logout") {
+    			logout();
+    		}
+    	});
+
+    	loggedIn.subscribe(isLoggedIn => {
+    		if (isLoggedIn && get_store_value(route) === "/Login") {
+    			route.set("/Home");
+    		}
+
+    		if (!isLoggedIn && get_store_value(route) !== "/Login") {
+    			route.set("/Login");
+    		}
+    	});
 
     	const logout = () => __awaiter(void 0, void 0, void 0, function* () {
     		let ws = window.walletService;
@@ -8198,14 +8437,13 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		yield ws.logout();
     		loading.set(false);
     		loggedIn.set(ws.authenticated);
-    		currentUser.set(ws.handle || "Cryptofights");
+    		currentUser.set(defaultHandle);
+    		nav("/Home");
     	});
 
-    	loggedIn.subscribe(v => {
-    		if (v && component === Login) {
-    			$$invalidate(0, component = Home);
-    		}
-    	});
+    	const nav = path => {
+    		route.set(path);
+    	};
 
     	const writable_props = [];
 
@@ -8213,49 +8451,41 @@ var wallet = (function (whatwgFetch, bsv_1) {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$2.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	const click_handler = () => $$invalidate(0, component = Home);
-    	const click_handler_1 = () => $$invalidate(0, component = Login);
-    	const click_handler_2 = () => $$invalidate(0, component = Cashier);
-
     	$$self.$capture_state = () => ({
     		__awaiter,
-    		ApiService,
     		onMount,
+    		get: get_store_value,
     		currentUser,
     		loggedIn,
     		loading,
+    		route,
+    		ApiService,
     		WalletService,
     		Home,
     		Login,
     		Cashier,
     		Spinner,
-    		component,
+    		defaultHandle,
     		geo,
+    		visbility,
     		logout,
+    		nav,
     		$currentUser,
-    		$loggedIn
+    		$route
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("__awaiter" in $$props) __awaiter = $$props.__awaiter;
-    		if ("component" in $$props) $$invalidate(0, component = $$props.component);
-    		if ("geo" in $$props) $$invalidate(1, geo = $$props.geo);
+    		if ("defaultHandle" in $$props) defaultHandle = $$props.defaultHandle;
+    		if ("geo" in $$props) $$invalidate(0, geo = $$props.geo);
+    		if ("visbility" in $$props) $$invalidate(1, visbility = $$props.visbility);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [
-    		component,
-    		geo,
-    		$currentUser,
-    		$loggedIn,
-    		logout,
-    		click_handler,
-    		click_handler_1,
-    		click_handler_2
-    	];
+    	return [geo, visbility, $currentUser, $route];
     }
 
     class App extends SvelteComponentDev {

@@ -7,25 +7,37 @@
     let handle: string;
     let password: string;
     let email: string;
+    let handleRegExp: string = "[a-zA-Z0-9]{4,25}";
+    let errorText: string;
 
     const onStatusChanged = () => {
         const ws = window.walletService;
         loading.set(false);
-        loggedIn.update(v => ws.authenticated);
-        currentUser.update(v => ws.handle);
+        loggedIn.update((v) => ws.authenticated);
+        currentUser.update((v) => ws.handle);
     };
 
     const register = async () => {
         console.log("register");
         loading.set(true);
-        await window.walletService.register(handle, password, email);
+        try {
+            await window.walletService.register(handle, password, email);
+        } catch (err) {
+            showError(`Registration failed`);
+            return;
+        }
         onStatusChanged();
     };
 
     const login = async () => {
         console.log("login");
         loading.set(true);
-        await window.walletService.login(handle, password);
+        try {
+            await window.walletService.login(handle, password);
+        } catch (err) {
+            showError(`Login failed`);
+            return;
+        }
         onStatusChanged();
     };
 
@@ -34,6 +46,15 @@
         loading.set(true);
         await window.walletService.logout();
         onStatusChanged();
+    };
+
+    const showError = async (msg) => {
+        console.log(msg);
+        loading.set(false);
+        errorText = msg;
+        setTimeout(() => {
+            errorText = null;
+        }, 5000);
     };
 </script>
 
@@ -54,19 +75,26 @@
         color: darkslategray;
     }
     .field-cntrl {
-        display:block;
+        display: block;
         max-width: 320px;
         width: 100%;
     }
 </style>
 
-{#if ($loggedIn)}
+{#if $loggedIn}
     <section>
         <div class="actions">
-            <button class="action" on:click|preventDefault={logout}>Logout</button>
+            <button
+                class="action"
+                on:click|preventDefault={logout}>Logout</button>
         </div>
     </section>
 {:else}
+    {#if errorText}
+        <section class="errorPanel">
+            <p>{errorText}</p>
+        </section>
+    {/if}
     <section hidden={!showReg}>
         <h2>Register</h2>
         <form on:submit|preventDefault={register}>
@@ -79,6 +107,8 @@
                     id="rhandle"
                     class="field-cntrl"
                     bind:value={handle}
+                    required
+                    pattern={handleRegExp}
                     placeholder="enter your gamer handle" />
             </div>
 
@@ -92,6 +122,8 @@
                     id="rpassword"
                     class="field-cntrl"
                     bind:value={password}
+                    required
+                    minlength={8}
                     placeholder="enter your password"
                     type="password" />
             </div>
@@ -105,6 +137,7 @@
                     id="remail"
                     class="field-cntrl"
                     bind:value={email}
+                    required
                     placeholder="enter your email"
                     type="email" />
             </div>
@@ -113,7 +146,11 @@
                 <button class="action" type="submit">Register</button>
             </div>
         </form>
-        <p><a href="/" on:click|preventDefault={() => (showReg = false)}>Login</a></p>
+        <p>
+            <a
+                href="/"
+                on:click|preventDefault={() => (showReg = false)}>Login</a>
+        </p>
     </section>
 
     <section hidden={showReg}>
@@ -128,6 +165,8 @@
                     id="handle"
                     class="field-cntrl"
                     bind:value={handle}
+                    required
+                    pattern={handleRegExp}
                     placeholder="enter your gamer handle" />
             </div>
 
@@ -141,6 +180,8 @@
                     id="password"
                     class="field-cntrl"
                     bind:value={password}
+                    required
+                    minlength={8}
                     placeholder="enter your password"
                     type="password" />
             </div>
@@ -149,6 +190,10 @@
                 <button class="action" type="submit">Login</button>
             </div>
         </form>
-        <p><a href="/" on:click|preventDefault={() => (showReg = true)}>Register</a></p>
+        <p>
+            <a
+                href="/"
+                on:click|preventDefault={() => (showReg = true)}>Register</a>
+        </p>
     </section>
 {/if}

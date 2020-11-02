@@ -69,3 +69,21 @@ button:focus {
 	width: 100%;
 	max-width: 320px;
 }
+
+.errorPanel {
+	width: 100%;
+	max-width: 320px;
+	background-color: mistyrose;
+	border: solid 2px red;
+	color: red;
+	font-weight: bold;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-size: 12px;
+	border-radius: 4px;
+	margin-bottom: 10px;
+	margin-left: -2px;
+}
+
+.errorPanel p {
+	padding: 10px;
+}
