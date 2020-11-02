@@ -1,7 +1,7 @@
 class Catalog { 
     static preDeploy(deployer) {
         this.agents = {
-            "cashier": Catalog.deps.CashierAgent,
+            // "cashier": Catalog.deps.CashierAgent,
         }
     }
 }
@@ -11,8 +11,8 @@ Catalog.realm = 'dev.kronoverse.io';
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
     // jsbn: 'lib/jsbn.js',
-    CashierAgent: 'agents/cashier-agent.js',
-    CashierConfig: 'config/{env}/cashier-config.js',
+    // CashierAgent: 'agents/cashier-agent.js',
+    // CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
     JigMap: 'models/jig-map.js',
