@@ -122,7 +122,6 @@ app.get('/spends/:loc', async (req, res, next) => {
     try {
         const [txid, vout] = req.params.loc.split('_o');
         const spend = await blockchain.spends(txid, parseInt(vout, 10))
-        console.log('Spend:', txid, vout, spend);
         res.send(spend);
     } catch (e) {
         next(e);
@@ -268,8 +267,8 @@ wss.on('connection', (ws, req) => {
 app.get('/wallet/config', (req, res, next) => {
     res.json({
         network: 'testnet',
-        apiUrl: `http://localhost:8082`,
-        sockets: 'ws://localhost:8082/v1',
+        // sockets: 'ws://localhost:8082/v1',
+        sockets: `ws://${req.headers.host}/v1`,
         ephemeral: true,
         emitLogs: true,
         app: 'local',
@@ -347,7 +346,7 @@ blockchain.events.on('txn', async (rawtx) => {
     txns.push(txid);
 });
 
-// Testing Stuff
+// // Testing Stuff
 // let PORT = process.env.MOCKPORT === undefined ? 8082 : process.env.MOCKPORT;
 
 // (async () => {

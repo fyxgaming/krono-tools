@@ -322,11 +322,6 @@ export class WalletService extends EventEmitter {
                 payload
             }
         });
-        if (this.config.emitLogs && !['Log', 'Error'].includes(name)) this.postMessage({
-            name: 'Log',
-            payload: JSON.stringify(`Emitting ${name}`),
-            success: true
-        });
         this.postMessage(message);
     }
 
@@ -335,10 +330,13 @@ export class WalletService extends EventEmitter {
         if (this.isInUnity) {
             this.channel.postMessage(message);
         } else if (this.channelScope) {
-            if (this.channel.parent != window) {
-                this.channel.parent.postMessage(message, this.channelScope);
-            } else { console.log('CANNOT SEND MESSAGE TO SELF');}
+            this.channel.parent.postMessage(message, this.channelScope);
         }
+        if (this.config.emitLogs && !['Log', 'Error'].includes(message.name)) this.postMessage({
+            name: 'Log',
+            payload: JSON.stringify(message),
+            success: true
+        });
     }
 
     private overrideConsole() {

@@ -110,17 +110,6 @@ class Deployer {
             const dep = deployed.deps[parent.name];
             if (dep && dep !== parent) {
                 Object.setPrototypeOf(deployed, dep);
-                // parent.presets = {
-                //     [this.run.blockchain.network]: {
-                //         location: dep.location,
-                //         origin: dep.location,
-                //         owner: dep.owner,
-                //         satoshis: dep.satoshis,
-                //         nonce: dep.nonce
-                //     }
-                // };
-                // parent.presets[this.run.network] = dep.presets[this.run.network];
-                // parent[`location${this.networkKey}`] = dep.location;
             }
         }
         //Finalize hash for this resource
@@ -171,7 +160,7 @@ class Deployer {
                 let postDeploy;
                 if (deployed.hasOwnProperty('postDeploy')) {
                     //Allow Jig Class to configure itself with its deps
-                    postDeploy = deployed.postDeploy.bind(deployed);
+                    postDeploy = deployed.postDeploy;
                     //Remove preDeploy before putting on chain
                     delete deployed.postDeploy;
                 }
@@ -185,7 +174,9 @@ class Deployer {
                 this.log(`RUN.SYNC`);
                 await this.run.sync();
                 if (postDeploy) {
-                    await postDeploy(this);
+                    deployed = await this.run.load(deployed.location);
+                    this.log(`RUN.POST-DEPLOY ${deployed.name}`);
+                    await postDeploy.bind(deployed)(this);
                 }
                 //Put the artifact location into the chain file
                 if (deployed.origin || deployed.location) {
