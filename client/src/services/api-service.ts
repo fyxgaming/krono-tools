@@ -3,7 +3,7 @@ import { GpsDetails, CashierRequest, CashierResponse } from './models';
 import { format } from 'date-fns';
 
 
-export default class ApiService {
+export class ApiService {
     
     // async createCashier(wallet: Wallet, req: CashierRequest): Promise<CashierResponse> {
     //     console.log('createCashier:Start');

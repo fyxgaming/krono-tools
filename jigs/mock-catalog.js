@@ -17,6 +17,7 @@ Catalog.asyncDeps = {
     EventEmitter: 'lib/event-emitter.js',
     JigMap: 'models/jig-map.js',
     JigSet: 'models/jig-set.js',
+    KronoCoin: 'models/krono-coin.js',
     KronoClass: 'lib/krono-class.js',
     KronoError: 'lib/krono-error.js',
     KronoItem: 'models/krono-item.js',
