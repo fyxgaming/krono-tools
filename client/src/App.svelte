@@ -1,31 +1,56 @@
 <script lang="ts">
-	import ApiService from "./services/api-service";
 	import { onMount } from 'svelte';
-	import { currentUser, loggedIn, loading } from "./services/stores";
+	import { get } from 'svelte/store';
+	import { currentUser, loggedIn, loading, route } from './services/stores';
 
-	import { WalletService } from "./services/wallet-service";
+	import { ApiService } from './services/api-service';
+	import { WalletService } from './services/wallet-service';
 	window.walletService = new WalletService();
 
-	import Home from "./components/Home.svelte";
-	import Login from "./components/Login.svelte";
-	import Cashier from "./components/Cashier.svelte";
-	import Spinner from "./components/Spinner.svelte";
+	import Home from './components/Home.svelte';
+	import Login from './components/Login.svelte';
+	import Cashier from './components/Cashier.svelte';
+	import Spinner from './components/Spinner.svelte';
 
-	let component;
-	let geo = 'temp';
+	let defaultHandle = 'Cryptofights';
+	let geo = 'unavailable';
+	let visbility = 'none';
 
 	onMount(async () => {
+		geo = JSON.stringify(await ApiService.getGps(), null, 4);
 		loading.set(true);
 		loggedIn.set(false);
-		currentUser.set('Cryptofights');
-		component = Home;
+		currentUser.set(defaultHandle);
 		var ws = window.walletService;
-		await ws.init();
+		try {
+			await ws.init();
+		} catch (err) {
+			console.log(err);
+		}
 		loading.set(false);
 		loggedIn.set(ws.authenticated);
-		currentUser.set(ws.handle || 'Cryptofights');
-		console.log(`${ws.authenticated}${ws.handle}`);
-		geo = JSON.stringify(await ApiService.getGps());
+		if (ws.authenticated) {
+			currentUser.set(ws.handle || defaultHandle);
+		} else {
+			currentUser.set(defaultHandle);
+		}
+		visbility = 'block';
+		console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
+	});
+
+	route.subscribe((r) => {
+		if (r === '/Logout') {
+			logout();
+		}
+	});
+
+	loggedIn.subscribe((isLoggedIn) => {
+		if (isLoggedIn && get(route) === '/Login') {
+			route.set('/Home');
+		}
+		if (!isLoggedIn && get(route) !== '/Login') {
+			route.set('/Login');
+		}
 	});
 
 	const logout = async () => {
@@ -34,15 +59,13 @@
 		await ws.logout();
 		loading.set(false);
 		loggedIn.set(ws.authenticated);
-		currentUser.set(ws.handle || 'Cryptofights');
+		currentUser.set(defaultHandle);
+		nav('/Home');
 	};
 
-	loggedIn.subscribe(v => {
-		if (v && component === Login) {
-			component = Home;
-		}
-	});
-
+	const nav = (path) => {
+		route.set(path);
+	};
 </script>
 
 <style>
@@ -58,35 +81,35 @@
 		font-size: 4em;
 		font-weight: 100;
 	}
+
+	.geo {
+		width: 340px;
+		background-color: black;
+		color: antiquewhite;
+		font-family: "Courier New", Courier, monospace;
+		font-size: 12px;
+		font-weight: bold;
+		padding: 15px;
+		border-radius: 5px;
+		position: absolute;
+		bottom: 5px;
+	}
 </style>
 
 <Spinner />
-<main>
+<main style="display:{visbility}">
 	<h1>{$currentUser}</h1>
-	<div>
-		GEO: {geo}
-	</div>
-	{#if component !== Home}
-		<p>
-			<a
-				href="#home"
-				on:click|preventDefault={() => (component = Home)}>&lt;back</a>
-		</p>
+
+	{#if $route === '/Login'}
+		<Login />
+	{:else if $route === '/Cashier'}
+		<Cashier />
 	{:else}
-		<section class="actions">
-			{#if $loggedIn}
-				<button
-					class="action"
-					on:click|preventDefault={logout}>Logout</button>
-			{:else}
-				<button
-					class="action"
-					on:click|preventDefault={() => (component = Login)}>Login</button>
-			{/if}
-			<button
-				class="action"
-				on:click|preventDefault={() => (component = Cashier)}>Cashier</button>
-		</section>
+		<Home />
 	{/if}
-	<svelte:component this={component} />
 </main>
+
+<div class="geo">
+	GEO:
+	<pre>{geo}</pre>
+</div>

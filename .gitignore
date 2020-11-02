@@ -4,8 +4,10 @@
 
 bin/**/*.js
 lib/**/*.js
+
 *.d.ts
 *.js.map
+!**/@types/*.d.ts
 
 **/.vscode/settings.json
 /client/public/config
