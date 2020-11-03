@@ -20,9 +20,11 @@
         win.gidxBuildTimer = false;
         win.gidxBuildSteps = false;
     };
-    win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", () =>
-        loading.set(false)
-    );
+    win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", (name, phase) => {
+        if (phase === 'start') {
+            loading.set(false);
+        }
+    });
     win.gidxErrorReport = echoGidxEvent("gidxErrorReport");
     win.gidxContainer = echoGidxEvent("gidxContainer");
     win.gidxBuildTimer = echoGidxEvent("gidxBuildTimer");
@@ -102,10 +104,16 @@
             ));
 
             console.log(response);
-            successMessage = response.body;
+
+            if (response.success) {
+                successMessage = response.message;
+            } else {
+                errorMessage = response.message;
+            }
         } catch (err) {
             errorMessage = err.message;
         }
+        loading.set(false);
     }
 
     function echoGidxEvent(name, func?: Function) {

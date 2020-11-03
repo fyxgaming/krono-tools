@@ -330,7 +330,9 @@ export class WalletService extends EventEmitter {
         if (this.isInUnity) {
             this.channel.postMessage(message);
         } else if (this.channelScope) {
-            this.channel.parent.postMessage(message, this.channelScope);
+            if (this.channel !== this.channel.parent) {
+                this.channel.parent.postMessage(message, this.channelScope);
+            }
         }
         if (this.config.emitLogs && !['Log', 'Error'].includes(message.name)) this.postMessage({
             name: 'Log',

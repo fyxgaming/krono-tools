@@ -17,7 +17,7 @@
 	let visbility = 'none';
 
 	onMount(async () => {
-		geo = JSON.stringify(await ApiService.getGps(), null, 4);
+		ApiService.getGps().then(gps => geo = JSON.stringify(gps, null, 4));
 		loading.set(true);
 		loggedIn.set(false);
 		currentUser.set(defaultHandle);
@@ -109,7 +109,7 @@
 	{/if}
 </main>
 
-<div class="geo">
+<div class="geo" style="display:none">
 	GEO:
 	<pre>{geo}</pre>
 </div>
