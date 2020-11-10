@@ -169,10 +169,11 @@ app.get('/jigs/:loc', async (req, res, next) => {
 app.get('/jigs/address/:address', async (req, res, next) => {
     try {
         const { address } = req.params;
+        const { kind } = req.query;
         const script = Address.fromString(address).toTxOutScript().toHex();
         const utxos = await blockchain.utxos(script);
         const locs = utxos.map(u => `${u.txid}_o${u.vout}`);
-        res.json(locs.map(loc => jigs.get(loc)).filter(jig => jig));
+        res.json(locs.map(loc => jigs.get(loc)).filter(jig => jig && (!kind || jig.kind === kind)));
     } catch (e) {
         next(e);
     }
