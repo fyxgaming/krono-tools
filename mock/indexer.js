@@ -39,7 +39,7 @@ async function indexJig(loc) {
             isOrigin: jig.location === jig.origin,
         };
         jigData.value = JSON.parse(JSON.stringify(jig.toObject ? jig.toObject() : {}));
-        console.log('Serialized:', jigData.value);
+        // console.log('Serialized:', jigData.value);
         return jigData;
     } catch (e) {
         console.error('INDEX ERROR:', e);
