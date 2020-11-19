@@ -231,6 +231,14 @@ app.post('/messages', async (req, res, next) => {
     }
 });
 
+app.get('/state', async (req, res, next) => {
+    try {
+        res.json(run.cache.xa);
+    } catch (e) {
+        next(e);
+    }
+});
+
 app.get('/state/:key', async (req, res, next) => {
     try {
         const { key } = req.params;

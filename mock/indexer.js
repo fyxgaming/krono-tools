@@ -66,5 +66,12 @@ expose({
             jigs.push(...(await Promise.all(locs.map((loc) => indexJig(loc)))));
         }
         return jigs;
+    },
+    getState: () => {
+        const results = {};
+        for(const [loc, state] of run.cache.xa.entries()) {
+            results[loc] = state;
+        }
+        return results;
     }
 });
