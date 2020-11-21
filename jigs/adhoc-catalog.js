@@ -1,8 +1,6 @@
 class Catalog { 
     static preDeploy(deployer) {
-        this.agents = {
-            "payment": Catalog.deps.Payment
-        }
+        this.agents = {}
     }
 }
 

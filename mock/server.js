@@ -174,10 +174,10 @@ app.post('/jigs/address/:address', async (req, res, next) => {
         const script = Address.fromString(address).toTxOutScript().toHex();
         const utxos = await blockchain.utxos(script);
         const locs = utxos.map(u => `${u.txid}_o${u.vout}`);
-        const jigs = locs.map(loc => jigs.get(loc)).filter(jig => jig);
+        const results = locs.map(loc => jigs.get(loc)).filter(jig => jig);
 
         const filter = new Query(query.criteria || {});
-        const cursor = filter.find(jigs, query.project)
+        const cursor = filter.find(results, query.project)
             .skip(query.skip || 0)
             .limit(query.limit || 1000)
             .sort(query.sort || {});
