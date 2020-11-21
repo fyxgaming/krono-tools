@@ -2,7 +2,6 @@ import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
-// import { IORedisMock } from '@kronoverse/lib/dist/ioredis-mock';
 import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 import { AuthService } from './auth-service';
 import { EventEmitter } from 'events';
