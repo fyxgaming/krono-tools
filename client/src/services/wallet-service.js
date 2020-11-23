@@ -99,18 +99,17 @@ export class WalletService extends EventEmitter {
                     throw new Error(`${resp.status} - ${resp.statusText}`);
             }, 5000);
         }
-        this.show('home');
         // console.log('SHOW LOGIN');
         if (this.agentDef.anonymous)
             return this.initializeWallet();
         if (!config.ephemeral && !this.keyPair)
-            return this.clientEmit('NO_KEYS');
+            return this.show('home');
         try {
             await this.initializeUser();
         }
         catch (e) {
             console.error('Login Error:', e.message);
-            this.clientEmit('NO_KEYS');
+            this.show('home');
         }
     }
     async initializeWallet(owner, purse) {
@@ -184,10 +183,12 @@ export class WalletService extends EventEmitter {
     async login(handle, password) {
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
+        this.show('menu');
     }
     async register(handle, password, email) {
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
+        this.show('menu');
     }
     async logout() {
         this.authenticated = false;
