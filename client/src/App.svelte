@@ -1,115 +1,114 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
-	import { currentUser, loggedIn, loading, route } from './services/stores';
+  import { onMount } from "svelte";
+  import { get } from "svelte/store";
+  import {
+    walletService,
+    currentUser,
+    loggedIn,
+    loading,
+    route,
+    displayMode,
+  } from "./services/stores";
 
-	import { ApiService } from './services/api-service';
-	import { WalletService } from './services/wallet-service';
-	window.walletService = new WalletService();
+  import { ApiService } from "./services/api-service";
 
-	import Home from './components/Home.svelte';
-	import Login from './components/Login.svelte';
-	import Cashier from './components/Cashier.svelte';
-	import Spinner from './components/Spinner.svelte';
+  import Home from "./pages/Home.svelte";
+  import Cashier from "./pages/Cashier.svelte";
+  import Spinner from "./components/Spinner.svelte";
 
-	let defaultHandle = 'Cryptofights';
-	let geo = 'unavailable';
-	let visbility = 'none';
+  let defaultHandle = "Cryptofights";
+  let geo = "unavailable";
+  let menuState = "";
+  let lastRoute = "";
 
-	onMount(async () => {
-		ApiService.getGps().then(gps => geo = JSON.stringify(gps, null, 4));
-		loading.set(true);
-		loggedIn.set(false);
-		currentUser.set(defaultHandle);
-		var ws = window.walletService;
-		try {
-			await ws.init();
-		} catch (err) {
-			console.log(err);
-		}
-		loading.set(false);
-		loggedIn.set(ws.authenticated);
-		if (ws.authenticated) {
-			currentUser.set(ws.handle || defaultHandle);
-		} else {
-			currentUser.set(defaultHandle);
-		}
-		visbility = 'block';
-		console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
-	});
+  //window.vuplex.postMessage({ name: 'BlockInput', payload: '{"x":0,"y":0,"width":2960,"height":1440}' });
 
-	route.subscribe((r) => {
-		if (r === '/Logout') {
-			logout();
-		}
-	});
+  onMount(async () => {
+    ApiService.getGps().then((gps) => (geo = JSON.stringify(gps, null, 4)));
+    displayMode.set("menuMode");
+    loading.set(true);
+    loggedIn.set(false);
+    currentUser.set(defaultHandle);
+    const ws = get(walletService);
+    try {
+      await ws.init();
+    } catch (err) {
+      console.log(err);
+    }
+    loading.set(false);
+    loggedIn.set(ws.authenticated);
+    if (ws.authenticated) {
+      currentUser.set(ws.handle || defaultHandle);
+    } else {
+      currentUser.set(defaultHandle);
+    }
+    console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
+  });
 
-	loggedIn.subscribe((isLoggedIn) => {
-		if (isLoggedIn && get(route) === '/Login') {
-			route.set('/Home');
-		}
-		if (!isLoggedIn && get(route) !== '/Login') {
-			route.set('/Login');
-		}
-	});
+  walletService.subscribe((value) => {
+    value.on("show", (data) => {
+      if (data.message) {
+        console.log(data.message.body);
+      }
+      route.set(data.viewName);
+    });
+  });
 
-	const logout = async () => {
-		let ws = window.walletService;
-		loading.set(true);
-		await ws.logout();
-		loading.set(false);
-		loggedIn.set(ws.authenticated);
-		currentUser.set(defaultHandle);
-		nav('/Home');
-	};
+  displayMode.subscribe((value) => {
+    menuState = value === "menuMode" ? "" : "open";
+    if (value === "menuMode") {
+      const ws = get(walletService);
+      ws.blockInput(0, 0, 100, 100);
+    }
+  });
 
-	const nav = (path) => {
-		route.set(path);
-	};
+  route.subscribe((r) => {
+    if (r === "menu") {
+      displayMode.set("menuMode");
+    }
+  });
+
+  const toggleMenu = (e) => {
+    let currentRoute = get(route);
+    if (currentRoute === "menu") {
+      route.set(lastRoute || "home");
+    } else {
+      lastRoute = currentRoute;
+      route.set("menu");
+    }
+  };
 </script>
 
 <style>
-	main {
-		position: relative;
-		padding: 1em;
-		max-width: 440px;
-	}
-
-	h1 {
-		color: darkslategray;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	.geo {
-		width: 340px;
-		background-color: black;
-		color: antiquewhite;
-		font-family: "Courier New", Courier, monospace;
-		font-size: 12px;
-		font-weight: bold;
-		padding: 15px;
-		border-radius: 5px;
-		position: absolute;
-		bottom: 5px;
-	}
+  .geo {
+    width: 340px;
+    background-color: black;
+    color: antiquewhite;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 5px;
+    position: absolute;
+    bottom: 5px;
+  }
 </style>
 
 <Spinner />
-<main style="display:{visbility}">
-	<h1>{$currentUser}</h1>
 
-	{#if $route === '/Login'}
-		<Login />
-	{:else if $route === '/Cashier'}
-		<Cashier />
-	{:else}
-		<Home />
-	{/if}
+<section class="menuBox">
+  <div class="menu-button {menuState}" on:click={toggleMenu}>
+    <div class="menu-button_icon" on:click={toggleMenu} />
+  </div>
+</section>
+
+<main class={$displayMode}>
+  <Home>
+    <div class="geo" style="display:none">
+      GEO:
+      <pre>{geo}</pre>
+    </div>
+  </Home>
+
+  <Cashier />
 </main>
-
-<div class="geo" style="display:none">
-	GEO:
-	<pre>{geo}</pre>
-</div>

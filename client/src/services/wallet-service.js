@@ -100,7 +100,7 @@ export class WalletService extends EventEmitter {
                     throw new Error(`${resp.status} - ${resp.statusText}`);
             }, 5000);
         }
-        // this.emit('show', 'login');
+        this.show('home');
         // console.log('SHOW LOGIN');
         if (this.agentDef.anonymous)
             return this.initializeWallet();
@@ -194,6 +194,18 @@ export class WalletService extends EventEmitter {
         this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
+    }
+    async blockInput(x, y, width, height) {
+        console.log(width, height);
+        this.clientEmit('BlockInput', {
+            x, y, width, height
+        });
+    }
+    async show(viewName, message) {
+        this.emit('show', {
+            viewName,
+            message
+        });
     }
     async onClientEvent(event) {
         const message = {};

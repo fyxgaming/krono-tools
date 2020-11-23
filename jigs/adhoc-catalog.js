@@ -1,7 +1,7 @@
 class Catalog { 
     static preDeploy(deployer) {
         this.agents = {
-            // "cashier": Catalog.deps.CashierAgent,
+            "coin": Catalog.deps.KronoCoin,
         }
     }
 }

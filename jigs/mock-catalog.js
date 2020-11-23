@@ -1,7 +1,7 @@
 class Catalog { 
     static preDeploy(deployer) {
         this.agents = {
-            // "cashier": Catalog.deps.CashierAgent,
+            "coin": Catalog.deps.KronoCoin,
         }
     }
 }
@@ -10,9 +10,6 @@ Catalog.realm = 'local';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
-    // jsbn: 'lib/jsbn.js',
-    // CashierAgent: 'agents/cashier-agent.js',
-    // CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
     JigMap: 'models/jig-map.js',
@@ -25,7 +22,6 @@ Catalog.asyncDeps = {
     // KMath: 'lib/math.js',
     MockDice: 'lib/mock-dice.js',
     Sha256: 'lib/sha256.js',
-    // SigVerifier: 'lib/sig-verifier.js'
 };
 
 module.exports = Catalog;
