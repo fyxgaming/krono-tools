@@ -2,7 +2,9 @@
   import { loading } from "../services/stores";
   let visible: string = "none";
 
-  export const isVisible = () => { return visible === 'block'; };
+  export const isVisible = () => {
+    return visible === "block";
+  };
 
   export const show = () => {
     visible = "block";
@@ -12,7 +14,7 @@
     visible = "none";
   };
 
-  loading.subscribe(val => {
+  loading.subscribe((val) => {
     if (val) {
       show();
     } else {
@@ -27,9 +29,10 @@
     z-index: 1000;
     width: 100%;
     height: 100%;
-    padding: 50% 50% 50% 50%;
-    background: repeating-linear-gradient(180deg, transparent 1%, #fafafa 2%),
-                repeating-linear-gradient(270deg, transparent 1%, #fafafa 2%);
+    background: repeating-linear-gradient(0deg, transparent 100%, rgba(255,255,255,.8) 100%, transparent 100%),
+                repeating-linear-gradient(90deg, rgba(255,255,255,.8) 100%, transparent 100%, rgba(255,255,255,.8) 100%);
+    justify-content: center;
+    align-items: center;
   }
 
   .kv-spinner {
@@ -38,6 +41,7 @@
     position: relative;
     width: 80px;
     height: 80px;
+    margin: 25% 50%;
   }
   .kv-spinner div {
     transform-origin: 40px 40px;
@@ -52,7 +56,7 @@
     width: 6px;
     height: 18px;
     border-radius: 20%;
-    background: #fcf;
+    background: rgb(23, 9, 56);
   }
   .kv-spinner div:nth-child(1) {
     transform: rotate(0deg);

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc && rollup -c",
-    
     "start": "sirv public",
     "validate": "svelte-check"
   },

@@ -15,6 +15,7 @@ import Run from '@kronoverse/run';
 
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
+import { IDialog } from '../models/idialog';
 
 bsv.Constants.Default = Constants.Default;
 
@@ -127,7 +128,7 @@ export class WalletService extends EventEmitter {
             }, 5000);
         }
 
-        // this.emit('show', 'login');
+        this.show('home');
         // console.log('SHOW LOGIN');
         if (this.agentDef.anonymous) return this.initializeWallet();
         if (!config.ephemeral && !this.keyPair) return this.clientEmit('NO_KEYS');
@@ -240,6 +241,20 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
+    
+    async blockInput(x: number, y: number, width: number, height: number) {
+        console.log(width, height);
+        this.clientEmit('BlockInput', {
+            x,y,width,height
+        });
+    }
+
+    async show(viewName: string, message?: IDialog) {
+        this.emit('show', {
+            viewName,
+            message
+        });
+    }
 
     private async onClientEvent(event: any) {
         const message: any = {};
@@ -325,7 +340,7 @@ export class WalletService extends EventEmitter {
         this.postMessage(message);
     }
 
-    private postMessage(message: IMessage) {
+    private postMessage(message: Partial<IMessage>) {
         message.target = 'kronoverse';
         if (this.isInUnity) {
             this.channel.postMessage(message);
