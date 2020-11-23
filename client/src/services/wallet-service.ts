@@ -4,8 +4,6 @@ import type { IMessage } from '../imessage';
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
-import type { IAgent } from '@kronoverse/lib/dist/interfaces';
-// import { IORedisMock } from '@kronoverse/lib/dist/ioredis-mock';
 import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 import { AuthService } from './auth-service';
 import { EventEmitter } from 'events';
@@ -32,7 +30,7 @@ export class WalletService extends EventEmitter {
 
     public blockchain?: RestBlockchain;
     public wallet?: Wallet;
-    private agent?: IAgent;
+    private agent?: any;
 
     private apiUrl = '';
     private domain = document.location.hash.slice(1).split('@')[1];

@@ -4,6 +4,7 @@ const { EventEmitter } = require('events');
 const express = require('express');
 const http = require('http');
 const {HttpError} = require('@kronoverse/lib/dist/http-error');
+const {Query} = require('mingo')
 const Mockchain = require('./mockchain');
 const { spawn, Worker } = require('threads');
 
@@ -166,14 +167,21 @@ app.get('/jigs/:loc', async (req, res, next) => {
 });
 
 
-app.get('/jigs/address/:address', async (req, res, next) => {
+app.post('/jigs/address/:address', async (req, res, next) => {
     try {
         const { address } = req.params;
-        const { kind } = req.query;
+        const query = req.body;
         const script = Address.fromString(address).toTxOutScript().toHex();
         const utxos = await blockchain.utxos(script);
         const locs = utxos.map(u => `${u.txid}_o${u.vout}`);
-        res.json(locs.map(loc => jigs.get(loc)).filter(jig => jig && (!kind || jig.kind === kind)));
+        const results = locs.map(loc => jigs.get(loc)).filter(jig => jig);
+
+        const filter = new Query(query.criteria || {});
+        const cursor = filter.find(results, query.project)
+            .skip(query.skip || 0)
+            .limit(query.limit || 1000)
+            .sort(query.sort || {});
+        res.json(cursor.all());
     } catch (e) {
         next(e);
     }
@@ -226,6 +234,14 @@ app.post('/messages', async (req, res, next) => {
 
         publishEvent(message.subject, 'msg', message);
         res.json(true);
+    } catch (e) {
+        next(e);
+    }
+});
+
+app.get('/state', async (req, res, next) => {
+    try {
+        res.json(run.cache.xa);
     } catch (e) {
         next(e);
     }
