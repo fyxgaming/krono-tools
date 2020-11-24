@@ -99,18 +99,18 @@ export class WalletService extends EventEmitter {
                     throw new Error(`${resp.status} - ${resp.statusText}`);
             }, 5000);
         }
-        // this.emit('show', 'login');
         // console.log('SHOW LOGIN');
         if (this.agentDef.anonymous)
             return this.initializeWallet();
         if (!config.ephemeral && !this.keyPair)
-            return this.clientEmit('NO_KEYS');
+            return this.show('home');
         try {
             await this.initializeUser();
+            this.show('menu');
         }
         catch (e) {
             console.error('Login Error:', e.message);
-            this.clientEmit('NO_KEYS');
+            this.show('home');
         }
     }
     async initializeWallet(owner, purse) {
@@ -184,15 +184,29 @@ export class WalletService extends EventEmitter {
     async login(handle, password) {
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
+        this.show('menu');
     }
     async register(handle, password, email) {
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
+        this.show('menu');
     }
     async logout() {
         this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
+    }
+    async blockInput(x, y, width, height) {
+        console.log(width, height);
+        this.clientEmit('BlockInput', {
+            x, y, width, height
+        });
+    }
+    async show(viewName, message) {
+        this.emit('show', {
+            viewName,
+            message
+        });
     }
     async onClientEvent(event) {
         const message = {};
@@ -286,7 +300,9 @@ export class WalletService extends EventEmitter {
             this.channel.postMessage(message);
         }
         else if (this.channelScope) {
-            this.channel.parent.postMessage(message, this.channelScope);
+            if (this.channel !== this.channel.parent) {
+                this.channel.parent.postMessage(message, this.channelScope);
+            }
         }
         if (this.config.emitLogs && !['Log', 'Error'].includes(message.name))
             this.postMessage({
