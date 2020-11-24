@@ -106,6 +106,7 @@ export class WalletService extends EventEmitter {
             return this.show('home');
         try {
             await this.initializeUser();
+            this.show('menu');
         }
         catch (e) {
             console.error('Login Error:', e.message);

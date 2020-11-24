@@ -131,6 +131,7 @@ export class WalletService extends EventEmitter {
         if (!config.ephemeral && !this.keyPair) return this.show('home');
         try {
             await this.initializeUser();
+            this.show('menu');
         } catch (e) {
             console.error('Login Error:', e.message);
             this.show('home');
