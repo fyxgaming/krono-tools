@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { get } from "svelte/store";
+  import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import {
     walletService,
     currentUser,
@@ -8,24 +8,22 @@
     loading,
     route,
     displayMode,
-  } from "./services/stores";
+  } from './services/stores';
 
-  import { ApiService } from "./services/api-service";
+  import { ApiService } from './services/api-service';
 
-  import Home from "./pages/Home.svelte";
-  import Cashier from "./pages/Cashier.svelte";
-  import Spinner from "./components/Spinner.svelte";
+  import Home from './pages/Home.svelte';
+  import Cashier from './pages/Cashier.svelte';
+  import Spinner from './components/Spinner.svelte';
 
-  let defaultHandle = "Cryptofights";
-  let geo = "unavailable";
-  let menuState = "";
-  let lastRoute = "";
-
-  //window.vuplex.postMessage({ name: 'BlockInput', payload: '{"x":0,"y":0,"width":2960,"height":1440}' });
+  let defaultHandle = 'Cryptofights';
+  let geo = 'unavailable';
+  let menuState = '';
+  let lastRoute = '';
 
   onMount(async () => {
     ApiService.getGps().then((gps) => (geo = JSON.stringify(gps, null, 4)));
-    displayMode.set("menuMode");
+    displayMode.set('menuMode');
     loading.set(true);
     loggedIn.set(false);
     currentUser.set(defaultHandle);
@@ -42,11 +40,30 @@
     } else {
       currentUser.set(defaultHandle);
     }
-    console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
+    console.log(`WUI:Authenticated: ${ws.handle} as ${ws.authenticated}`);
   });
 
+  const toggleMenu = (e) => {
+    let currentRoute = get(route);
+    if (currentRoute === 'menu') {
+      route.set(lastRoute || 'home');
+    } else {
+      lastRoute = currentRoute;
+      route.set('menu');
+    }
+  };
+
+  const reserveSize = (displayMode: string) => {
+    const ws = get(walletService);
+    if (displayMode === 'menuMode') {
+      ws.blockInput(0, 0, 100, 100);
+    } else {
+      ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
+    }
+  };
+
   walletService.subscribe((value) => {
-    value.on("show", (data) => {
+    value.on('show', (data) => {
       if (data.message) {
         console.log(data.message.body);
       }
@@ -55,28 +72,16 @@
   });
 
   displayMode.subscribe((value) => {
-    menuState = value === "menuMode" ? "" : "open";
-    if (value === "menuMode") {
-      const ws = get(walletService);
-      ws.blockInput(0, 0, 100, 100);
-    }
+    menuState = value === 'menuMode' ? '' : 'open';
+    reserveSize(value);
   });
 
   route.subscribe((r) => {
-    if (r === "menu") {
-      displayMode.set("menuMode");
+    if (r === 'menu') {
+      displayMode.set('menuMode');
     }
   });
 
-  const toggleMenu = (e) => {
-    let currentRoute = get(route);
-    if (currentRoute === "menu") {
-      route.set(lastRoute || "home");
-    } else {
-      lastRoute = currentRoute;
-      route.set("menu");
-    }
-  };
 </script>
 
 <style>

@@ -4,12 +4,12 @@
     displayMode,
     loading,
     route,
-  } from "../services/stores";
-  import { ApiService } from "../services/api-service";
-  import { CashierResponse } from "../services/models";
-  import Panel from "../components/Panel.svelte";
-  import { get } from "svelte/store";
-  import { onMount } from "svelte";
+  } from '../services/stores';
+  import { ApiService } from '../services/api-service';
+  import { CashierResponse } from '../services/models';
+  import Panel from '../components/Panel.svelte';
+  import { get } from 'svelte/store';
+  import { afterUpdate } from 'svelte';
 
   export let visible: boolean = false;
 
@@ -26,41 +26,45 @@
 
   win.gidxServiceSettings = function (data) {
     console.log(`TRIGGERED: gidx.gidxServiceSettings: ${data}`);
-    win.gidxContainer = "#webcashier";
+    win.gidxContainer = '#webcashier';
     win.gidxBuildTimer = false;
     win.gidxBuildSteps = false;
   };
-  win.gidxServiceStatus = echoGidxEvent("gidxServiceStatus", (name, phase) => {
-    if (phase === "start") {
+
+  win.gidxServiceStatus = echoGidxEvent('gidxServiceStatus', (name, phase) => {
+    if (phase === 'start') {
       loading.set(false);
     }
-    if (phase === "end") {
+    if (phase === 'end') {
       loading.set(true);
     }
   });
-  win.gidxErrorReport = echoGidxEvent("gidxErrorReport");
-  win.gidxContainer = echoGidxEvent("gidxContainer");
-  win.gidxBuildTimer = echoGidxEvent("gidxBuildTimer");
-  win.gidxBuildSteps = echoGidxEvent("gidxBuildSteps");
-  win.gidxNextStep = echoGidxEvent("gidxNextStep", handleGidxNextStep);
+
+  win.gidxErrorReport = echoGidxEvent('gidxErrorReport');
+  win.gidxContainer = echoGidxEvent('gidxContainer');
+  win.gidxBuildTimer = echoGidxEvent('gidxBuildTimer');
+  win.gidxBuildSteps = echoGidxEvent('gidxBuildSteps');
+  win.gidxNextStep = echoGidxEvent('gidxNextStep', handleGidxNextStep);
 
   let webCasherSessionScript: string;
   let errorMessage: string;
   let successMessage: string;
   let isCashierShowing: boolean = false;
   let hidePanelActions: boolean = true;
-  let panelElement: HTMLDivElement;
-  let mounted: boolean = false;
+  let controlPanel: Panel;
+  let lastDisplayMode: string;
 
   const cancel = async () => {
-    route.set("home");
+    lastDisplayMode = '';
+    route.set('home');
   };
 
   const addFunds = async () => {
     try {
       loading.set(true);
       errorMessage = null;
-      displayMode.set("frameMode");
+      displayMode.set('frameMode');
+      lastDisplayMode = 'frameMode';
       //let geoAccess = navigator.permissions.query({name:'geolocation'});
       //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
       const deviceGPS = await ApiService.getGps();
@@ -78,7 +82,7 @@
 
       const response = ((await ws.blockchain.sendMessage(
         message,
-        "/payment"
+        '/payment'
       )) as unknown) as CashierResponse;
 
       let paymentId = response.paymentId;
@@ -93,7 +97,7 @@
           renderCashier(script);
           return;
         }
-        throw new Error("Cashier script not in localStorage.");
+        throw new Error('Cashier script not in localStorage.');
       }
     } catch (err) {
       console.log(err, err.stack);
@@ -117,7 +121,7 @@
     try {
       const response = await ws.blockchain.sendMessage(
         message,
-        "/payment/status"
+        '/payment/status'
       );
 
       console.log(response);
@@ -136,18 +140,18 @@
   function echoGidxEvent(name, func?: Function) {
     return async (data, phase, ...args) => {
       console.log(`TRIGGERED: ${name}: ${data} ${phase}`, args);
-      if (typeof func === "function") {
+      if (typeof func === 'function') {
         await func(data, phase, ...args);
       }
     };
   }
 
   function renderCashier(script) {
-    webCasherSessionScript = unescape(decodeURI(script)).replace(/\+/g, " ");
+    webCasherSessionScript = unescape(decodeURI(script)).replace(/\+/g, ' ');
     isCashierShowing = true;
     setTimeout(() => {
       setInnerHTML(
-        document.getElementById("webcashier"),
+        document.getElementById('webcashier'),
         webCasherSessionScript
       );
     }, 500);
@@ -155,9 +159,9 @@
 
   function setInnerHTML(elm, html) {
     elm.innerHTML = html;
-    Array.from(elm.querySelectorAll("script")).forEach(
+    Array.from(elm.querySelectorAll('script')).forEach(
       (oldScript: HTMLElement) => {
-        const newScript = document.createElement("script");
+        const newScript = document.createElement('script');
         Array.from(oldScript.attributes).forEach((attr) =>
           newScript.setAttribute(attr.name, attr.value)
         );
@@ -167,42 +171,19 @@
     );
   }
 
-  const reserveSize = () => {
-    if (mounted && visible) {
-      console.log("reserveSize");
-      const ws = get(walletService);
-      if (get(displayMode) == "panelMode") {
-        ws.blockInput(0, 0, panelElement?.clientWidth, window.innerHeight);
-      } else {
-        ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
-      }
-    }
-  };
-
-  onMount(() => {
-    mounted = true;
-    reserveSize();
-  });
-
-  displayMode.subscribe((value) => {
-    reserveSize();
-  });
-
   const show = () => {
     visible = true;
-    hidePanelActions = true;
-    isCashierShowing = false;
-    displayMode.set("panelMode");
+    const mode = get(displayMode);
+    lastDisplayMode = (lastDisplayMode || 'panelMode');
+    displayMode.set(lastDisplayMode);
   };
 
   const hide = () => {
-    hidePanelActions = false;
-    isCashierShowing = false;
     visible = false;
   };
 
   route.subscribe((r) => {
-    if (r === "cashier") {
+    if (r === 'cashier') {
       show();
     } else {
       hide();
@@ -212,8 +193,8 @@
 
 {#if visible}
   <!--CASHIER-->
-  <Panel hideDefaultActions={hidePanelActions}>
-    <div slot="actions" bind:this={panelElement}>
+  <Panel hideDefaultActions={hidePanelActions} bind:this={controlPanel}>
+    <div slot="actions">
       {#if !isCashierShowing}
         <button class="action" on:click|preventDefault={addFunds}>Add Funds</button>
       {/if}

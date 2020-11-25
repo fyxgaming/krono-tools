@@ -7,7 +7,7 @@ export const loading = writable(false);
 export const displayMode = writable('menuMode'); //menuMode, panelMode, frameMode
 let counter = 0;
 export const walletService = readable(new WalletService(), (set) => {
-    console.log(counter++);
+    console.log(`Store Sub Count: ${counter++}`);
     /*initialize?*/
     /*set?*/
     return () => { };

@@ -22,7 +22,8 @@ main {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 30% auto;
+  grid-template-columns: minmax(30%, 400px) auto;
+  grid-template-areas: 'panelBox gridBox';
 }
 
 .menuBox {
@@ -83,7 +84,7 @@ main {
 }
 
 .contentBox {
-  padding: 15px;
+  padding: 20px;
   box-sizing: border-box;
 }
 

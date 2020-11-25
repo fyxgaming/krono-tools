@@ -243,7 +243,7 @@ export class WalletService extends EventEmitter {
     }
     
     async blockInput(x: number, y: number, width: number, height: number) {
-        console.log(width, height);
+        console.log(`BlockInput`, x, y, width, height);
         this.clientEmit('BlockInput', {
             x,y,width,height
         });

@@ -65,6 +65,13 @@ export default {
 			'@kronoverse/run': 'Run',
 			'argon2-browser': 'argon2'
 		}),
+		tsPlugin({
+			sourceMap: !production,
+			inlineSources: !production,
+			moduleResolution: "node",
+			typescript: typescript,
+		}),
+		commonjs(),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration -
@@ -85,13 +92,6 @@ export default {
 			},
 			preprocess: sveltePreprocess(),
 		}),
-		tsPlugin({
-			sourceMap: !production,
-			inlineSources: !production,
-			moduleResolution: "node",
-			typescript: typescript,
-		}),
-		commonjs(),
 		copy({
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },

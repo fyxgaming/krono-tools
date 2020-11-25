@@ -1,31 +1,9 @@
 <script lang="ts">
-import { onMount } from "svelte";
-
-import { get } from "svelte/store";
-
-  import Panel from "../components/Panel.svelte";
-  import { displayMode, route, walletService } from "../services/stores";
+  import Panel from '../components/Panel.svelte';
+  import { displayMode, route } from '../services/stores';
 
   export let visible: boolean = false;
-  let mounted: boolean = false;
-  let controlPanel: Panel;
 
-  const reserveSize = () => {
-    if (mounted) {
-      const ws = get(walletService);
-      if (get(displayMode) == "panelMode") {
-        ws.blockInput(0, 0, controlPanel.width(), window.innerHeight);
-      } else {
-        ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
-      }
-    }
-  };
-
-  onMount(() => {
-    mounted = true;
-    reserveSize();
-  });
-  
   const show = () => {
     visible = true;
     displayMode.set("panelMode");
@@ -49,7 +27,7 @@ import { get } from "svelte/store";
 
 {#if visible}
   <!--HOME-->
-  <Panel bind:this={controlPanel}>
+  <Panel>
     <div slot="extend">
       <slot />
     </div>
