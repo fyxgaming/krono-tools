@@ -6,7 +6,7 @@
     route,
   } from '../services/stores';
   import { ApiService } from '../services/api-service';
-  import { CashierResponse } from '../services/models';
+  import { CashierResponse } from '../models/cashier-response';
   import Panel from '../components/Panel.svelte';
   import { get } from 'svelte/store';
   import { afterUpdate } from 'svelte';

@@ -1,14 +1,14 @@
 import 'whatwg-fetch';
-import { GpsDetails, CashierRequest, CashierResponse } from './models';
+import { GpsDetails } from '../models/gps-details';
+
 import { format } from 'date-fns';
 
-
 export class ApiService {
-    
+
     // async createCashier(wallet: Wallet, req: CashierRequest): Promise<CashierResponse> {
     //     console.log('createCashier:Start');
     //     console.log(`REQUEST: ${JSON.stringify(req)}`);
-        
+
     //     const response: any = await fetch(`https://dev.aws.kronoverse.io/cashier/${domain}/${id}`, {
     //         method: 'POST',
     //         //headers: { api_key: API_KEY, 'Content-Type': 'application/json' },
@@ -39,7 +39,7 @@ export class ApiService {
         return geoloc;
     }
 
-    private static async getGeoInfo() { 
+    private static async getGeoInfo() {
         const p = new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition((data) => {
                 console.log('GPS:', data);
