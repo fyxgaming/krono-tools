@@ -12,7 +12,7 @@ const blockchain = new RestBlockchain(fetch, apiUrl, network);
 const run = new Run({
     network,
     blockchain,
-    timeout: 30000,
+    timeout: 120000,
     trust: '*',
     // logger: console
 });
