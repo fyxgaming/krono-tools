@@ -3,7 +3,7 @@ const CashierAgent = require("./agents/cashier-agent");
 class Catalog { 
     static preDeploy(deployer) {
         this.agents = {
-            cashier: CashierAgent
+            cashier: this.deps.CashierAgent
         }
     }
 }
