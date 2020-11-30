@@ -17,7 +17,7 @@
 
   const nav = (path) => {
     const ws = get(walletService);
-    ws.show("cashier");
+    ws.show(path);
   };
 </script>
 
@@ -29,12 +29,17 @@
     <Login />
     {/if}
 
+    <slot name="prepend" />
+
     {#if $loggedIn}
       <section class="actions">
         {#if !hideDefaultActions}
           <button
             class="action"
             on:click|preventDefault={() => nav('cashier')}>Enter Match</button>
+          <button
+            class="action"
+            on:click|preventDefault={() => nav('cashout')}>Cash Out</button>
         {/if}
         <slot name="actions" />
       </section>

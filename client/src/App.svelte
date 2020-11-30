@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
+  import { onMount } from "svelte";
+  import { get } from "svelte/store";
   import {
     walletService,
     currentUser,
@@ -8,22 +8,23 @@
     loading,
     route,
     displayMode,
-  } from './services/stores';
+  } from "./services/stores";
 
-  import { ApiService } from './services/api-service';
+  import { ApiService } from "./services/api-service";
 
-  import Home from './pages/Home.svelte';
-  import Cashier from './pages/Cashier.svelte';
-  import Spinner from './components/Spinner.svelte';
+  import Home from "./pages/Home.svelte";
+  import Cashier from "./pages/Cashier.svelte";
+  import Spinner from "./components/Spinner.svelte";
+  import Cashout from "./pages/Cashout.svelte";
 
-  let defaultHandle = 'Cryptofights';
-  let geo = 'unavailable';
-  let menuState = '';
-  let lastRoute = '';
+  let defaultHandle = "Cryptofights";
+  let geo = "unavailable";
+  let menuState = "";
+  let lastRoute = "";
 
   onMount(async () => {
     ApiService.getGps().then((gps) => (geo = JSON.stringify(gps, null, 4)));
-    displayMode.set('menuMode');
+    displayMode.set("menuMode");
     loading.set(true);
     loggedIn.set(false);
     currentUser.set(defaultHandle);
@@ -45,17 +46,17 @@
 
   const toggleMenu = (e) => {
     let currentRoute = get(route);
-    if (currentRoute === 'menu') {
-      route.set(lastRoute || 'home');
+    if (currentRoute === "menu") {
+      route.set(lastRoute || "home");
     } else {
       lastRoute = currentRoute;
-      route.set('menu');
+      route.set("menu");
     }
   };
 
   const reserveSize = (displayMode: string) => {
     const ws = get(walletService);
-    if (displayMode === 'menuMode') {
+    if (displayMode === "menuMode") {
       ws.blockInput(0, 0, 100, 100);
     } else {
       ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
@@ -63,7 +64,7 @@
   };
 
   walletService.subscribe((value) => {
-    value.on('show', (data) => {
+    value.on("show", (data) => {
       if (data.message) {
         console.log(data.message.body);
       }
@@ -72,16 +73,15 @@
   });
 
   displayMode.subscribe((value) => {
-    menuState = value === 'menuMode' ? '' : 'open';
+    menuState = value === "menuMode" ? "" : "open";
     reserveSize(value);
   });
 
   route.subscribe((r) => {
-    if (r === 'menu') {
-      displayMode.set('menuMode');
+    if (r === "menu") {
+      displayMode.set("menuMode");
     }
   });
-
 </script>
 
 <style>
@@ -116,4 +116,6 @@
   </Home>
 
   <Cashier />
+
+  <Cashout />
 </main>
