@@ -15,6 +15,7 @@ class Payment extends KronoJig {
 }
 
 Payment.asyncDeps = {
+    KronoJig: 'lib/krono-jig.js',
     KronoCoin: 'models/krono-coin.js'
 }
 
