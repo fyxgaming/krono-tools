@@ -73,15 +73,18 @@ app.get('/initialize', async (req, res, next) => {
 app.post('/broadcast', async (req, res, next) => {
     try {
         const { rawtx } = req.body;
+        // console.log('RAWTX:', rawtx);
         const txid = await blockchain.broadcast(rawtx);
-        
-        const indexed = await indexWorker.index(rawtx).catch(console.error);
-        (indexed || []).forEach(jigData => {
-            jigs.set(jigData.location, jigData);
-            publishEvent(jigData.owner, 'jig', jigData);
-            publishEvent(jigData.origin, 'jig', jigData);
-            if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
-        });
+        indexWorker.index(rawtx)
+            .then((indexed) => {
+                (indexed || []).forEach(jigData => {
+                    jigs.set(jigData.location, jigData);
+                    publishEvent(jigData.owner, 'jig', jigData);
+                    publishEvent(jigData.origin, 'jig', jigData);
+                    if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
+                });
+            })
+            .catch(console.error);
         res.send(txid);
     } catch (e) {
         next(e);
