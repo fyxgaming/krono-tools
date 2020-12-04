@@ -1,4 +1,4 @@
-const {Token} = require('@kronoverse/run');
+const Token = require('./token2');
 
 /* global KronoClass */
 class KronoCoin extends Token {
@@ -16,12 +16,6 @@ class KronoCoin extends Token {
         this.owner = owner;
     }
 
-    toObject(skipKeys = [], visited = new Set()) {
-        if(visited.has(this)) return;
-        visited.add(this);
-        return KronoClass.cloneChildren(this, skipKeys, visited);
-    }
-
     static async postDeploy(deployer) {
         console.log('Token Owner:', this.deps.CashierConfig.address);
         this.transfer(this.deps.CashierConfig.address);
@@ -33,6 +27,7 @@ KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     KronoClass: 'lib/krono-class.js',
+    Token: 'models/token2.js'
 }
 
 module.exports = KronoCoin;
