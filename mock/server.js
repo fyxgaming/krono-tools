@@ -103,7 +103,7 @@ app.get('/tx/:txid', async (req, res, next) => {
     }
 });
 
-app.get('/utxos/:script', async (req, res, next) => {
+app.get('/utxos/script/:script', async (req, res, next) => {
     try {
         const { script } = req.params;
         res.json(await blockchain.utxos(script));
