@@ -6,6 +6,18 @@ class KronoCoin extends Token {
         this.payment = payment;
     }
 
+    setAddress(address) {
+        this.address = address;
+    }
+
+    send(address, amount = this.amount, owner = this.owner) {
+        const currentAddress = this.address;
+        this.setAddress(address);
+        const change = super.send(owner, amount);
+        change.setAddress(currentAddress);
+        return change;
+    }
+
     static mint(amount) {
         const coin = super.mint(amount);
         coin.setPayment(caller);
@@ -15,12 +27,11 @@ class KronoCoin extends Token {
     static transfer(owner) {
         this.owner = owner;
     }
+}
 
-    static async postDeploy(deployer) {
-        console.log('Token Owner:', this.deps.CashierConfig.address);
-        this.transfer(this.deps.CashierConfig.address);
-        await this.sync();
-    }
+KronoCoin.postDeploy = async () => {
+    this.transfer(this.deps.CashierConfig.address);
+    await this.sync();
 }
 
 KronoCoin.decimals = 6;
