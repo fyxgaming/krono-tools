@@ -1,6 +1,7 @@
 class Catalog {}
 
 Catalog.realm = 'local';
+Catalog.agents = {};
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
