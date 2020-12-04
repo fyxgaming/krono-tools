@@ -15,12 +15,13 @@ class KronoCoin extends Token {
     static transfer(owner) {
         this.owner = owner;
     }
+
+    static async postDeploy() {
+        this.transfer(this.deps.CashierConfig.address);
+        await this.sync();
+    }
 }
 
-KronoCoin.postDeploy = async () => {
-    KronoCoin.transfer(KronoCoin.deps.CashierConfig.address);
-    await KronoCoin.sync();
-}
 
 KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
