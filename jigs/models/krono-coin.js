@@ -18,8 +18,8 @@ class KronoCoin extends Token {
 }
 
 KronoCoin.postDeploy = async () => {
-    this.transfer(KronoCoin.deps.CashierConfig.address);
-    await this.sync();
+    KronoCoin.transfer(KronoCoin.deps.CashierConfig.address);
+    await KronoCoin.sync();
 }
 
 KronoCoin.decimals = 6;
