@@ -1,7 +1,12 @@
-class Catalog {}
+class Catalog {
+    static async preDeploy() {
+        this.agents = {
+            payment: this.deps.Payment
+        };
+    }
+}
 
 Catalog.realm = 'dev.kronoverse.io';
-Catalog.agents = {};
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
