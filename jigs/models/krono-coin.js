@@ -18,7 +18,7 @@ class KronoCoin extends Token {
 }
 
 KronoCoin.postDeploy = async () => {
-    this.transfer(this.deps.CashierConfig.address);
+    this.transfer(KronoCoin.deps.CashierConfig.address);
     await this.sync();
 }
 
