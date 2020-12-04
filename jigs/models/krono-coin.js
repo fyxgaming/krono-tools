@@ -1,21 +1,9 @@
-const Token = require('./token2');
+const { Token } = require('@kronoverse/run');
 
 /* global KronoClass */
 class KronoCoin extends Token {
     setPayment(payment) {
         this.payment = payment;
-    }
-
-    setAddress(address) {
-        this.address = address;
-    }
-
-    send(address, amount = this.amount, owner = this.owner) {
-        const currentAddress = this.address;
-        this.setAddress(address);
-        const change = super.send(owner, amount);
-        change.setAddress(currentAddress);
-        return change;
     }
 
     static mint(amount) {
