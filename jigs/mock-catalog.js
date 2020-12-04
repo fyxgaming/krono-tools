@@ -1,16 +1,9 @@
-class Catalog { 
-    static preDeploy(deployer) {
-        this.agents = {
-            cashier: this.deps.CashierAgent
-        }
-    }
-}
+class Catalog {}
 
 Catalog.realm = 'local';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
-    CashierAgent: 'agents/cashier-agent.js',
     CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
