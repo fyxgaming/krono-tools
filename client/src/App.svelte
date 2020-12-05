@@ -15,13 +15,12 @@
   import Home from "./pages/Home.svelte";
   import Cashier from "./pages/Cashier.svelte";
   import Spinner from "./components/Spinner.svelte";
+  import Cashout from "./pages/Cashout.svelte";
 
   let defaultHandle = "Cryptofights";
   let geo = "unavailable";
   let menuState = "";
   let lastRoute = "";
-
-  //window.vuplex.postMessage({ name: 'BlockInput', payload: '{"x":0,"y":0,"width":2960,"height":1440}' });
 
   onMount(async () => {
     ApiService.getGps().then((gps) => (geo = JSON.stringify(gps, null, 4)));
@@ -42,8 +41,27 @@
     } else {
       currentUser.set(defaultHandle);
     }
-    console.log(`Authenticated: ${ws.authenticated} as ${ws.handle}`);
+    console.log(`WUI:Authenticated: ${ws.handle} as ${ws.authenticated}`);
   });
+
+  const toggleMenu = (e) => {
+    let currentRoute = get(route);
+    if (currentRoute === "menu") {
+      route.set(lastRoute || "home");
+    } else {
+      lastRoute = currentRoute;
+      route.set("menu");
+    }
+  };
+
+  const reserveSize = (displayMode: string) => {
+    const ws = get(walletService);
+    if (displayMode === "menuMode") {
+      ws.blockInput(0, 0, 100, 100);
+    } else {
+      ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
+    }
+  };
 
   walletService.subscribe((value) => {
     value.on("show", (data) => {
@@ -56,10 +74,7 @@
 
   displayMode.subscribe((value) => {
     menuState = value === "menuMode" ? "" : "open";
-    if (value === "menuMode") {
-      const ws = get(walletService);
-      ws.blockInput(0, 0, 100, 100);
-    }
+    reserveSize(value);
   });
 
   route.subscribe((r) => {
@@ -67,16 +82,6 @@
       displayMode.set("menuMode");
     }
   });
-
-  const toggleMenu = (e) => {
-    let currentRoute = get(route);
-    if (currentRoute === "menu") {
-      route.set(lastRoute || "home");
-    } else {
-      lastRoute = currentRoute;
-      route.set("menu");
-    }
-  };
 </script>
 
 <style>
@@ -111,4 +116,6 @@
   </Home>
 
   <Cashier />
+
+  <Cashout />
 </main>

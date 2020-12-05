@@ -197,7 +197,7 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('HANDLE');
     }
     async blockInput(x, y, width, height) {
-        console.log(width, height);
+        console.log(`BlockInput`, x, y, width, height);
         this.clientEmit('BlockInput', {
             x, y, width, height
         });

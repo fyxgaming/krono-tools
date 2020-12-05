@@ -77,25 +77,7 @@
 </script>
 
 <style>
-  .field {
-    display: block;
-    margin-bottom: 10px;
-  }
-  .field-label {
-    display: block;
-    font-weight: bold;
-    font-size: 14px;
-    color: darkslategray;
-  }
-  .field-hint {
-    display: block;
-    font-size: 10px;
-    color: darkslategray;
-  }
-  .field-cntrl {
-    display: block;
-    width: 100%;
-  }
+
 </style>
 
 {#if $loggedIn}

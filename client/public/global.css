@@ -22,7 +22,8 @@ main {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 30% auto;
+  grid-template-columns: minmax(30%, 400px) auto;
+  grid-template-areas: "panelBox gridBox";
 }
 
 .menuBox {
@@ -83,7 +84,7 @@ main {
 }
 
 .contentBox {
-  padding: 15px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -145,6 +146,29 @@ button:not(:disabled):active {
 
 button:focus {
   border-color: #666;
+}
+
+.field {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.field-label {
+  display: block;
+  font-weight: bold;
+  font-size: 14px;
+  color: darkslategray;
+}
+
+.field-hint {
+  display: block;
+  font-size: 10px;
+  color: darkslategray;
+}
+
+.field-cntrl {
+  display: block;
+  width: 100%;
 }
 
 .action {

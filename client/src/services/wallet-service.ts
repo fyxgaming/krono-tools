@@ -1,6 +1,7 @@
 import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 
-import type { IMessage } from '../imessage';
+import type { IMessage } from '../models/imessage';
+import type { IDialog } from '../models/idialog';
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
@@ -13,7 +14,6 @@ import Run from '@kronoverse/run';
 
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
-import { IDialog } from '../models/idialog';
 
 bsv.Constants.Default = Constants.Default;
 
@@ -243,7 +243,7 @@ export class WalletService extends EventEmitter {
     }
     
     async blockInput(x: number, y: number, width: number, height: number) {
-        console.log(width, height);
+        console.log(`BlockInput`, x, y, width, height);
         this.clientEmit('BlockInput', {
             x,y,width,height
         });
