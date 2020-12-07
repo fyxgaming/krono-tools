@@ -29,6 +29,7 @@
     <Login />
     {/if}
 
+    <slot />
     <slot name="prepend" />
 
     {#if $loggedIn}

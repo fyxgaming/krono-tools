@@ -28,7 +28,7 @@
 {#if visible}
   <!--HOME-->
   <Panel>
-    <div slot="extend">
+    <div slot="prepend">
       <slot />
     </div>
   </Panel>

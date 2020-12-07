@@ -202,6 +202,10 @@ export class WalletService extends EventEmitter {
             x, y, width, height
         });
     }
+    async getBalance() {
+        const balance = await this.agent.getBalance();
+        return Math.round(balance / 10000) / 100;
+    }
     async show(viewName, message) {
         this.emit('show', {
             viewName,

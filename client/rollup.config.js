@@ -1,7 +1,7 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
-import tsPlugin from '@rollup/plugin-typescript';
-import typescript from 'typescript';
+import typescript from '@rollup/plugin-typescript';
+import typescriptLib from 'typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
 import livereload from 'rollup-plugin-livereload';
@@ -10,89 +10,43 @@ import sveltePreprocess from 'svelte-preprocess';
 import externalGlobals from "rollup-plugin-external-globals";
 import { wasm } from '@rollup/plugin-wasm';
 import json from '@rollup/plugin-json';
-// import builtins from 'rollup-plugin-node-builtins';
-// import globals from 'rollup-plugin-node-globals';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 
-
+//POPULATED WHEN `rollup -c -w` IS RUN (i.e. "-w") 
 const production = !process.env.ROLLUP_WATCH;
-
-function serve() {
-	let server;
-
-	function toExit() {
-		if (server) server.kill(0);
-	}
-
-	return {
-		writeBundle() {
-			if (server) return;
-			server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-				stdio: ['ignore', 'inherit', 'inherit'],
-				shell: true
-			});
-
-			process.on('SIGTERM', toExit);
-			process.on('exit', toExit);
-		}
-	};
-}
 
 export default {
 	input: 'src/main.ts',
 	output: {
-		sourcemap: true,
+		sourcemap: !production,
 		format: 'iife',
 		name: 'wallet',
 		file: 'public/build/bundle.js',
 		globals: {
-			bsv: 'bsvjs',
+			'bsv': 'bsvjs',
 			'@kronoverse/run': 'Run',
 			'argon2-browser': 'argon2'
 		}
 	},
 	external: ['bsv', '@kronoverse/run'],
 	watch: {
-		include: 'src/**'
-    },
+		include: [
+			'src/**',
+			'public/global.css',
+			'public/index.html'
+		],
+		clearScreen: true,
+	},
 	plugins: [
 		nodePolyfills(),
-		// globals(),
-		// builtins(),
 		json(),
 		wasm(),
 		externalGlobals({
 			'@kronoverse/run': 'Run',
 			'argon2-browser': 'argon2'
 		}),
-		tsPlugin({
-			sourceMap: !production,
-			inlineSources: !production,
-			moduleResolution: "node",
-			typescript: typescript,
-		}),
-		commonjs(),
-		// If you have external dependencies installed from
-		// npm, you'll most likely need these plugins. In
-		// some cases you'll need additional configuration -
-		// consult the documentation for details:
-		// https://github.com/rollup/plugins/tree/master/packages/commonjs
-		resolve({
-			browser: true,
-			dedupe: ['svelte'],
-			preferBuiltins: true
-		}),
-		svelte({
-			// enable run-time checks when not in production
-			dev: !production,
-			// we'll extract any component CSS out into
-			// a separate file - better for performance
-			css: css => {
-				css.write('bundle.css');
-			},
-			preprocess: sveltePreprocess(),
-		}),
 		copy({
+			flatten: false,
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
 				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' },
@@ -101,19 +55,98 @@ export default {
 				{ src: './node_modules/argon2-browser/dist/argon2.wasm', dest: 'public/node_modules/argon2-browser/dist' },
 			]
 		}),
-		// In dev mode, call `npm run start` once
-		// the bundle has been generated
-		!production && serve(),
-
-		// Watch the `public` directory and refresh the
-		// browser on changes when not in production
-		!production && livereload('public'),
-
-		// If we're building for production (npm run build
-		// instead of npm run dev), minify
-		production && terser()
-	],
-	watch: {
-		clearScreen: false
-	}
+		typescript({
+			sourceMap: !production,
+			inlineSources: !production,
+			moduleResolution: "node",
+			typescript: typescriptLib,
+			noEmitOnError: true,
+		}),
+		commonjs(),
+		svelte({
+			dev: !production,
+			extensions: ['.svelte'],
+			css: css => {
+				css.write('bundle.css');
+			},
+			preprocess: sveltePreprocess(),
+		}),
+		resolve({
+			browser: true,
+			dedupe: ['svelte'],
+			preferBuiltins: true
+		}),
+		!production && livereload('public'), /* livereload when changes detected inside public */
+		!production && serve(), /* start dev server */
+		production && terser() /* minify for prod */
+	]
 };
+
+function wait(ms) {
+	let waitDateOne = new Date();
+	while ((new Date()) - waitDateOne <= ms) {
+		//nothing
+	}
+}
+
+function serve() {
+	let childProcess;
+
+	function exitor(name) {
+		return (code, signal) => {
+			console.log(`On${name} CHECK FOR CHILD PROCESS`);
+			console.log(`CODE:${code}`);
+			console.log(`SIGNAL:${signal})`);
+			if (childProcess && childProcess.kill(0)) {
+				const pid = childProcess.pid;
+				console.log(`CLEANUP CHILD PROCESS: ${pid}`);
+				childProcess.kill('SIGINT');
+				if (process.env.CHILD_PROCESS_ID == pid) {
+					process.env.CHILD_PROCESS_ID = 0;
+				}
+			}
+			childProcess = null;
+			wait(5000);
+		}
+	}
+
+	//RETURN ROLLUP PLUGIN API
+	return {
+		writeBundle() {
+			if (process.env.CHILD_PROCESS_ID) {
+				//PASSING 0 DOESN'T KILL THE PROCESS
+				const running = process.kill(process.env.CHILD_PROCESS_ID, 0);
+				if (running) {
+					console.log(`SERVER ALREADY RUNNING`);
+					return;
+					// UNCOMMENT THE FOLLOWING LINES TO RESTART SERVER EVERY TIME
+					// console.log(`KILLING OLD CHILD PROCESS: ${process.env.CHILD_PROCESS_ID}`);
+					// process.kill(process.env.CHILD_PROCESS_ID);
+					// process.env.CHILD_PROCESS_ID = 0;
+					// ALLOW A COUPLE SECONDS TO FREE UP PORT 5000
+					// wait(5000);
+				}
+				process.env.CHILD_PROCESS_ID = 0;
+			}
+			console.log('START SERVER');
+			wait(1000); 
+			//RUN `npm start -- --dev` i.e., `sirv public --dev`
+			const { spawn } = require('child_process');
+			const args = ['run', 'start', '--', '--dev'];
+			childProcess = spawn('npm', args, {
+				stdio: ['ignore', 'inherit', 'inherit'],
+				shell: true
+			});
+
+			console.log(`SERVER PROCESS: ${childProcess.pid}`);
+			process.env.CHILD_PROCESS_ID = childProcess.pid;
+
+			//ATTACH TO TERMINATION EVENTS FOR CLEANUP
+			childProcess.on('SIGTERM', exitor('SIGTERM'));
+			childProcess.on('exit', exitor('exit'));
+			childProcess.on('close', exitor('close'));
+
+			console.log('FINISHED STARTING SERVER');
+		}
+	};
+}

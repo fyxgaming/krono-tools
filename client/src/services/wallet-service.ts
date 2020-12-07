@@ -249,6 +249,11 @@ export class WalletService extends EventEmitter {
         });
     }
 
+    async getBalance(): Promise<number> {
+        const balance = await this.agent.getBalance();
+        return Math.round(balance / 10000) / 100;
+    }
+
     async show(viewName: string, message?: IDialog) {
         this.emit('show', {
             viewName,

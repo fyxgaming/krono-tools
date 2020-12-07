@@ -8,15 +8,20 @@
     loading,
     route,
     displayMode,
+balance,
   } from "./services/stores";
 
   import { ApiService } from "./services/api-service";
 
+  import Alert from "./components/Alert.svelte";
+  import Spinner from "./components/Spinner.svelte";
   import Home from "./pages/Home.svelte";
   import Cashier from "./pages/Cashier.svelte";
-  import Spinner from "./components/Spinner.svelte";
   import Cashout from "./pages/Cashout.svelte";
+  import type { IDialog } from "./models/idialog";
+  import type { IAlert } from "./models/ialert";
 
+  let alertDialog: Alert;
   let defaultHandle = "Cryptofights";
   let geo = "unavailable";
   let menuState = "";
@@ -38,6 +43,7 @@
     loggedIn.set(ws.authenticated);
     if (ws.authenticated) {
       currentUser.set(ws.handle || defaultHandle);
+      balance.set(await ws.getBalance());
     } else {
       currentUser.set(defaultHandle);
     }
@@ -66,7 +72,14 @@
   walletService.subscribe((value) => {
     value.on("show", (data) => {
       if (data.message) {
-        console.log(data.message.body);
+        let dialog = data.message as IDialog;
+        console.log(dialog.body);
+        alertDialog.show({
+          body: dialog.body,
+          dismissable: false,
+          duration: 5000,
+          type: dialog.theme === "success" ? "ok" : "warn",
+        });
       }
       route.set(data.viewName);
     });
@@ -82,6 +95,10 @@
       displayMode.set("menuMode");
     }
   });
+
+  const onDialog = (event: CustomEvent<IAlert>) => {
+    alertDialog.show(event.detail);
+  };
 </script>
 
 <style>
@@ -99,6 +116,8 @@
   }
 </style>
 
+<Alert bind:this={alertDialog} />
+
 <Spinner />
 
 <section class="menuBox">
@@ -115,7 +134,7 @@
     </div>
   </Home>
 
-  <Cashier />
+  <Cashier on:dialog={onDialog} />
 
-  <Cashout />
+  <Cashout on:dialog={onDialog} />
 </main>
