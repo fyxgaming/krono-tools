@@ -303,7 +303,7 @@ export class WalletService extends EventEmitter {
         } catch (e) {
             response.success = false;
             response.payload = JSON.stringify(e.message);
-            if (e.message.status === 402) {
+            if (e.status === 402) {
                 console.log('Showing Cashier');
                 this.show('cashier', {body: 'Insufficient Balance'});
             } else {
@@ -355,7 +355,7 @@ export class WalletService extends EventEmitter {
                 this.channel.parent.postMessage(message, this.channelScope);
             }
         }
-        if (this.config.emitLogs && !['Log', 'Error'].includes(message.name)) this.postMessage({
+        if (!['Log', 'Error'].includes(message.name)) this.postMessage({
             name: 'Log',
             payload: JSON.stringify(message),
             success: true
@@ -374,7 +374,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (this.config.emitLogs) this.clientEmit('Log', message);
+            this.clientEmit('Log', message);
             this.printLog(...messages);
         };
 
@@ -389,7 +389,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (this.config.emitLogs) this.clientEmit('Error', message);
+            this.clientEmit('Error', message);
             this.printError(...messages);
         };
         console.time = (label) => {
