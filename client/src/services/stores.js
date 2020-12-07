@@ -1,18 +1,15 @@
-"use strict";
-exports.__esModule = true;
-exports.walletService = exports.displayMode = exports.loading = exports.loggedIn = exports.currentUser = exports.route = void 0;
-var store_1 = require("svelte/store");
-var wallet_service_1 = require("../services/wallet-service");
-exports.route = store_1.writable('/');
-exports.currentUser = store_1.writable('Guest');
-exports.loggedIn = store_1.writable(false);
-exports.loading = store_1.writable(false);
-exports.displayMode = store_1.writable('menuMode'); //menuMode, panelMode, frameMode
-var counter = 0;
-exports.walletService = store_1.readable(new wallet_service_1.WalletService(), function (set) {
-    console.log("Store Sub Count: " + counter++);
+import { readable, writable } from 'svelte/store';
+import { WalletService } from "../services/wallet-service";
+export const route = writable('/');
+export const currentUser = writable('Guest');
+export const loggedIn = writable(false);
+export const loading = writable(false);
+export const displayMode = writable('menuMode'); //menuMode, panelMode, frameMode
+let counter = 0;
+export const walletService = readable(new WalletService(), (set) => {
+    console.log(`Store Sub Count: ${counter++}`);
     /*initialize?*/
     /*set?*/
-    return function () { };
+    return () => { };
 });
 //# sourceMappingURL=stores.js.map

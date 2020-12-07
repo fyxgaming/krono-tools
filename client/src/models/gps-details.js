@@ -1,10 +1,3 @@
-"use strict";
-exports.__esModule = true;
-exports.GpsDetails = void 0;
-var GpsDetails = /** @class */ (function () {
-    function GpsDetails() {
-    }
-    return GpsDetails;
-}());
-exports.GpsDetails = GpsDetails;
+export class GpsDetails {
+}
 //# sourceMappingURL=gps-details.js.map
