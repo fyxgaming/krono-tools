@@ -5,7 +5,7 @@
     import { ApiService } from "../services/api-service";
     import { CashierResponse } from "../models/cashier-response";
     import { walletService, loading, route } from "../services/stores";
-    import { IAlert } from "../models/ialert";
+    import type { IAlert } from "../models/ialert";
 
     interface GidxWindow extends Window {
         gidxServiceSettings;
@@ -60,7 +60,7 @@
         } as IAlert);
     };
 
-    export const cashOut = async (amount: number) => {
+    export const cashOut = async (paymentAmount: number) => {
         try {
             mode = "cashout";
             loading.set(true);
@@ -77,7 +77,7 @@
                 subject: ws.paymail,
                 payload: JSON.stringify({
                     deviceGPS,
-                    amount,
+                    paymentAmount,
                 }),
             });
 
@@ -189,7 +189,6 @@
         }
 
         mode = undefined;
-        isCashierShowing = false;
         onCashierComplete();
         loading.set(false);
     }
@@ -208,7 +207,6 @@
             /\+/g,
             " "
         );
-        isCashierShowing = true;
         setTimeout(() => {
             setInnerHTML(
                 document.getElementById("webcashier"),
