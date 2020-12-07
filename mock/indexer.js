@@ -34,7 +34,7 @@ async function indexJig(loc) {
             kind: jig.constructor && jig.constructor.origin,
             type: jig.constructor && jig.constructor.name,
             origin: jig.origin, 
-            owner: jig.owner,
+            owner: typeof jig.owner === 'string' ? jig.owner : jig.owner.script(),
             ts: Date.now(),
             isOrigin: jig.location === jig.origin,
         };

@@ -303,8 +303,8 @@ export class WalletService extends EventEmitter {
         } catch (e) {
             response.success = false;
             response.payload = JSON.stringify(e.message);
-            if (e.message.includes('Not enough funds')) {
-                response.statusCode = 402;
+            if (e.message.status === 402) {
+                this.show('cashier', {body: 'Insufficient Balance'});
             } else {
                 response.statusCode = e.status || 500;
             }

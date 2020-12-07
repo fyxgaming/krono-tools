@@ -170,11 +170,14 @@ app.get('/jigs/:loc', async (req, res, next) => {
 });
 
 
-app.post('/jigs/address/:address', async (req, res, next) => {
+app.post('/jigs/:type/:value', async (req, res, next) => {
     try {
-        const { address } = req.params;
+        const { type, value } = req.params;
         const query = req.body;
-        const script = Address.fromString(address).toTxOutScript().toHex();
+        let script = type === 'address' ?
+            Address.fromString(value).toTxOutScript().toHex() :
+            value;
+        
         const utxos = await blockchain.utxos(script);
         const locs = utxos.map(u => `${u.txid}_o${u.vout}`);
         const results = locs.map(loc => jigs.get(loc)).filter(jig => jig);
