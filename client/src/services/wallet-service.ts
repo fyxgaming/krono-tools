@@ -304,6 +304,7 @@ export class WalletService extends EventEmitter {
             response.success = false;
             response.payload = JSON.stringify(e.message);
             if (e.message.status === 402) {
+                console.log('Showing Cashier');
                 this.show('cashier', {body: 'Insufficient Balance'});
             } else {
                 response.statusCode = e.status || 500;
