@@ -134,7 +134,7 @@ balance,
     </div>
   </Home>
 
-  <Cashier />
+  <Cashier on:dialog={onDialog} />
 
   <Cashout on:dialog={onDialog} />
 </main>

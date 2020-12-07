@@ -49,11 +49,11 @@
       displayMode.set("frameMode");
       lastDisplayMode = "frameMode";
       isCashierShowing = true;
-      webCashier.cashOut(paymentAmount);
+      await webCashier.cashOut(paymentAmount);
     } catch (err) {
       console.log(err, err.stack);
       loading.set(false);
-      raiseDialogEvent(err.message ?? `Could not add funds at this time.`);
+      raiseDialogEvent(err.message ?? `Could not cash out funds at this time.`);
     }
   };
 
