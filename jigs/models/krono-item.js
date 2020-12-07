@@ -1,8 +1,8 @@
 const KronoJig = require('../lib/krono-jig');
 
 class KronoItem extends KronoJig {
-    init(itemDef, owner) {
-        this.itemDef = itemDef;
+    init(item, owner) {
+        this.item = item;
 
         this.mint = caller;
         this.minter = caller && caller.owner;
