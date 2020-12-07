@@ -1,3 +1,17 @@
+html {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: inherit;
+  -moz-box-sizing: inherit;
+  box-sizing: inherit;
+}
+
 html,
 body {
   background-color: transparent;
@@ -169,11 +183,23 @@ button:focus {
 .field-cntrl {
   display: block;
   width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  margin-top: 3px;
+}
+
+.field-cntrl:focus {
+  border: solid 2px darkslategray;
+  border-radius: 10px;
 }
 
 .action {
   display: block;
   width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  margin-top: 3px;
 }
 
 .errorPanel {
@@ -205,6 +231,7 @@ button:focus {
   cursor: pointer;
   /* border: 3px solid #fff; */
 }
+
 .menu-button_icon {
   width: 50px;
   height: 6px;
@@ -213,6 +240,7 @@ button:focus {
   box-shadow: 0 2px 5px rgba(221, 210, 240, 0.2);
   transition: all 0.5s ease-in-out;
 }
+
 .menu-button_icon::before,
 .menu-button_icon::after {
   content: "";
@@ -224,22 +252,27 @@ button:focus {
   box-shadow: 0 2px 5px rgba(255, 101, 47, 0.2);
   transition: all 0.5s ease-in-out;
 }
+
 .menu-button_icon::before {
   transform: translateY(-16px);
 }
+
 .menu-button_icon::after {
   transform: translateY(16px);
 }
+
 /* ANIMATION */
 .menu-button.open .menu-button_icon {
   transform: translateX(-50px);
   background: transparent;
   box-shadow: none;
 }
+
 .menu-button.open .menu-button_icon::before {
   transform: rotate(45deg) translate(35px, -35px);
   background: rgba(0, 0, 0, 0.9);
 }
+
 .menu-button.open .menu-button_icon::after {
   transform: rotate(-45deg) translate(35px, 35px);
   background: rgba(0, 0, 0, 0.9);

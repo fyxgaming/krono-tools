@@ -249,6 +249,11 @@ export class WalletService extends EventEmitter {
         });
     }
 
+    async getBalance(): Promise<number> {
+        await (new Promise(resolve => setTimeout(resolve, 500)));
+        return 14.00;
+    }
+
     async show(viewName: string, message?: IDialog) {
         this.emit('show', {
             viewName,

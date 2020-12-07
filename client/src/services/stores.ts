@@ -3,6 +3,7 @@ import { WalletService } from "../services/wallet-service";
 
 export const route = writable('/');
 export const currentUser = writable('Guest');
+export const balance = writable(0);
 export const loggedIn = writable(false);
 export const loading = writable(false);
 export const displayMode = writable('menuMode'); //menuMode, panelMode, frameMode
