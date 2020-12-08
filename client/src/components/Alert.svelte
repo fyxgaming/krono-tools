@@ -45,7 +45,7 @@
         width: 50%;
         font-weight: bold;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 12px;
+        font-size: 48px;
         border-radius: 4px;
         margin: auto 25%;
         position: relative;
