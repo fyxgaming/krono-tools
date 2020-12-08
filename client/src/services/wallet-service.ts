@@ -250,6 +250,7 @@ export class WalletService extends EventEmitter {
     }
 
     async getBalance(): Promise<number> {
+        if(!this.agent) return 0;
         const balance = await this.agent.getBalance();
         return Math.round(balance / 10000) / 100;
     }
