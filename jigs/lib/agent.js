@@ -146,12 +146,13 @@ class Agent extends EventEmitter {
             cashoutMsg.from !== CashierConfig.pubkey ||
             !cashoutMsg.verify()
         ) throw new Error('Invalid Response');
+        
         let {cashoutLoc, rawtx} = cashoutMsg.payloadObj;
         const t = await this.wallet.loadTransaction(rawtx);
         rawtx = await t.export({sign: true, pay: false});
         const txid = await this.blockchain.broadcast(rawtx);
 
-        const transferMsg = this.wallet.buildMessage({
+        const paymentMsg = this.wallet.buildMessage({
             subject: 'CashoutPayment',
             payload: JSON.stringify({
                 cashoutLoc,
@@ -159,7 +160,7 @@ class Agent extends EventEmitter {
                 deviceGPS
             })
         });
-        await this.blockchain.sendMessage(transferMsg, CashierConfig.postTo);
+        await this.blockchain.sendMessage(paymentMsg, CashierConfig.postTo);
             
     }
 }

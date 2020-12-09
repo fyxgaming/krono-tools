@@ -1,3 +1,4 @@
+const CashierConfig = require('../config/dev/cashier-config');
 const Agent = require('../lib/agent');
 const Cashout = require('../models/cashout');
 
@@ -38,7 +39,7 @@ class CashierAgent extends Agent {
     }
 
     async onCashoutPayment(message) {
-        const {cashoutLoc, txid, deviceGPS} = message.payloadObj;
+        const {cashoutLoc, deviceGPS} = message.payloadObj;
         const cashout = await this.wallet.loadJig(cashoutLoc);
         await cashout.sync();
         if(cashout.paymentAmount !== cashout.coin.paymentAmount ||
@@ -50,7 +51,11 @@ class CashierAgent extends Agent {
                 deviceGPS,
                 paymentAmount
             })
-        })
+        });
+        return this.blockchain.sendMessage(
+            cashoutMsg,
+            CashierConfig.cashout
+        );
     }
 }
 
