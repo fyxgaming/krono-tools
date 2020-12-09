@@ -24,6 +24,7 @@
 
   const cancel = async () => {
     lastDisplayMode = '';
+    isCashierShowing = false;
     route.set('home');
   };
 
