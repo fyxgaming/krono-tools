@@ -120,9 +120,9 @@ balance,
 
 <Spinner />
 
-<section class="menuBox">
-  <div class="menu-button {menuState}" on:click={toggleMenu}>
-    <div class="menu-button_icon" on:click={toggleMenu} />
+<section class="menuBox" on:click={toggleMenu}>
+  <div class="menu-button {menuState}" >
+    <div class="menu-button_icon" />
   </div>
 </section>
 
