@@ -1,7 +1,7 @@
+const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
 
-//fetch, ADDRESS, PAYMAIL, PUBKEY, bsv
-
+/* global KronoCoin */
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
@@ -112,10 +112,62 @@ class Agent extends EventEmitter {
         }
         return hashchain
     }
+
+    async getCoins(ownerScript) {
+        return this.wallet.jigIndex(
+            ownerScript, 
+            {criteria: {kind: KronoCoin.origin}},
+            'script'
+        );
+    }
+
+    async getBalance(ownerScript) {
+        console.log('getBalance');
+        const coinIndex = await this.getCoins(ownerScript);
+        console.log('INDEX:', JSON.stringify(coinIndex));
+        const balance = coinIndex.reduce((acc, coin) => acc + coin.value.amount, 0);
+        console.log('Balance', balance);
+        return balance;
+    }
+
+    async cashout(ownerScript, paymentAmount, deviceGPS) {
+        const message = this.wallet.buildMessage({
+            subject: 'CashoutRequest',
+            payload: JSON.stringify({
+                paymentAmount,
+                ownerScript
+            })
+        });
+
+        const cashoutMsg = new this.lib.SignedMessage(
+            await this.blockchain.sendMessage(message, CashierConfig.postTo)
+        );
+        if(cashoutMsg.reply !== message.id ||
+            cashoutMsg.from !== CashierConfig.pubkey ||
+            !cashoutMsg.verify()
+        ) throw new Error('Invalid Response');
+        let {cashoutLoc, rawtx} = cashoutMsg.payloadObj;
+        const t = await this.wallet.loadTransaction(rawtx);
+        rawtx = await t.export({sign: true, pay: false});
+        const txid = await this.blockchain.broadcast(rawtx);
+
+        const transferMsg = this.wallet.buildMessage({
+            subject: 'CashoutPayment',
+            payload: JSON.stringify({
+                cashoutLoc,
+                txid,
+                deviceGPS
+            })
+        });
+        await this.blockchain.sendMessage(transferMsg, CashierConfig.postTo);
+            
+    }
 }
 
 Agent.asyncDeps = {
+    CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
+    KronoCoin: 'models/krono-coin.js',
     Sha256: "lib/sha256.js"
 }
 
