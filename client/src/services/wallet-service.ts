@@ -117,7 +117,7 @@ export class WalletService extends EventEmitter {
                 const logs = this.logs;
                 this.logs = [];
                 if (!logs.length) return;
-                const resp = await fetch(config.errorLog, {
+                const resp = await fetch('/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs)
