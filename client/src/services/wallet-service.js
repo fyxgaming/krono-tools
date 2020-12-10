@@ -65,6 +65,7 @@ export class WalletService extends EventEmitter {
         const config = this.config = await resp.json();
         console.log('Config:', JSON.stringify(config));
         this.overrideConsole();
+        console.log('Run:', Run.version);
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
         this.auth = new AuthService(this.apiUrl, this.domain, config.network);
         let initialized = false;
