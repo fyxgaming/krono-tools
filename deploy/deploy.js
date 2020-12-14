@@ -6,11 +6,18 @@ const fs = require('fs-extra');
 const minimist = require('minimist');
 const path = require('path');
 
+var argv = minimist(process.argv.slice(2));
+console.log('PATH:', process.cwd());
+console.log('ARGV:', argv);
+dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
+// console.log('ENV:', process.env);
+
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
+const { Bip32, KeyPair } = require('bsv');
 const Run = require('@kronoverse/run');
+const { SignedMessage } = require('@kronoverse/lib/dist/signed-message');
 
-var argv = minimist(process.argv.slice(2));
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
@@ -21,10 +28,6 @@ const blockchainUrls = {
     test: 'https://test.aws.kronoverse.io',
     prod: 'https://prod.aws.kronoverse.io'
 };
-
-console.log('PATH:', process.cwd());
-console.log('ARGV:', argv);
-dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 
 function renderUsage() {
     console.log(`
@@ -56,8 +59,8 @@ function renderUsage() {
 (async () => {
     const env = argv.env || 'mock';
     const blockchainUrl = argv.blockchain || process.env.BLOCKCHAIN || blockchainUrls[env];
-    const owner = argv.owner || process.env.OWNER;
-    const purse = argv.purse || process.env.PURSE;
+    const xpriv = process.env.XPRIV;
+
     const network = argv.network || process.env.RUNNETWORK;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
@@ -67,12 +70,18 @@ function renderUsage() {
     console.log(sourcePath);
     if (!fs.pathExistsSync(sourcePath)) throw new Error(`${source} does not exist`);
     console.log('CONFIG:', blockchainUrl, network, source);
-    console.log('OWNER:', owner);
-    console.log('PURSE:', purse);
-    if (!blockchainUrl || !network || !source) {
+    if (!blockchainUrl || !network || !source || !xpriv) {
         renderUsage();
         process.exit(1);
     }
+
+    const bip32 = Bip32.fromString(xpriv);
+    const purse = bip32.derive('m/0/0').privKey.toString();
+    const owner = bip32.derive('m/1/0').privKey.toString();
+    const keyPair = KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
+    console.log('OWNER:', keyPair.pubKey.toString());
+    // console.log('OWNER:', owner);
+    // console.log('PURSE:', purse);
 
     const blockchain = new RestBlockchain(
         fetch,
@@ -100,10 +109,16 @@ function renderUsage() {
 
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
         const realm = catalog.realm;
+        const message = new SignedMessage({
+            from: keyPair.pubKey.toString(),
+            ts: Date.now(),
+            payload: JSON.stringify({ location: dep.location })
+        });
+        message.sign(keyPair);
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: dep.location })
+            body: JSON.stringify(message)
         });
         if(!resp.ok) throw new Error(resp.statusText);
     }

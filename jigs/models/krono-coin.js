@@ -1,7 +1,7 @@
-const { Token } = require('@kronoverse/run');
+const { Token20 } = require('@kronoverse/run').extra;
 
 /* global KronoClass */
-class KronoCoin extends Token {
+class KronoCoin extends Token20 {
     setPayment(payment) {
         this.payment = payment;
     }
@@ -26,8 +26,7 @@ class KronoCoin extends Token {
 KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
-    KronoClass: 'lib/krono-class.js',
-    Token: 'models/token2.js'
+    KronoClass: 'lib/krono-class.js'
 }
 
 module.exports = KronoCoin;
