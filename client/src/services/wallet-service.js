@@ -65,6 +65,7 @@ export class WalletService extends EventEmitter {
         const config = this.config = await resp.json();
         console.log('Config:', JSON.stringify(config));
         this.overrideConsole();
+        console.log('Run:', Run.version);
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
         this.auth = new AuthService(this.apiUrl, this.domain, config.network);
         let initialized = false;
@@ -90,7 +91,7 @@ export class WalletService extends EventEmitter {
                 this.logs = [];
                 if (!logs.length)
                     return;
-                const resp = await fetch(config.errorLog, {
+                const resp = await fetch('/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs)

@@ -92,6 +92,7 @@ export class WalletService extends EventEmitter {
         console.log('Config:', JSON.stringify(config));
 
         this.overrideConsole();
+        console.log('Run:', Run.version);
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
         this.auth = new AuthService(this.apiUrl, this.domain, config.network);
 
@@ -117,7 +118,7 @@ export class WalletService extends EventEmitter {
                 const logs = this.logs;
                 this.logs = [];
                 if (!logs.length) return;
-                const resp = await fetch(config.errorLog, {
+                const resp = await fetch('/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs)
@@ -193,7 +194,6 @@ export class WalletService extends EventEmitter {
         });
         await agent.init();
         this.clientEmit('AGENT_LOADED');
-
 
         ws.on('jig', (jig, channel) => {
             console.log('JIG:', JSON.stringify(jig));

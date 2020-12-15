@@ -1,4 +1,4 @@
-import 'whatwg-fetch';
+// import 'whatwg-fetch';
 import { GpsDetails } from '../models/gps-details';
 
 import { format } from 'date-fns';
