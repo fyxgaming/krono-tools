@@ -4,8 +4,13 @@ const Cashout = require('../models/cashout');
 
 class CashierAgent extends Agent {
     async init() {
+        this.messageHandlers.set('CashinRequest', this.onCashoutRequest);
         this.messageHandlers.set('CashoutRequest', this.onCashoutRequest);
         this.messageHandlers.set('CashoutPayment', this.onCashoutPayment);
+    }
+
+    async onCashinRequest(message) {
+
     }
 
     async onCashoutRequest(message) {
@@ -63,6 +68,7 @@ CashierAgent.asyncDeps = {
     Agent: 'lib/agent.js',
     Cashout: 'models/cashout.js',
     KronoCoin: 'models/krono-coin.js',
+    Payment: 'models/payment.js',
 }
 
 module.exports = CashierAgent;

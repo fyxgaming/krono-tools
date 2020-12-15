@@ -1,6 +1,7 @@
 class Catalog {
     static async preDeploy() {
         this.agents = {
+            cashier: this.deps.CashierConfig,
             payment: this.deps.Payment
         };
     }
