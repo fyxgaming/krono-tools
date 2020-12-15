@@ -1,4 +1,3 @@
-import 'whatwg-fetch';
 import { format } from 'date-fns';
 export class ApiService {
     // async createCashier(wallet: Wallet, req: CashierRequest): Promise<CashierResponse> {

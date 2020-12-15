@@ -46,7 +46,7 @@ export default {
 			'argon2-browser': 'argon2'
 		}),
 		copy({
-			flatten: false,
+			flatten: true,
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
 				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' },

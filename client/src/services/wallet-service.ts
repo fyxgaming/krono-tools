@@ -195,7 +195,6 @@ export class WalletService extends EventEmitter {
         await agent.init();
         this.clientEmit('AGENT_LOADED');
 
-
         ws.on('jig', (jig, channel) => {
             console.log('JIG:', JSON.stringify(jig));
             agent.onJig(jig).catch(console.error);
