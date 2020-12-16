@@ -4,6 +4,7 @@ const CashOut = require('../models/cash-out');
 class CashierAgent extends Agent {
     async init() {
         this.messageHandlers.set('CashInRequest', this.onCashInRequest);
+        this.messageHandlers.set('CompletePayment', this.onCompletePayment);
         this.messageHandlers.set('CashOutRequest', this.onCashOutRequest);
         this.messageHandlers.set('CashOutPayment', this.onCashOutPayment);
     }
@@ -36,6 +37,15 @@ class CashierAgent extends Agent {
         console.log('paymentData', paymentData);
         
         return paymentData;
+    }
+
+    async onCompletePayment(message) {
+        if(message.from !== CashierConfig.paymentPubkey) throw new Error('Invalid sender');
+        const { paymentId, amount} = message.payloadObj;
+        const location = await this.storage.hget(paymentId, 'location');
+        const payment = await this.wallet.loadJig(location);
+        payment.complete(amount);
+        await payment.sync();
     }
 
     async onCashOutRequest(message) {
