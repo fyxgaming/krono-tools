@@ -126,7 +126,7 @@
                 subject: 'CashInRequest',
                 payload: JSON.stringify({
                     deviceGPS,
-                    owner: ws.wallet.ownerPair.pubKey.toString()
+                    owner: ws.wallet.address
                 }),
             });
 
