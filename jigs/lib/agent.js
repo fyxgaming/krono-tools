@@ -63,7 +63,7 @@ class Agent extends EventEmitter {
         }
     }
 
-    async onMessage(message) {
+    async onMessage(message, ipAddress) {
         if(this.handled.has(message.id)) return;
         this.handled.add(message.id);
         let handler = this.messageHandlers.get(message.subject);
@@ -74,7 +74,7 @@ class Agent extends EventEmitter {
         const label = `${this.processCount++}-msg-${message.subject}-${message.id}`;
         try {
             console.time(label);
-            const result = await handler.bind(this)(message);
+            const result = await handler.bind(this)(message, ipAddress);
             return result;
         } finally {
             console.timeEnd(label);

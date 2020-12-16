@@ -1,6 +1,5 @@
-const CashierConfig = require('../config/dev/cashier-config');
 const Agent = require('../lib/agent');
-const CashOut = require('../models/cashOut');
+const CashOut = require('../models/cash-out');
 
 class CashierAgent extends Agent {
     async init() {
@@ -9,18 +8,19 @@ class CashierAgent extends Agent {
         this.messageHandlers.set('CashOutPayment', this.onCashOutPayment);
     }
 
-    async onCashInRequest(message) {
+    async onCashInRequest(message, ipAddress) {
         const cashInMessage = this.wallet.buildMessage({
             payload: JSON.stringify({
+                deviceGPS: message.payloadObj.deviceGPS,
+                ipAddress,
                 pubkey: message.from,
-                deviceGPS: message.payloadObj.deviceGPS
             })
         });
 
         const {cashierScript, paymentId, domain, payer} = await this.blockchain.sendMessage(cashInMessage, `${CashierConfig.baseUrl}/payment`)
         let paymentData = await this.storage.hgetall(paymentId);
         let payment;
-        if(!paymentData) {
+        if(!paymentData || !paymentData.location) {
             const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinlock`)
             const {location} = await resp.json();
             const Coinlock = await this.wallet.loadJig(location);
@@ -33,6 +33,7 @@ class CashierAgent extends Agent {
             }
             await this.storage.hmset(paymentId, paymentData);
         }
+        console.log('paymentData', paymentData);
         
         return paymentData;
     }
@@ -57,14 +58,10 @@ class CashierAgent extends Agent {
             cashOut.execute();
         })
         const rawtx = await t.export({sign: true, pay: true});
-        const message = this.wallet.buildMessage({
-            reply: message.id,
-            payload: JSON.stringify({
-                cashOutLoc: cashOut.location,
-                rawtx
-            })
-        });
-        return message;
+        return {
+            cashOutLoc: cashOut.location,
+            rawtx
+        };
     }
 
     async onCashOutPayment(message) {

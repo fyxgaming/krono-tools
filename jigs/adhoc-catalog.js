@@ -1,7 +1,7 @@
 class Catalog {
     static async preDeploy() {
         this.agents = {
-            cashier: this.deps.CashierConfig,
+            cashier: this.deps.CashierAgent,
             payment: this.deps.Payment
         };
     }
@@ -11,6 +11,7 @@ Catalog.realm = 'adhoc.kronoverse.io';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
+    CashierAgent: 'agents/cashier-agent.js',
     CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
