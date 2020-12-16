@@ -10,7 +10,7 @@ class Payment extends KronoJig {
     complete(amount) {
         const coin = KronoCoin.mint(amount);
         coin.send(this.payer);
-        this.destory();
+        this.destroy();
     }
 }
 
