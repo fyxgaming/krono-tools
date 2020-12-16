@@ -179,8 +179,8 @@ class Deployer {
                     await postDeploy.bind(deployed)(this);
                 }
                 //Put the artifact location into the chain file
-                if (deployed.location) {
-                    chainData[this.env] = deployed.location;
+                if (deployed.origin || deployed.location) {
+                    chainData[this.env] = (deployed.origin || deployed.location);
                 }
                 else {
                     throw new Error('Chain resource didn\'t have an origin or location after upload');
