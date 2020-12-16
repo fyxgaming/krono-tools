@@ -95,6 +95,7 @@ class CashierAgent extends Agent {
     }
 }
 
+CashierAgent.sealed = false;
 CashierAgent.asyncDeps = {
     Agent: 'lib/agent.js',
     CashOut: 'models/cash-out.js',

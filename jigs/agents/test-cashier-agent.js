@@ -4,8 +4,8 @@ class TestCashierAgent extends CashierAgent {
     async onCashInRequest(message) {
         const t = this.wallet.createTransaction();
         t.update(() => {
-            const coin = new KronoCoin(25000000);
-            coin.send(message.payloadObj.owner);
+            const coin = KronoCoin.mint(25000000);
+            coin.transfer(message.payloadObj.owner);
         });
         await t.publish();
     }
