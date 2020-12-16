@@ -2,16 +2,6 @@ const { Token20 } = require('@kronoverse/run').extra;
 
 /* global KronoClass */
 class KronoCoin extends Token20 {
-    // setPayment(payment) {
-    //     this.payment = payment;
-    // }
-
-    // static mint(amount) {
-    //     const coin = super.mint(amount);
-    //     if(caller) coin.setPayment(caller);
-    //     return coin;
-    // }
-    
     static transfer(owner) {
         this.owner = owner;
     }
