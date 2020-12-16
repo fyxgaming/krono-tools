@@ -21,7 +21,7 @@ class CashierAgent extends Agent {
         let paymentData = await this.storage.hgetall(paymentId);
         let payment;
         if(!paymentData || !paymentData.location) {
-            const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinlock`)
+            const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinLock`)
             const {location} = await resp.json();
             const Coinlock = await this.wallet.loadJig(location);
             payment = new Payment(paymentId, new Coinlock(payer));
