@@ -2,7 +2,6 @@ class Catalog {
     static async preDeploy() {
         this.agents = {
             cashier: this.deps.CashierConfig,
-            payment: this.deps.Payment
         };
     }
 }
@@ -22,7 +21,6 @@ Catalog.asyncDeps = {
     KronoItem: 'models/krono-item.js',
     KronoJig: 'lib/krono-jig.js',
     MockDice: 'lib/mock-dice.js',
-    Payment: 'models/payment.js',
     Sha256: 'lib/sha256.js',
 };
 

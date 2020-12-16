@@ -130,6 +130,24 @@ class Agent extends EventEmitter {
         return balance;
     }
 
+    async pickAndLock(jigs, lockSeconds = 120) {
+        const now = this.wallet.now;
+        for(let j of jigs) {
+            console.log('Jig:', j.location);
+            if(await this.storage.exists(`lock:${j.location}`)) {
+                console.log('Locked:', j.location);
+                continue;
+            }
+            await this.storage.pipeline()
+                .set(`lock:${j.location}`, now.toString())
+                .expire(`lock:${j.location}`, lockSeconds)
+                .exec();
+            const jig = await this.wallet.loadJig(j.location);
+            return jig;
+        }
+    }
+
+
     async cashout(ownerScript, paymentAmount, deviceGPS) {
         const message = this.wallet.buildMessage({
             subject: 'CashoutRequest',

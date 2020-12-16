@@ -1,10 +1,11 @@
+const KronoCoin = require('../models/krono-coin');
 const CashierAgent = require('./cashier-agent');
 
 class TestCashierAgent extends CashierAgent {
     async onCashInRequest(message) {
-        const coin = KronoCoin.mint(25000000, message.payloadObj.owner);
+        const coin = await this.sendCoin(message.payloadObj.owner, 25000000);
         await coin.sync();
-        console.log('Coin:', coin.location);
+        console.log('Coin:', coin.location, coin.amount);
     }
 }
 

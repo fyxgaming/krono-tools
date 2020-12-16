@@ -5,8 +5,8 @@ class CashierAgent extends Agent {
     async init() {
         this.messageHandlers.set('CashInRequest', this.onCashInRequest);
         this.messageHandlers.set('CompletePayment', this.onCompletePayment);
-        this.messageHandlers.set('CashOutRequest', this.onCashOutRequest);
-        this.messageHandlers.set('CashOutPayment', this.onCashOutPayment);
+        // this.messageHandlers.set('CashOutRequest', this.onCashOutRequest);
+        // this.messageHandlers.set('CashOutPayment', this.onCashOutPayment);
     }
 
     async onCashInRequest(message, ipAddress) {
@@ -20,17 +20,15 @@ class CashierAgent extends Agent {
 
         const {cashierScript, paymentId, domain, payer} = await this.blockchain.sendMessage(cashInMessage, `${CashierConfig.baseUrl}/payment`)
         let paymentData = await this.storage.hgetall(paymentId);
-        let payment;
+
         if(!paymentData || !paymentData.location) {
             const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinLock`)
             const {location} = await resp.json();
-            const Coinlock = await this.wallet.loadJig(location);
-            payment = new Payment(paymentId, new Coinlock(payer));
-            await payment.sync();
             paymentData = {
                 cashierScript,
+                lock: location,
+                payer,
                 paymentId,
-                location: payment.location
             }
             await this.storage.hmset(paymentId, paymentData);
         }
@@ -42,10 +40,26 @@ class CashierAgent extends Agent {
     async onCompletePayment(message) {
         if(message.from !== CashierConfig.paymentPubkey) throw new Error('Invalid sender');
         const { paymentId, amount} = message.payloadObj;
-        const location = await this.storage.hget(paymentId, 'location');
-        const payment = await this.wallet.loadJig(location);
-        payment.complete(amount);
-        await payment.sync();
+        const {lock, payer} = await this.storage.hgetall(paymentId);
+
+        const Coinlock = await this.wallet.loadJig(lock);
+        const coin = await this.sendCoin(new Coinlock(payer), amount);
+        await coin.sync();
+        console.log('Coin:', coin.location, coin.amount);
+    }
+
+    async sendCoin(to, amount) {
+        const coins = await this.wallet.loadJigIndex({
+            criteria: {
+                kind: KronoCoin.origin
+            },
+            project: {value: false}
+        });
+        console.log('Coins:', coins.length);
+        const coin = await this.pickAndLock(coins, 120);
+        if (!coin) throw new Error('no coins');
+        coin.send(to, amount);
+        return coin;
     }
 
     async onCashOutRequest(message) {
@@ -99,8 +113,7 @@ CashierAgent.sealed = false;
 CashierAgent.asyncDeps = {
     Agent: 'lib/agent.js',
     CashOut: 'models/cash-out.js',
-    KronoCoin: 'models/krono-coin.js',
-    Payment: 'models/payment.js',
+    KronoCoin: 'models/krono-coin.js'
 }
 
 module.exports = CashierAgent;
