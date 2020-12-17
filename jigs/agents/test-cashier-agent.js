@@ -5,7 +5,7 @@ class TestCashierAgent extends CashierAgent {
         const coin = await this.sendCoin(message.payloadObj.owner, 25000000);
         await coin.sync();
         console.log('Coin:', coin.location, coin.amount);
-        return coin.toObject();
+        return {...coin};
     }
 }
 
