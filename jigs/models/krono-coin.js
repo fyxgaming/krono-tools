@@ -7,6 +7,12 @@ class KronoCoin extends Token20 {
         this.paymentId = paymentId;
     }
 
+    toObject(skipKeys = [], visited = new Set()) {
+        if(visited.has(this)) return;
+        visited.add(this);
+        return KronoClass.cloneChildren(this, skipKeys, visited);
+    }
+
     static async postDeploy(deployer) {
         const { CashierConfig } = this.deps;
         const [coin] = await deployer.blockchain.jigIndex(
@@ -34,6 +40,6 @@ KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     KronoClass: 'lib/krono-class.js'
-}
+};
 
 module.exports = KronoCoin;

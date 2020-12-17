@@ -1,6 +1,7 @@
 const Agent = require('../lib/agent');
 const CashOut = require('../models/cash-out');
 
+/* global CashierConfig, KronoCoin */
 class CashierAgent extends Agent {
     async init() {
         this.messageHandlers.set('CashInRequest', this.onCashInRequest);
@@ -18,18 +19,18 @@ class CashierAgent extends Agent {
             })
         });
 
-        const {cashierScript, paymentId, domain, payer} = await this.blockchain.sendMessage(cashInMessage, `${CashierConfig.baseUrl}/payment`)
+        const {cashierScript, paymentId, domain, payer} = await this.blockchain.sendMessage(cashInMessage, `${CashierConfig.baseUrl}/payment`);
         let paymentData = await this.storage.hgetall(paymentId);
 
         if(!paymentData || !paymentData.location) {
-            const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinLock`)
+            const resp = await this.lib.fetch(`${CashierConfig.baseUrl}/agents/${domain}/coinLock`);
             const {location} = await resp.json();
             paymentData = {
                 cashierScript,
                 lock: location,
                 payer,
                 paymentId,
-            }
+            };
             await this.storage.hmset(paymentId, paymentData);
         }
         console.log('paymentData', paymentData);
@@ -80,7 +81,7 @@ class CashierAgent extends Agent {
         const t = this.wallet.createTransaction();
         t.update(() => {
             cashOut.execute();
-        })
+        });
         const rawtx = await t.export({sign: true, pay: true});
         return {
             cashOutLoc: cashOut.location,
@@ -92,14 +93,14 @@ class CashierAgent extends Agent {
         const {cashOutLoc, deviceGPS} = message.payloadObj;
         const cashOut = await this.wallet.loadJig(cashOutLoc);
         await cashOut.sync();
-        if(cashOut.paymentAmount !== cashOut.coin.paymentAmount ||
+        if(cashOut.paymentAmount !== cashOut.coin.amount ||
             cashOut.coin.owner !== this.address    
         ) throw new Error('Invalid CashOut');
 
         const cashOutMsg = this.wallet.buildMessage({
             payload: JSON.stringify({
                 deviceGPS,
-                paymentAmount
+                paymentAmount: cashOut.paymentAmount
             })
         });
         return this.blockchain.sendMessage(
@@ -114,6 +115,6 @@ CashierAgent.asyncDeps = {
     Agent: 'lib/agent.js',
     CashOut: 'models/cash-out.js',
     KronoCoin: 'models/krono-coin.js'
-}
+};
 
 module.exports = CashierAgent;
