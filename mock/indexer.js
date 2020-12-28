@@ -54,7 +54,7 @@ expose({
 
         let payload;
         try {
-            payload = run.payload(rawtx);
+            payload = Run.util.metadata(rawtx);
         } catch (e) {
             if (e.message.includes('Bad payload structure') || e.message.includes('Not a run transaction')) return;
             throw e;

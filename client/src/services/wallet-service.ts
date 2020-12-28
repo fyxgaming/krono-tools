@@ -140,7 +140,7 @@ export class WalletService extends EventEmitter {
     }
 
     private async initializeWallet(owner?: string, purse?: string) {
-        const cache = new Run.plugins.LocalCache({ maxSizeMB: 100 });
+        const cache = new Run.plugins.BrowserCache({ maxMemorySizeMB: 100 });
         const blockchain = this.blockchain = new RestBlockchain(
             fetch.bind(window),
             this.apiUrl,
