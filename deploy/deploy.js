@@ -3,6 +3,7 @@
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const fs = require('fs-extra');
+const Redis = require('ioredis-mock');
 const minimist = require('minimist');
 const path = require('path');
 
@@ -12,6 +13,7 @@ console.log('ARGV:', argv);
 dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 // console.log('ENV:', process.env);
 
+const { LockingPurse } = require('@kronoverse/lib/dist/locking-purse');
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
 const { Bip32, KeyPair } = require('bsv');
@@ -76,9 +78,9 @@ function renderUsage() {
     }
 
     const bip32 = Bip32.fromString(xpriv);
-    const purse = bip32.derive('m/0/0').privKey.toString();
     const owner = bip32.derive('m/1/0').privKey.toString();
     const keyPair = KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
+    const purseKeyPair = KeyPair.fromPrivKey(bip32.derive('m/0/0').privKey);
     console.log('OWNER:', keyPair.pubKey.toString());
     // console.log('OWNER:', owner);
     // console.log('PURSE:', purse);
@@ -94,7 +96,7 @@ function renderUsage() {
         blockchain,
         network,
         owner,
-        purse,
+        purse: new LockingPurse(purseKeyPair, blockchain, new Redis(), process.env.CHANGE_ADDRESS),
         app: argv.app,
         timeout: 30000,
         trust: '*'

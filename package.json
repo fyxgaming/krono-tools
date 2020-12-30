@@ -16,7 +16,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^1.0.18",
+    "@kronoverse/lib": "^1.0.22",
     "@kronoverse/run": "^0.6.29",
     "bsv": "^2.0.0-beta.41",
     "cors": "^2.8.5",
@@ -40,7 +40,7 @@
     "@types/jest": "^26.0.13",
     "@types/mime-types": "^2.1.0",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^13.5.2",
+    "@types/node": "^13.13.38",
     "@types/node-fetch": "^2.5.7",
     "@types/ws": "^7.2.7",
     "eslint": "^7.15.0",

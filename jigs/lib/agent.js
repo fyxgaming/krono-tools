@@ -1,7 +1,7 @@
 const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
 
-/* global KronoCoin */
+/* global KronoCoin, Sha256 */
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
@@ -110,7 +110,7 @@ class Agent extends EventEmitter {
         for (let i = size - 2; i >= 0; i--) {
             hash = hashchain[i] = Sha256.hashToHex(Agent.hexToBytes(hash));
         }
-        return hashchain
+        return hashchain;
     }
 
     async getCoins(ownerScript) {
@@ -187,8 +187,8 @@ Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
     KronoCoin: 'models/krono-coin.js',
-    Sha256: "lib/sha256.js"
-}
+    Sha256: 'lib/sha256.js'
+};
 
 Agent.sealed = false;
 
