@@ -46,10 +46,11 @@ export default {
 			'argon2-browser': 'argon2'
 		}),
 		copy({
-			flatten: false,
+			flatten: true,
 			targets: [
 				{ src: '../node_modules/@kronoverse/run/dist/run.browser.min.js', dest: 'public' },
 				{ src: '../node_modules/@kronoverse/run/dist/bsv.browser.min.js', dest: 'public' },
+				{ src: '../node_modules/bsv/dist/bsv.bundle.js', dest: 'public' },
 				{ src: './node_modules/argon2-browser/lib/argon2.js', dest: 'public/build' },
 				{ src: './node_modules/argon2-browser/dist/argon2.js', dest: 'public/dist' },
 				{ src: './node_modules/argon2-browser/dist/argon2.wasm', dest: 'public/node_modules/argon2-browser/dist' },

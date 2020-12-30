@@ -73,15 +73,18 @@ app.get('/initialize', async (req, res, next) => {
 app.post('/broadcast', async (req, res, next) => {
     try {
         const { rawtx } = req.body;
+        // console.log('RAWTX:', rawtx);
         const txid = await blockchain.broadcast(rawtx);
-        
-        const indexed = await indexWorker.index(rawtx).catch(console.error);
-        (indexed || []).forEach(jigData => {
-            jigs.set(jigData.location, jigData);
-            publishEvent(jigData.owner, 'jig', jigData);
-            publishEvent(jigData.origin, 'jig', jigData);
-            if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
-        });
+        indexWorker.index(rawtx)
+            .then((indexed) => {
+                (indexed || []).forEach(jigData => {
+                    jigs.set(jigData.location, jigData);
+                    publishEvent(jigData.owner, 'jig', jigData);
+                    publishEvent(jigData.origin, 'jig', jigData);
+                    if(jigData.kind) publishEvent(jigData.kind, 'jig', jigData);
+                });
+            })
+            .catch(console.error);
         res.send(txid);
     } catch (e) {
         next(e);
@@ -100,7 +103,7 @@ app.get('/tx/:txid', async (req, res, next) => {
     }
 });
 
-app.get('/utxos/:script', async (req, res, next) => {
+app.get('/utxos/script/:script', async (req, res, next) => {
     try {
         const { script } = req.params;
         res.json(await blockchain.utxos(script));
@@ -167,11 +170,14 @@ app.get('/jigs/:loc', async (req, res, next) => {
 });
 
 
-app.post('/jigs/address/:address', async (req, res, next) => {
+app.post('/jigs/:type/:value', async (req, res, next) => {
     try {
-        const { address } = req.params;
+        const { type, value } = req.params;
         const query = req.body;
-        const script = Address.fromString(address).toTxOutScript().toHex();
+        let script = type === 'address' ?
+            Address.fromString(value).toTxOutScript().toHex() :
+            value;
+        
         const utxos = await blockchain.utxos(script);
         const locs = utxos.map(u => `${u.txid}_o${u.vout}`);
         const results = locs.map(loc => jigs.get(loc)).filter(jig => jig);

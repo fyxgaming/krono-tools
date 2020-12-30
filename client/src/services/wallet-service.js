@@ -65,6 +65,7 @@ export class WalletService extends EventEmitter {
         const config = this.config = await resp.json();
         console.log('Config:', JSON.stringify(config));
         this.overrideConsole();
+        console.log('Run:', Run.version);
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
         this.auth = new AuthService(this.apiUrl, this.domain, config.network);
         let initialized = false;
@@ -90,7 +91,7 @@ export class WalletService extends EventEmitter {
                 this.logs = [];
                 if (!logs.length)
                     return;
-                const resp = await fetch(config.errorLog, {
+                const resp = await fetch('/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs)
@@ -114,7 +115,7 @@ export class WalletService extends EventEmitter {
         }
     }
     async initializeWallet(owner, purse) {
-        const cache = new Run.LocalCache({ maxSizeMB: 100 });
+        const cache = new Run.plugins.BrowserCache({ maxMemorySizeMB: 100 });
         const blockchain = this.blockchain = new RestBlockchain(fetch.bind(window), this.apiUrl, this.config.network, cache);
         const run = new Run({
             network: this.config.network,
@@ -203,8 +204,10 @@ export class WalletService extends EventEmitter {
         });
     }
     async getBalance() {
-        await (new Promise(resolve => setTimeout(resolve, 500)));
-        return 14.00;
+        if (!this.agent)
+            return 0;
+        const balance = await this.agent.getBalance();
+        return Math.round(balance / 10000) / 100;
     }
     async show(viewName, message) {
         this.emit('show', {
@@ -257,8 +260,9 @@ export class WalletService extends EventEmitter {
         catch (e) {
             response.success = false;
             response.payload = JSON.stringify(e.message);
-            if (e.message.includes('Not enough funds')) {
-                response.statusCode = 402;
+            if (e.status === 402) {
+                console.log('Showing Cashier');
+                this.show('cashier', { body: 'Insufficient Balance' });
             }
             else {
                 response.statusCode = e.status || 500;
@@ -308,7 +312,7 @@ export class WalletService extends EventEmitter {
                 this.channel.parent.postMessage(message, this.channelScope);
             }
         }
-        if (this.config.emitLogs && !['Log', 'Error'].includes(message.name))
+        if (!['Log', 'Error'].includes(message.name))
             this.postMessage({
                 name: 'Log',
                 payload: JSON.stringify(message),
@@ -327,8 +331,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (this.config.emitLogs)
-                this.clientEmit('Log', message);
+            this.clientEmit('Log', message);
             this.printLog(...messages);
         };
         console.error = (...messages) => {
@@ -342,8 +345,7 @@ export class WalletService extends EventEmitter {
                 ts: Date.now(),
                 message
             });
-            if (this.config.emitLogs)
-                this.clientEmit('Error', message);
+            this.clientEmit('Error', message);
             this.printError(...messages);
         };
         console.time = (label) => {

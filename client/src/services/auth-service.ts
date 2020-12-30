@@ -47,7 +47,9 @@ export class AuthService {
         const sig = Ecdsa.sign(msgHash, keyPair);
         reg.sig = sig.toString();
 
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${handle}@${this.domain}`, {
+        const url = `${this.apiUrl}/api/accounts/${handle}@${this.domain}`;
+        console.log(url);
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(reg)
@@ -83,7 +85,9 @@ export class AuthService {
         });
         
         message.sign(keyPair);
-        const resp = await fetch(`${this.apiUrl}/api/accounts/${encodeURIComponent(paymail)}/recover`, {
+        const url = `${this.apiUrl}/api/accounts/${encodeURIComponent(paymail)}/recover`;
+        console.log(url);
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(message)

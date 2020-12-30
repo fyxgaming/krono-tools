@@ -1,10 +1,8 @@
-const CashierAgent = require("./agents/cashier-agent");
-
-class Catalog { 
-    static preDeploy(deployer) {
+class Catalog {
+    static async preDeploy() {
         this.agents = {
-            cashier: CashierAgent
-        }
+            cashier: this.deps.CashierAgent,
+        };
     }
 }
 
@@ -12,7 +10,7 @@ Catalog.realm = 'adhoc.kronoverse.io';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
-    CashierAgent: 'agents/cashier-agent.js',
+    CashierAgent: 'agents/test-cashier-agent.js',
     CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
@@ -24,7 +22,6 @@ Catalog.asyncDeps = {
     KronoItem: 'models/krono-item.js',
     KronoJig: 'lib/krono-jig.js',
     MockDice: 'lib/mock-dice.js',
-    Payment: 'models/payment.js',
     Sha256: 'lib/sha256.js',
 };
 

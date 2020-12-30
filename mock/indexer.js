@@ -12,7 +12,7 @@ const blockchain = new RestBlockchain(fetch, apiUrl, network);
 const run = new Run({
     network,
     blockchain,
-    timeout: 30000,
+    timeout: 120000,
     trust: '*',
     // logger: console
 });
@@ -34,7 +34,7 @@ async function indexJig(loc) {
             kind: jig.constructor && jig.constructor.origin,
             type: jig.constructor && jig.constructor.name,
             origin: jig.origin, 
-            owner: jig.owner,
+            owner: typeof jig.owner === 'string' ? jig.owner : jig.owner.script(),
             ts: Date.now(),
             isOrigin: jig.location === jig.origin,
         };
@@ -54,7 +54,7 @@ expose({
 
         let payload;
         try {
-            payload = run.payload(rawtx);
+            payload = Run.util.metadata(rawtx);
         } catch (e) {
             if (e.message.includes('Bad payload structure') || e.message.includes('Not a run transaction')) return;
             throw e;

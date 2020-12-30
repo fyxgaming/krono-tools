@@ -45,7 +45,7 @@ expose({
         console.log('Agent Load', agentLoc);
         const Agent = await run.load(agentLoc);
         // await Agent.sync();
-        const channels = [];
+        const channels = [agentId];
         if(subscribe) {
             channels.push(keyPair.pubKey.toString(), run.owner.address);
         }
