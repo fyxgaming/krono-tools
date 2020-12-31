@@ -1,6 +1,6 @@
 const { Tx } = require('bsv');
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
-const Run = require('@kronoverse/run');
+const Run = require('run-sdk');
 
 const { expose } = require('threads/worker');
 const fetch = require('node-fetch');

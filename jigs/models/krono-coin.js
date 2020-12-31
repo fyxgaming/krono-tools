@@ -1,5 +1,5 @@
-const { Token20 } = require('@kronoverse/run').extra;
-const {Transaction} = require('@kronoverse/run');
+const { Token20 } = require('run-sdk').extra;
+const {Transaction} = require('run-sdk');
 
 /* global KronoClass */
 class KronoCoin extends Token20 {

@@ -1,4 +1,4 @@
-const Run = require('@kronoverse/run');
+const Run = require('run-sdk');
 const { EventEmitter } = require('events');
 
 class Mockchain extends Run.Mockchain {

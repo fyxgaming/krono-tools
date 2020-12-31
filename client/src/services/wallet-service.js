@@ -6,7 +6,7 @@ import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 import { AuthService } from './auth-service';
 import { EventEmitter } from 'events';
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
-import Run from '@kronoverse/run';
+import Run from 'run-sdk';
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
 bsv.Constants.Default = Constants.Default;

@@ -8,7 +8,7 @@ const {Query} = require('mingo')
 const Mockchain = require('./mockchain');
 const { spawn, Worker } = require('threads');
 
-const Run = require('@kronoverse/run');
+const Run = require('run-sdk');
 const { SignedMessage } = require('@kronoverse/lib/dist/signed-message');
 
 const events = new EventEmitter();

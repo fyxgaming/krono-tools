@@ -1,4 +1,4 @@
-const { Jig } = require('@kronoverse/run');
+const { Jig } = require('run-sdk');
 const KronoClass = require('./krono-class');
 
 class KronoJig extends Jig {
