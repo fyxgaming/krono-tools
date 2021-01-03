@@ -44,7 +44,6 @@
     if (ws.authenticated) {
       currentUser.set(ws.handle || defaultHandle);
       balance.set(await ws.getBalance());
-      balance.set(20);
     } else {
       currentUser.set(defaultHandle);
     }
