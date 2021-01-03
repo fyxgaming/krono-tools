@@ -158,8 +158,8 @@
           data-name="Checkbox"
           required />
         <span class="small-caption fine-print">I have read the
-          <a href="#" class="link">T&amp;C</a> and
-          <a href="#" class="link">Privacy Policy</a>
+          <a href="#eula" class="link">T&amp;C</a> and
+          <a href="#privacy" class="link">Privacy Policy</a>
           and approve this Transaction</span>
       </div>
     </div>
