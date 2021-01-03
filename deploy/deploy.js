@@ -17,7 +17,7 @@ const { LockingPurse } = require('@kronoverse/lib/dist/locking-purse');
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
 const { Bip32, KeyPair } = require('bsv');
-const Run = require('@kronoverse/run');
+const Run = require('run-sdk');
 const { SignedMessage } = require('@kronoverse/lib/dist/signed-message');
 
 

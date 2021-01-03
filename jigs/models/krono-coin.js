@@ -1,5 +1,5 @@
-const { Token20 } = require('@kronoverse/run').extra;
-const {Transaction} = require('@kronoverse/run');
+const { Token20 } = require('run-sdk').extra;
+const {Transaction} = require('run-sdk');
 
 /* global KronoClass */
 class KronoCoin extends Token20 {
@@ -12,29 +12,28 @@ class KronoCoin extends Token20 {
         visited.add(this);
         return KronoClass.cloneChildren(this, skipKeys, visited);
     }
-
-    static async postDeploy(deployer) {
-        const { CashierConfig } = this.deps;
-        const [coin] = await deployer.blockchain.jigIndex(
-            CashierConfig.address, 
-            {
-                criteria: {kind: this.origin},
-                project: {value: false}
-            }
-        );
-        if(!coin) {
-            const t = new Transaction();
-            t.update(() => {
-                console.log('Minting Coins');
-                for(let i = 0; i < 10; i++) {
-                    this.mint(1000000000000, CashierConfig.address);
-                }
-            });
-            await t.publish();
-        }
-    }
 }
 
+KronoCoin.postDeploy = async (deployer) => {
+    const { CashierConfig } = KronoCoin.deps;
+    const [coin] = await deployer.blockchain.jigIndex(
+        CashierConfig.address, 
+        {
+            criteria: {kind: KronoCoin.origin},
+            project: {value: false}
+        }
+    );
+    if(!coin) {
+        const t = new Transaction();
+        t.update(() => {
+            console.log('Minting Coins');
+            for(let i = 0; i < 10; i++) {
+                KronoCoin.mint(1000000000000, CashierConfig.address);
+            }
+        });
+        await t.publish();
+    }
+};
 
 KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
