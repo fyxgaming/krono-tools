@@ -4,7 +4,7 @@
     currentUser,
     loggedIn,
     loading,
-    route
+    route,
   } from "../services/stores";
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
@@ -73,27 +73,42 @@
       logout();
     }
   });
-
 </script>
 
 <style>
-
 </style>
 
 {#if $loggedIn}
   <section class="actions">
-    <button class="action" on:click|preventDefault={logout}>Logout</button>
+    <button
+      class="action icon ico-signout"
+      on:click|preventDefault={logout}>Logout</button>
   </section>
 {:else}
+<h2 hidden={!showReg} class="large-caption">Register</h2>
+<h2 hidden={showReg} class="large-caption">Login</h2>
   {#if errorText}
     <section class="errorPanel">
       <p>{errorText}</p>
     </section>
   {/if}
   <section hidden={!showReg}>
-    <h2>Register</h2>
     <form on:submit|preventDefault={register}>
       <div class="field">
+        <label for="remail">
+          <span class="field-label">Email</span>
+          <span class="field-hint">Must contain unique email address.</span>
+        </label>
+        <input
+          id="remail"
+          class="field-cntrl"
+          bind:value={email}
+          required
+          placeholder="enter your email"
+          type="email" />
+      </div>
+
+      <div class="field large-button">
         <label for="rhandle">
           <span class="field-label">Gamer Handle</span>
           <span class="field-hint">Must contain 4+ characters.</span>
@@ -110,8 +125,8 @@
       <div class="field">
         <label for="rpassword">
           <span class="field-label">Password</span>
-          <span class="field-hint">Must contain 8+ characters with at least 1
-            number and 1 uppercase letter.</span>
+          <span class="field-hint">Must contain 8+ characters with at least
+            <br />1 number and 1 uppercase letter.</span>
         </label>
         <input
           id="rpassword"
@@ -123,31 +138,16 @@
           type="password" />
       </div>
 
-      <div class="field">
-        <label for="remail">
-          <span class="field-label">Email</span>
-          <span class="field-hint" />
-        </label>
-        <input
-          id="remail"
-          class="field-cntrl"
-          bind:value={email}
-          required
-          placeholder="enter your email"
-          type="email" />
-      </div>
-
       <div class="actions">
-        <button class="action" type="submit">Register</button>
+        <button class="action featured primary" type="submit">Register</button>
       </div>
     </form>
-    <p>
+    <p class="large-caption link-button">
       <a href="/" on:click|preventDefault={() => (showReg = false)}>Login</a>
     </p>
   </section>
 
   <section hidden={showReg}>
-    <h2>Login</h2>
     <form on:submit|preventDefault={login}>
       <div class="field">
         <label for="handle">
@@ -166,8 +166,8 @@
       <div class="field">
         <label for="password">
           <span class="field-label">Password</span>
-          <span class="field-hint">Must contain 8+ characters with at least 1
-            number and 1 uppercase letter.</span>
+          <span class="field-hint">Must contain 8+ characters with at least
+            <br />1 number and 1 uppercase letter.</span>
         </label>
         <input
           id="password"
@@ -180,10 +180,10 @@
       </div>
 
       <div class="actions">
-        <button class="action" type="submit">Login</button>
+        <button class="action featured primary" type="submit">Login</button>
       </div>
     </form>
-    <p>
+    <p class="large-caption link-button">
       <a href="/" on:click|preventDefault={() => (showReg = true)}>Register</a>
     </p>
   </section>

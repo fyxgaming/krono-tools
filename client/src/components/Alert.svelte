@@ -40,17 +40,13 @@
         align-content: center;
         list-style-type: none;
     }
-    
+
     .alerts li {
         width: 50%;
-        font-weight: bold;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 48px;
-        border-radius: 4px;
+        font-size: 1.25vw;
+        border-radius: 8px;
         margin: auto 25%;
         position: relative;
-        padding: 10px;
-        padding-right: 25px;
         margin-bottom: 4px;
         box-sizing: border-box;
     }
@@ -58,30 +54,48 @@
     .alerts li button {
         position: absolute;
         top: 4px;
-        right: 9px;
+        right: 1vw;
         width: 18px;
         height: 24px;
         font-size: 200%;
-        line-height: 1;
+        line-height: 1em;
         padding: 0;
         margin: 0;
         font-weight: bold;
         background-color: transparent;
         border: 0px;
         cursor: pointer;
-        color: inherit;
+        color: #395070;
     }
 
     .alerts li.warn {
         background-color: mistyrose;
-        border: solid 2px red;
+        border: solid 1px red;
         color: red;
     }
 
     .alerts li.ok {
-        background-color: rgb(134, 185, 233);
-        border: solid 2px rgb(7, 40, 71);
-        color: rgb(7, 40, 71);
+        background-color: rgb(174, 255, 193);
+        border: solid 1px rgb(49, 128, 67);
+        color: rgb(49, 128, 67);
+    }
+    .alert-title {
+        font-family: "Open Sans", sans-serif;
+        font-weight: 800;
+        padding: 1vw;
+        padding-right: 25px;
+        min-height: 35px;
+        display: block;
+    }
+
+    .alert-body {
+        width: 100%;
+        display: block;
+        background-color: #fff;
+        min-height: 10vh;
+        padding: 1vw;
+        color: #395070;
+        border-radius: 0 0 8px 8px;
     }
 </style>
 
@@ -89,7 +103,8 @@
     <ul class="alerts">
         {#each alerts as alert, index (alert)}
             <li class={alert.type} animate:flip={options}>
-                <span>{alert.body}</span>
+                <span class="alert-title">{alert.type=='ok'?'OK':'Warning'}</span>
+                <span class="alert-body">{alert.body}</span>
                 <button on:click={() => close(alert)}>&times;</button>
             </li>
         {/each}

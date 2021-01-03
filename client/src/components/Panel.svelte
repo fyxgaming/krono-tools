@@ -3,16 +3,24 @@
   import {
     walletService,
     currentUser,
-    route,
     loggedIn,
   } from "../services/stores";
   import { get } from "svelte/store";
-  
-  let panelElement: HTMLDivElement;
 
   export let hideDefaultActions: boolean = false;
-  export const width = (): number => {
-    return panelElement.clientWidth;
+  export let balance: number = 0;
+  
+  function format(value) {
+    let input = (value || 0).toString().replace(/[^0-9\.-]/g, "");
+    let number = Number.parseFloat(input) || 0;
+    let currency = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(number);
+    return {
+      value: number,
+      currency,
+    };
   }
 
   const nav = (path) => {
@@ -21,31 +29,31 @@
   };
 </script>
 
-<section class="panelBox" bind:this={panelElement}>
+<section class="panelBox">
   <div class="contentBox">
-    <h1>{$currentUser}</h1>
-
-    {#if !hideDefaultActions}
-    <Login />
-    {/if}
-
     <slot />
-    <slot name="prepend" />
-
+    
     {#if $loggedIn}
+      <h1 class="small-caption username">{$currentUser}</h1>
+      <p class="large-caption balance-caption">Your Balance</p>
+      <p class="large-caption balance">{format(balance).currency}</p>
+      <slot name="prepend" />
       <section class="actions">
         {#if !hideDefaultActions}
           <button
-            class="action"
-            on:click|preventDefault={() => nav('cashier')}>Enter Match</button>
+            class="action icon ico-cashin"
+            on:click|preventDefault={() => nav('cashier')}>Add Funds</button>
           <button
-            class="action"
-            on:click|preventDefault={() => nav('cashout')}>Cash Out</button>
+            class="action icon ico-cashout"
+            on:click|preventDefault={() => nav('cashout')}>Withdrawal</button>
         {/if}
         <slot name="actions" />
       </section>
+      <slot name="extend" />
     {/if}
 
-    <slot name="extend" />
+    {#if !hideDefaultActions}
+      <Login />
+    {/if}
   </div>
 </section>

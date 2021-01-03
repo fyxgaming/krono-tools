@@ -21,8 +21,11 @@
   let lastDisplayMode: string;
   let paymentAmount: number = 0.0;
   let webCashier: WebCashier;
+  let adjustedBalance: number;
 
   const cancel = async () => {
+    paymentAmount = 0;
+    adjustedBalance = get(balance);
     lastDisplayMode = "";
     isCashierShowing = false;
     route.set("home");
@@ -67,20 +70,8 @@
     if (event.target.value > max) {
       event.target.value = paymentAmount = max;
     }
-  }
-
-  function format(value) {
-    let input = (value || 0).toString().replace(/[^0-9\.-]/g, "");
-    let number = Number.parseFloat(input) || 0;
-    let formatted = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(number);
-    return {
-      value: number,
-      formatted,
-    };
-  }
+    adjustedBalance = max - paymentAmount;
+  };
 
   const show = () => {
     visible = true;
@@ -93,6 +84,10 @@
     visible = false;
   };
 
+  balance.subscribe((b) => {
+    adjustedBalance = b - paymentAmount;
+  });
+
   route.subscribe((r) => {
     if (r === "cashout") {
       show();
@@ -103,46 +98,21 @@
 </script>
 
 <style>
-  .balance {
-    font-size: 150%;
-    font-weight: bolder;
-  }
-  .balance-input {
-    position: relative;
-  }
 
-  .balance-input input {
-    padding-left: 35px;
-  }
-  .balance-input input:focus {
-    outline-color: transparent;
-  }
-  .balance-input::before {
-    content: "$";
-    position: absolute;
-    height: 100%;
-    background: lightgray;
-    width: 25px;
-    top: 0px;
-    padding: 12px 4px 4px 7px;
-    border-radius: 5px 0px 0px 5px;
-    font-weight: bold;
-    line-height: 1em;
-  }
 </style>
 
 {#if visible}
   <!--CASHIER-->
-  <Panel hideDefaultActions={hidePanelActions} bind:this={controlPanel}>
+  <Panel
+    bind:this={controlPanel}
+    balance={adjustedBalance}
+    hideDefaultActions={hidePanelActions}>
     <div slot="prepend">
       {#if !isCashierShowing}
-        <div>
-          <p class="balance">Balance: {format($balance - paymentAmount).formatted}</p>
-        </div>
         <div class="field">
           <label for="amount">
-            <span class="field-label">Amount to cash out</span>
-            <span class="field-hint">Enter amount to cash out.</span>
+            <span class="field-label">Amount to withdrawal</span>
+            <span class="field-hint">Enter amount to withdrawal.</span>
           </label>
           <div class="balance-input">
             <input
@@ -159,19 +129,28 @@
               placeholder="0.00" />
           </div>
         </div>
+        <div class="small-caption fine-print">
+          CAUTION: Clicking submit will transfer the game tokens.
+        </div>
         <div class="actions">
-          <button class="action" on:click|preventDefault={cashOut}>Next</button>
+          <button
+            class="action featured primary"
+            disabled={$balance<=0||paymentAmount<=0}
+            on:click|preventDefault={cashOut}>Submit</button>
         </div>
       {/if}
     </div>
     <div slot="actions">
-      <button class="action" on:click|preventDefault={cancel}>Cancel</button>
+      <button class="action featured" on:click|preventDefault={cancel}>Back</button>
     </div>
   </Panel>
 
   <section class="frameBox">
     <div class="contentBox">
-        <WebCashier bind:this={webCashier} on:dialog on:complete={onCashierComplete} />
+      <WebCashier
+        bind:this={webCashier}
+        on:dialog
+        on:complete={onCashierComplete} />
     </div>
   </section>
 {/if}

@@ -8,7 +8,7 @@
     loading,
     route,
     displayMode,
-balance,
+    balance,
   } from "./services/stores";
 
   import { ApiService } from "./services/api-service";
@@ -44,6 +44,7 @@ balance,
     if (ws.authenticated) {
       currentUser.set(ws.handle || defaultHandle);
       balance.set(await ws.getBalance());
+      balance.set(20);
     } else {
       currentUser.set(defaultHandle);
     }
@@ -53,6 +54,7 @@ balance,
   const toggleMenu = (e) => {
     let currentRoute = get(route);
     if (currentRoute === "menu") {
+      if (lastRoute === "/") lastRoute = "";
       route.set(lastRoute || "home");
     } else {
       lastRoute = currentRoute;
@@ -68,6 +70,19 @@ balance,
       ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
     }
   };
+
+  function format(value) {
+    let input = (value || 0).toString().replace(/[^0-9\.-]/g, "");
+    let number = Number.parseFloat(input) || 0;
+    let currency = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(number);
+    return {
+      value: number,
+      currency,
+    };
+  }
 
   walletService.subscribe((value) => {
     value.on("show", (data) => {
@@ -93,6 +108,9 @@ balance,
   route.subscribe((r) => {
     if (r === "menu") {
       displayMode.set("menuMode");
+    } else {
+      console.log(lastRoute);
+      lastRoute = r;
     }
   });
 
@@ -120,9 +138,14 @@ balance,
 
 <Spinner />
 
-<section class="menuBox" on:click={toggleMenu}>
-  <div class="menu-button {menuState}" >
+<section class="menuBox">
+  <div class="menu-button {menuState}"  on:click={toggleMenu}>
     <div class="menu-button_icon" />
+  </div>
+  <div class="menu-profile">
+    <span class="small-caption">mintycoffee</span>
+    <img class="ico-currency" alt="dollar sign" src="images/ico-dollar.png" />
+    <span class="small-caption">{format($balance).currency.substr(1)}</span>
   </div>
 </section>
 
