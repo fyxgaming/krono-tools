@@ -142,7 +142,7 @@
     <div class="menu-button_icon" />
   </div>
   <div class="menu-profile">
-    <span class="small-caption">mintycoffee</span>
+    <span class="small-caption">{$currentUser}</span>
     <img class="ico-currency" alt="dollar sign" src="images/ico-dollar.png" />
     <span class="small-caption">{format($balance).currency.substr(1)}</span>
   </div>
