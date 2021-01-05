@@ -129,7 +129,10 @@ export class WalletService extends EventEmitter {
 
         // console.log('SHOW LOGIN');
         if (this.agentDef.anonymous) return this.initializeWallet();
-        if (!config.ephemeral && !this.keyPair) return this.show('home');
+        if (!config.ephemeral && !this.keyPair) {
+            this.clientEmit('NO_KEYS');
+            return this.show('home');
+        }
         try {
             await this.initializeUser();
             this.show('menu');
