@@ -53,10 +53,16 @@ class Agent extends EventEmitter {
                 console.log(`JIG: ${jigData.type} ${jigData.location} missing`);
                 return;
             }
-            await jig.sync();
-            if (jig.location !== jigData.location) {
+            const [txid, vout] = jigData.location.split('o_');
+            const spend = await this.blockchain.spends(txid, vout);
+            if(spend) {
                 console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+                return;
             }
+            // await jig.sync();
+            // if (jig.location !== jigData.location) {
+            //     console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
+            // }
             await handler.bind(this)(jig);
         } finally {
             console.timeEnd(label);
