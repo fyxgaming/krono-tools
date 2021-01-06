@@ -64,6 +64,8 @@ class Agent extends EventEmitter {
             //     console.log(`JIG: ${jigData.type} ${jigData.location} spent`);
             // }
             await handler.bind(this)(jig);
+        } catch (e) {
+            console.error('onJig Error:', jigData.type, jigData.location, e.message);
         } finally {
             console.timeEnd(label);
         }
@@ -82,6 +84,8 @@ class Agent extends EventEmitter {
             console.time(label);
             const result = await handler.bind(this)(message, ipAddress);
             return result;
+        } catch (e) {
+            console.error('onMessage Error:', message.subject, e.message);
         } finally {
             console.timeEnd(label);
         }
