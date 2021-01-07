@@ -11,8 +11,6 @@
     balance,
   } from "./services/stores";
 
-  import { ApiService } from "./services/api-service";
-
   import Alert from "./components/Alert.svelte";
   import Spinner from "./components/Spinner.svelte";
   import Home from "./pages/Home.svelte";
@@ -20,15 +18,15 @@
   import Cashout from "./pages/Cashout.svelte";
   import type { IDialog } from "./models/idialog";
   import type { IAlert } from "./models/ialert";
+  import { ApiService } from "./services/api-service";
 
   let alertDialog: Alert;
-  let defaultHandle = "Cryptofights";
+  let defaultHandle = "";
   let geo = "unavailable";
   let menuState = "";
   let lastRoute = "";
 
   onMount(async () => {
-    ApiService.getGps().then((gps) => (geo = JSON.stringify(gps, null, 4)));
     displayMode.set("menuMode");
     loading.set(true);
     loggedIn.set(false);
@@ -44,6 +42,9 @@
     if (ws.authenticated) {
       currentUser.set(ws.handle || defaultHandle);
       balance.set(await ws.getBalance());
+      ws.getGpsLocation().then((data) => {
+        geo = JSON.stringify(ApiService.deriveGpsDetails(data), null, 2);
+      }).catch((data) => console.log(`GPS RESULTS:`, data));
     } else {
       currentUser.set(defaultHandle);
     }
@@ -138,7 +139,8 @@
 <Spinner />
 
 <section class="menuBox">
-  <div class="menu-button {menuState}"  on:click={toggleMenu}>
+  {#if $loggedIn}
+  <div class="menu-button {menuState}" on:click={toggleMenu}>
     <div class="menu-button_icon" />
   </div>
   <div class="menu-profile">
@@ -146,6 +148,7 @@
     <img class="ico-currency" alt="dollar sign" src="images/ico-dollar.png" />
     <span class="small-caption">{format($balance).currency.substr(1)}</span>
   </div>
+  {/if}
 </section>
 
 <main class={$displayMode}>

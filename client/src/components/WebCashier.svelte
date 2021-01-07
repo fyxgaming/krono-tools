@@ -4,8 +4,9 @@
     import { get } from "svelte/store";
     import { ApiService } from "../services/api-service";
     import { CashierResponse } from "../models/cashier-response";
-    import { walletService, loading, route } from "../services/stores";
+    import { walletService, loading } from "../services/stores";
     import type { IAlert } from "../models/ialert";
+    import { GpsDetails } from "../models/gps-details";
 
     interface GidxWindow extends Window {
         gidxServiceSettings;
@@ -60,13 +61,24 @@
         } as IAlert);
     };
 
+    const getGps = async (): Promise<GpsDetails> => {
+        const ws = get(walletService);
+        try {
+            const data = await ws.getGpsLocation();
+            return ApiService.deriveGpsDetails(data);
+        } catch (err) {
+            raiseDialogEvent("Could not retrieve GPS information.");
+        }
+        return { latitude: 0 } as GpsDetails;
+    };
+
     export const cashOut = async (paymentAmount: number) => {
         try {
             mode = "cashout";
             loading.set(true);
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
             //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
-            const deviceGPS = await ApiService.getGps();
+            const deviceGPS = await getGps();
 
             if (deviceGPS.latitude < 1) {
                 throw new Error(`You must share your location to continue.`);
@@ -106,16 +118,17 @@
             raiseDialogEvent(
                 err.message ?? `Could not cash out funds at this time.`
             );
+            onCashierComplete();
         }
     };
 
-    export const cashIn = async () => {
+    export const cashIn = async (paymentAmount: number) => {
         try {
             mode = "cashin";
             loading.set(true);
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
             //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
-            const deviceGPS = await ApiService.getGps();
+            const deviceGPS = await getGps();
 
             if (deviceGPS.latitude < 1) {
                 throw new Error(`You must share your location to continue.`);
@@ -123,16 +136,16 @@
 
             const ws = get(walletService);
             const message = ws.wallet.buildMessage({
-                subject: 'CashInRequest',
+                subject: "CashInRequest",
                 payload: JSON.stringify({
                     deviceGPS,
-                    owner: ws.wallet.address
+                    owner: ws.wallet.address,
+                    paymentAmount,
                 }),
             });
-
             const response = ((await ws.blockchain.sendMessage(
                 message,
-                "/cashier"
+                "/payment"
             )) as unknown) as CashierResponse;
 
             let sessionId = response.paymentId;
@@ -155,6 +168,7 @@
             raiseDialogEvent(
                 err.message ?? `Could not add funds at this time.`
             );
+            onCashierComplete();
         }
     };
 
@@ -169,7 +183,7 @@
         if (mode === "cashin") {
             console.log(`GET SESSION STATUS`);
             const ws = get(walletService);
-            const deviceGPS = await ApiService.getGps();
+            const deviceGPS = await getGps();
             const message = ws.wallet.buildMessage({
                 subject: ws.paymail,
                 payload: JSON.stringify({ deviceGPS }),
@@ -204,6 +218,9 @@
     }
 
     function renderCashier(script) {
+        if (!script) {
+            raiseDialogEvent("Cashier script not provided by service.");
+        }
         webCasherSessionScript = unescape(decodeURI(script)).replace(
             /\+/g,
             " "
@@ -236,4 +253,4 @@
 <section id="webcashier" />
 
 <!-- <div data-gidx-script-loading='true'>Loading...</div><script src='https://ws.gidx-service.in/v3.0/We`bSession/Cashier?sessionid=_7Iq_Ux-h0eQ64L5b-ZYmg' 
-  data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->
+  data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->

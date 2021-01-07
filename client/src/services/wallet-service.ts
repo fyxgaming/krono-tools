@@ -2,6 +2,7 @@ import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 
 import type { IMessage } from '../models/imessage';
 import type { IDialog } from '../models/idialog';
+import { UnityGpsData } from '../models/unity-gps-data';
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
@@ -14,7 +15,6 @@ import Run from 'run-sdk';
 
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
-
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
@@ -98,7 +98,7 @@ export class WalletService extends EventEmitter {
 
         let initialized = false;
         while (config.ephemeral && !initialized) {
-            await new Promise((resolve) => setTimeout(() => resolve(), 5000));
+            await new Promise((resolve) => setTimeout(() => resolve({}), 5000));
             resp = await fetch(`${this.apiUrl}/initialize`);
             initialized = resp.ok && await resp.json();
         }
@@ -170,7 +170,7 @@ export class WalletService extends EventEmitter {
         // const storage = new IORedisMock();
 
         const channels = [this.keyPair.pubKey.toString()];
-        if(this.config.ephemeral) {
+        if (this.config.ephemeral) {
             console.log('Ephemeral. Listening to owner', run.owner.address);
             channels.push(run.owner.address);
         }
@@ -241,18 +241,66 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
-    
+
     async blockInput(x: number, y: number, width: number, height: number) {
         console.log(`BlockInput`, x, y, width, height);
         this.clientEmit('BlockInput', {
-            x,y,width,height
+            x, y, width, height
         });
     }
 
     async getBalance(): Promise<number> {
-        if(!this.agent) return 0;
+        if (!this.agent) return 0;
         const balance = await this.agent.getBalance();
         return Math.round(balance / 10000) / 100;
+    }
+
+    get gps(): UnityGpsData | null {
+        const value = window.localStorage.getItem('GPS') || '';
+        return (value) ? JSON.parse(value) : null;
+    }
+
+    set gps(value: UnityGpsData) {
+        window.localStorage.setItem('GPS', JSON.stringify(value));
+    }
+
+    async getGpsLocation(): Promise<UnityGpsData> {
+        const location = this.gps;
+        // Use existing GPS if fresh
+        if (location && (Date.now() - location.timestamp) < (20 * 60 * 1000)) { return location; }
+        let asyncEvent = null;
+        if (this.isInUnity) {
+            asyncEvent = new Promise<any>((resolve, reject) => {
+                const token = setTimeout(() => reject('GPS Timeout'), 2000);
+                this.once('LocationUpdated', (data) => {
+                    clearTimeout(token);
+                    this.gps = data;
+                    resolve(this.gps);
+                });
+            });
+        }
+        else {
+            asyncEvent = new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition((data) => {
+                    console.log('GPS:', data);
+                    this.gps = {
+                        altitude: data.coords.altitude,
+                        longitude: data.coords.longitude,
+                        latitude: data.coords.latitude,
+                        horizontalAccuracy: 0.0,
+                        verticalAccuracy: 0.0,
+                        timestamp: Date.now()
+                    };
+                    resolve(this.gps);
+                }, reject, {
+                    maximumAge: 20 * 60 * 10000,
+                    timeout: 20000,
+                    enableHighAccuracy: true
+                });
+            });
+        }
+        this.clientEmit('LocationRequested');
+        return asyncEvent;
     }
 
     async show(viewName: string, message?: IDialog) {
@@ -295,6 +343,9 @@ export class WalletService extends EventEmitter {
                 case 'IsHandleAvailable':
                     response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
                     break;
+                case 'RegisterLocation':
+                    this.emit('LocationUpdated', payload);
+                    break;
                 default:
                     if (!this.agent) throw new Error('Agent not initialized');
                     const result = await this.agent.onEvent(message.name, payload);
@@ -306,7 +357,7 @@ export class WalletService extends EventEmitter {
             response.payload = JSON.stringify(e.message);
             if (e.status === 402) {
                 console.log('Showing Cashier');
-                this.show('cashier', {body: 'Insufficient Balance'});
+                this.show('cashier', { body: 'Insufficient Balance' });
             } else {
                 response.statusCode = e.status || 500;
             }
