@@ -145,7 +145,7 @@
             });
             const response = ((await ws.blockchain.sendMessage(
                 message,
-                "/payment"
+                "/cashier"
             )) as unknown) as CashierResponse;
 
             let sessionId = response.paymentId;
