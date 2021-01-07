@@ -27,6 +27,7 @@ export class WalletService extends EventEmitter {
     private sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
     private agentDef?;
     private timeLabels = {};
+    private gps: UnityGpsData = null;
 
     public blockchain?: RestBlockchain;
     public wallet?: Wallet;
@@ -255,19 +256,11 @@ export class WalletService extends EventEmitter {
         return Math.round(balance / 10000) / 100;
     }
 
-    get gps(): UnityGpsData | null {
-        const value = window.localStorage.getItem('GPS') || '';
-        return (value) ? JSON.parse(value) : null;
-    }
-
-    set gps(value: UnityGpsData) {
-        window.localStorage.setItem('GPS', JSON.stringify(value));
-    }
-
     async getGpsLocation(): Promise<UnityGpsData> {
+        const maximumAge = 20 * 60 * 1000;
         const location = this.gps;
         // Use existing GPS if fresh
-        if (location && (Date.now() - location.timestamp) < (20 * 60 * 1000)) { return location; }
+        if (location && (Date.now() - location.timestamp) < maximumAge) { return location; }
         let asyncEvent = null;
         if (this.isInUnity) {
             asyncEvent = new Promise<any>((resolve, reject) => {
@@ -278,6 +271,7 @@ export class WalletService extends EventEmitter {
                     resolve(this.gps);
                 });
             });
+            this.clientEmit('LocationRequested');
         }
         else {
             asyncEvent = new Promise((resolve, reject) => {
@@ -293,13 +287,12 @@ export class WalletService extends EventEmitter {
                     };
                     resolve(this.gps);
                 }, reject, {
-                    maximumAge: 20 * 60 * 10000,
+                    maximumAge,
                     timeout: 20000,
                     enableHighAccuracy: true
                 });
             });
         }
-        this.clientEmit('LocationRequested');
         return asyncEvent;
     }
 

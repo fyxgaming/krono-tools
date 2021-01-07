@@ -20,6 +20,7 @@ export class WalletService extends EventEmitter {
         this.logs = [];
         this.sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
         this.timeLabels = {};
+        this.gps = null;
         this.apiUrl = '';
         this.domain = document.location.hash.slice(1).split('@')[1];
     }
@@ -209,17 +210,11 @@ export class WalletService extends EventEmitter {
         const balance = await this.agent.getBalance();
         return Math.round(balance / 10000) / 100;
     }
-    get gps() {
-        const value = window.localStorage.getItem('GPS') || '';
-        return (value) ? JSON.parse(value) : null;
-    }
-    set gps(value) {
-        window.localStorage.setItem('GPS', JSON.stringify(value));
-    }
     async getGpsLocation() {
+        const maximumAge = 20 * 60 * 1000;
         const location = this.gps;
         // Use existing GPS if fresh
-        if (location && (Date.now() - location.timestamp) < (20 * 60 * 1000)) {
+        if (location && (Date.now() - location.timestamp) < maximumAge) {
             return location;
         }
         let asyncEvent = null;
@@ -232,6 +227,7 @@ export class WalletService extends EventEmitter {
                     resolve(this.gps);
                 });
             });
+            this.clientEmit('LocationRequested');
         }
         else {
             asyncEvent = new Promise((resolve, reject) => {
@@ -247,13 +243,12 @@ export class WalletService extends EventEmitter {
                     };
                     resolve(this.gps);
                 }, reject, {
-                    maximumAge: 20 * 60 * 10000,
+                    maximumAge,
                     timeout: 20000,
                     enableHighAccuracy: true
                 });
             });
         }
-        this.clientEmit('LocationRequested');
         return asyncEvent;
     }
     async show(viewName, message) {
