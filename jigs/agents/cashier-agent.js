@@ -14,6 +14,7 @@ class CashierAgent extends Agent {
         const cashInMessage = this.wallet.buildMessage({
             payload: JSON.stringify({
                 deviceGPS: message.payloadObj.deviceGPS,
+                paymentAmount: message.payloadObj.paymentAmount,
                 ipAddress,
                 pubkey: message.from,
             })
