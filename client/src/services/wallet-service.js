@@ -20,6 +20,7 @@ export class WalletService extends EventEmitter {
         this.logs = [];
         this.sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
         this.timeLabels = {};
+        this.gps = null;
         this.apiUrl = '';
         this.domain = document.location.hash.slice(1).split('@')[1];
     }
@@ -70,7 +71,7 @@ export class WalletService extends EventEmitter {
         this.auth = new AuthService(this.apiUrl, this.domain, config.network);
         let initialized = false;
         while (config.ephemeral && !initialized) {
-            await new Promise((resolve) => setTimeout(() => resolve(), 5000));
+            await new Promise((resolve) => setTimeout(() => resolve({}), 5000));
             resp = await fetch(`${this.apiUrl}/initialize`);
             initialized = resp.ok && await resp.json();
         }
@@ -211,6 +212,47 @@ export class WalletService extends EventEmitter {
         const balance = await this.agent.getBalance();
         return Math.round(balance / 10000) / 100;
     }
+    async getGpsLocation() {
+        const maximumAge = 20 * 60 * 1000;
+        const location = this.gps;
+        // Use existing GPS if fresh
+        if (location && (Date.now() - location.timestamp) < maximumAge) {
+            return location;
+        }
+        let asyncEvent = null;
+        if (this.isInUnity) {
+            asyncEvent = new Promise((resolve, reject) => {
+                const token = setTimeout(() => reject('GPS Timeout'), 2000);
+                this.once('LocationUpdated', (data) => {
+                    clearTimeout(token);
+                    this.gps = data;
+                    resolve(this.gps);
+                });
+            });
+            this.clientEmit('LocationRequested');
+        }
+        else {
+            asyncEvent = new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition((data) => {
+                    console.log('GPS:', data);
+                    this.gps = {
+                        altitude: data.coords.altitude,
+                        longitude: data.coords.longitude,
+                        latitude: data.coords.latitude,
+                        horizontalAccuracy: 0.0,
+                        verticalAccuracy: 0.0,
+                        timestamp: Date.now()
+                    };
+                    resolve(this.gps);
+                }, reject, {
+                    maximumAge,
+                    timeout: 20000,
+                    enableHighAccuracy: true
+                });
+            });
+        }
+        return asyncEvent;
+    }
     async show(viewName, message) {
         this.emit('show', {
             viewName,
@@ -250,6 +292,9 @@ export class WalletService extends EventEmitter {
                     break;
                 case 'IsHandleAvailable':
                     response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
+                    break;
+                case 'RegisterLocation':
+                    this.emit('LocationUpdated', payload);
                     break;
                 default:
                     if (!this.agent)

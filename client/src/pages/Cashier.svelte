@@ -51,15 +51,17 @@
       displayMode.set("frameMode");
       lastDisplayMode = "frameMode";
       isCashierShowing = true;
-      await webCashier.cashIn();
+      await webCashier.cashIn(paymentAmount);
     } catch (err) {
       console.log(err, err.stack);
       loading.set(false);
       raiseDialogEvent(err.message ?? `Could not add funds at this time.`);
+      onCashierComplete();
     }
   };
 
   const onCashierComplete = async () => {
+    console.log("cashier complete");
     displayMode.set("panelMode");
     isCashierShowing = false;
   };
@@ -116,52 +118,55 @@
     balance={$balance}
     hideDefaultActions={hidePanelActions}>
     <div slot="prepend">
-      <p class="small-caption">Please select an amount:</p>
-      <div class="actions quick-set">
-        <button
-          class="action"
-          value="1.00"
-          on:click|preventDefault={setFunds}>$1</button>
-        <button
-          class="action"
-          value="5.00"
-          on:click|preventDefault={setFunds}>$5</button>
-        <button
-          class="action"
-          value="15.00"
-          on:click|preventDefault={setFunds}>$15</button>
-        <button
-          class="action"
-          value="50.00"
-          on:click|preventDefault={setFunds}>$50</button>
-      </div>
-      <p class="small-caption">or enter a custom amount:</p>
-      <div class="balance-input">
-        <input
-          id="amount"
-          class="field-cntrl"
-          bind:value={paymentAmount}
-          required
-          type="number"
-          min="0.00"
-          max={$balance}
-          step="1.00"
-          pattern="[0-9]?\.[0-9]{2}"
-          placeholder="0.00" />
-      </div>
-      <div class="terms">
-        <input
-          bind:checked={acceptedTerms}
-          type="checkbox"
-          id="checkbox"
-          name="checkbox"
-          data-name="Checkbox"
-          required />
-        <span class="small-caption fine-print">I have read the
-          <a href="#eula" class="link">T&amp;C</a> and
-          <a href="#privacy" class="link">Privacy Policy</a>
-          and approve this Transaction</span>
-      </div>
+      {#if !isCashierShowing}
+        <p class="small-caption">Please select an amount:</p>
+        <div class="actions quick-set">
+          <button
+            class="action"
+            value="1.00"
+            on:click|preventDefault={setFunds}>$1</button>
+          <button
+            class="action"
+            value="5.00"
+            on:click|preventDefault={setFunds}>$5</button>
+          <button
+            class="action"
+            value="15.00"
+            on:click|preventDefault={setFunds}>$15</button>
+          <button
+            class="action"
+            value="50.00"
+            on:click|preventDefault={setFunds}>$50</button>
+        </div>
+        <p class="small-caption">or enter a custom amount:</p>
+        <div class="balance-input">
+          <input
+            id="amount"
+            class="field-cntrl"
+            bind:value={paymentAmount}
+            required
+            type="number"
+            min="0.00"
+            max={$balance}
+            step="1.00"
+            pattern="[0-9]?\.[0-9]{2}"
+            placeholder="0.00" />
+        </div>
+        <div class="terms">
+          <input
+            bind:checked={acceptedTerms}
+            type="checkbox"
+            id="checkbox"
+            name="checkbox"
+            data-name="Checkbox"
+            required />
+          <span class="small-caption fine-print">I have read the
+            <a href="#eula" class="link">T&amp;C</a>
+            and
+            <a href="#privacy" class="link">Privacy Policy</a>
+            and approve this Transaction</span>
+        </div>
+      {/if}
     </div>
     <div slot="actions">
       {#if !isCashierShowing}
@@ -185,4 +190,4 @@
 {/if}
 
 <!-- <div data-gidx-script-loading='true'>Loading...</div><script src='https://ws.gidx-service.in/v3.0/We`bSession/Cashier?sessionid=_7Iq_Ux-h0eQ64L5b-ZYmg' 
-data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->
+data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->

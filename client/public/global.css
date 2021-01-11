@@ -286,14 +286,17 @@ html {
   box-sizing: border-box;
 }
 
+*  {
+  font-family: 'Varela Round', sans-serif;
+  font-weight: 700;
+}
+
 *,
 *:before,
 *:after {
   -webkit-box-sizing: inherit;
   -moz-box-sizing: inherit;
   box-sizing: inherit;
-  font-family: 'Varela Round', sans-serif;
-  font-weight: 700;
 }
 
 html,
@@ -783,4 +786,13 @@ button:focus {
 
 .menu-button.open + .menu-profile {
   display: none;
+}
+
+#webcashier * {
+  font-family: 'Varela Round', sans-serif;
+  font-weight: normal;
+}
+
+#webcashier [data-gidx] .fa {
+  font-family: FontAwesome
 }

@@ -1,28 +1,28 @@
 // import 'whatwg-fetch';
-import { GpsDetails } from '../models/gps-details';
-
 import { format } from 'date-fns';
+import { GpsDetails } from '../models/gps-details';
+import { UnityGpsData } from '../models/unity-gps-data';
 
 export class ApiService {
-
-    // async createCashier(wallet: Wallet, req: CashierRequest): Promise<CashierResponse> {
-    //     console.log('createCashier:Start');
-    //     console.log(`REQUEST: ${JSON.stringify(req)}`);
-
-    //     const response: any = await fetch(`https://dev.aws.kronoverse.io/cashier/${domain}/${id}`, {
-    //         method: 'POST',
-    //         //headers: { api_key: API_KEY, 'Content-Type': 'application/json' },
-    //         body: JSON.stringify(req)
-    //     });
-    //     console.log('createCashier:Response');
-    //     console.log(`RESPONSE: ${JSON.stringify(response)}`);
-    //     return <CashierResponse>response;
-    // }
 
     // Collect IP address from service
     private static async getIp() {
         const ip: any = await fetch('https://api.ipify.org/?format=json');
         return ip;
+    }
+
+    public static deriveGpsDetails(data: UnityGpsData) : GpsDetails {
+        const geoloc: GpsDetails = {
+            latitude: data.latitude ?? 0.0,
+            longitude: data.longitude ?? 0.0,
+            altitude: data.altitude ?? 0.0,
+            radius: 0.0,
+            speed: 0.0,
+            // radius: data.horizontalAccuracy ?? 0.0,
+            // speed: data.verticalAccuracy ?? 0.0,
+            dateTime: format(data.timestamp, 'MM-dd-yyyy ppp')
+        };
+        return geoloc;
     }
 
     // Collect geo location from browser
@@ -38,7 +38,7 @@ export class ApiService {
         };
         return geoloc;
     }
-
+    
     private static async getGeoInfo() {
         const p = new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition((data) => {
