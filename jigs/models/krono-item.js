@@ -18,6 +18,6 @@ class KronoItem extends KronoJig {
 
 KronoItem.asyncDeps = {
     KronoJig: 'lib/krono-jig.js'
-}
+};
 
 module.exports = KronoItem;
