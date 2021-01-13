@@ -1,5 +1,6 @@
 const KronoJig = require('../lib/krono-jig');
 
+/* global caller */
 class KronoItem extends KronoJig {
     init(item, owner) {
         this.item = item;
