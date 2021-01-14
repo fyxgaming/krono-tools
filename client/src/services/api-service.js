@@ -8,6 +8,15 @@ export class ApiService {
     }
     static deriveGpsDetails(data) {
         var _a, _b, _c;
+        const datePattern = 'MM-dd-yyyy ppp';
+        let ts = '';
+        try {
+            ts = format(data.timestamp, datePattern);
+        }
+        catch (err) {
+            console.error(err);
+            ts = format(Date.now(), datePattern);
+        }
         const geoloc = {
             latitude: (_a = data.latitude) !== null && _a !== void 0 ? _a : 0.0,
             longitude: (_b = data.longitude) !== null && _b !== void 0 ? _b : 0.0,
@@ -16,7 +25,7 @@ export class ApiService {
             speed: 0.0,
             // radius: data.horizontalAccuracy ?? 0.0,
             // speed: data.verticalAccuracy ?? 0.0,
-            dateTime: format(data.timestamp, 'MM-dd-yyyy ppp')
+            dateTime: ts
         };
         return geoloc;
     }
