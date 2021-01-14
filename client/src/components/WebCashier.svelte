@@ -61,15 +61,16 @@
         } as IAlert);
     };
 
-    const getGps = async (): Promise<GpsDetails> => {
+    const getGps = async (): Promise<GpsDetails | null> => {
         const ws = get(walletService);
         try {
             const data = await ws.getGpsLocation();
             return ApiService.deriveGpsDetails(data);
         } catch (err) {
+            console.error(err);
             raiseDialogEvent("Could not retrieve GPS information.");
         }
-        return { latitude: 0 } as GpsDetails;
+        return null as GpsDetails;
     };
 
     export const cashOut = async (paymentAmount: number) => {
@@ -79,8 +80,7 @@
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
             //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
             const deviceGPS = await getGps();
-
-            if (deviceGPS.latitude < 1) {
+            if (!deviceGPS) {
                 throw new Error(`You must share your location to continue.`);
             }
 
@@ -113,7 +113,7 @@
                 throw new Error("Cashier session could not be restored.");
             }
         } catch (err) {
-            console.log(err, err.stack);
+            console.error(err);
             loading.set(false);
             raiseDialogEvent(
                 err.message ?? `Could not cash out funds at this time.`
@@ -129,7 +129,6 @@
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
             //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
             const deviceGPS = await getGps();
-
             if (deviceGPS.latitude < 1) {
                 throw new Error(`You must share your location to continue.`);
             }
@@ -184,6 +183,9 @@
             console.log(`GET SESSION STATUS`);
             const ws = get(walletService);
             const deviceGPS = await getGps();
+            if (!deviceGPS) {
+                throw new Error(`You must share your location to continue.`);
+            }
             const message = ws.wallet.buildMessage({
                 subject: ws.paymail,
                 payload: JSON.stringify({ deviceGPS }),
@@ -253,4 +255,4 @@
 <section id="webcashier" />
 
 <!-- <div data-gidx-script-loading='true'>Loading...</div><script src='https://ws.gidx-service.in/v3.0/We`bSession/Cashier?sessionid=_7Iq_Ux-h0eQ64L5b-ZYmg' 
-  data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->
+  data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->

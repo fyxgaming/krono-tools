@@ -214,6 +214,7 @@ export class WalletService extends EventEmitter {
     }
     async getGpsLocation() {
         const maximumAge = 20 * 60 * 1000;
+        const timeout = 2000;
         const location = this.gps;
         // Use existing GPS if fresh
         if (location && (Date.now() - location.timestamp) < maximumAge) {
@@ -222,9 +223,10 @@ export class WalletService extends EventEmitter {
         let asyncEvent = null;
         if (this.isInUnity) {
             asyncEvent = new Promise((resolve, reject) => {
-                const token = setTimeout(() => reject('GPS Timeout'), 2000);
+                const token = setTimeout(() => reject('GPS Timeout'), timeout);
                 this.once('LocationUpdated', (data) => {
                     clearTimeout(token);
+                    console.log('GPS:', data);
                     this.gps = data;
                     resolve(this.gps);
                 });
@@ -246,7 +248,7 @@ export class WalletService extends EventEmitter {
                     resolve(this.gps);
                 }, reject, {
                     maximumAge,
-                    timeout: 20000,
+                    timeout,
                     enableHighAccuracy: true
                 });
             });
