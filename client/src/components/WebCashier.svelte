@@ -129,7 +129,7 @@
             //let geoAccess = navigator.permissions.query({name:'geolocation'});
             //if (['granted','prompt'].indexOf(geoAccess.state) > -1) { console.log('might work'); }
             const deviceGPS = await getGps();
-            if (deviceGPS.latitude < 1) {
+            if (!deviceGPS) {
                 throw new Error(`You must share your location to continue.`);
             }
 
