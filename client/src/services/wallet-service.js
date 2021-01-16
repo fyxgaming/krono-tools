@@ -362,11 +362,7 @@ export class WalletService extends EventEmitter {
             }
         }
         if (!['Log', 'Error'].includes(message.name))
-            this.postMessage({
-                name: 'Log',
-                payload: JSON.stringify(message),
-                success: true
-            });
+            console.log('Client Msg', message.name, message.payload);
     }
     overrideConsole() {
         console.log = (...messages) => {

@@ -405,11 +405,7 @@ export class WalletService extends EventEmitter {
                 this.channel.parent.postMessage(message, this.channelScope);
             }
         }
-        if (!['Log', 'Error'].includes(message.name)) this.postMessage({
-            name: 'Log',
-            payload: JSON.stringify(message),
-            success: true
-        });
+        if (!['Log', 'Error'].includes(message.name)) console.log('Client Msg', message.name, message.payload)
     }
 
     private overrideConsole() {

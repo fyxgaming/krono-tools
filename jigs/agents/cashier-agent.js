@@ -60,8 +60,7 @@ class CashierAgent extends Agent {
         console.log('Coins:', coins.length);
         const coin = await this.pickAndLock(coins, 120);
         if (!coin) throw new Error('no coins');
-        coin.send(to, amount);
-        return coin;
+        return coin.send(to, amount);
     }
 
     async onCashOutRequest(message) {
