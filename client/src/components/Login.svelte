@@ -152,7 +152,6 @@
       <div class="field">
         <label for="handle">
           <span class="field-label">Gamer Handle</span>
-          <span class="field-hint">Must contain 4+ characters.</span>
         </label>
         <input
           id="handle"
@@ -166,8 +165,6 @@
       <div class="field">
         <label for="password">
           <span class="field-label">Password</span>
-          <span class="field-hint">Must contain 8+ characters with at least
-            <br />1 number and 1 uppercase letter.</span>
         </label>
         <input
           id="password"

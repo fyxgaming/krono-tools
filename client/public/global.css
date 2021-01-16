@@ -784,8 +784,8 @@ button:focus {
   background: rgba(0, 0, 0, 0.9);
 }
 
-.menu-button.open + .menu-profile {
-  display: none;
+.menu-button.open + .menu-profile * {
+  visibility: hidden;
 }
 
 #webcashier * {

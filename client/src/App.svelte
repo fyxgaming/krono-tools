@@ -26,6 +26,15 @@
   let menuState = "";
   let lastRoute = "";
 
+  const testGps = () => {
+    const ws = get(walletService);
+    ws.getGpsLocation()
+      .then((data) => {
+        geo = JSON.stringify(ApiService.deriveGpsDetails(data), null, 2);
+      })
+      .catch((data) => console.log(`GPS RESULTS:`, data));
+  };
+
   onMount(async () => {
     displayMode.set("menuMode");
     loading.set(true);
@@ -42,9 +51,7 @@
     if (ws.authenticated) {
       currentUser.set(ws.handle || defaultHandle);
       balance.set(await ws.getBalance());
-      ws.getGpsLocation().then((data) => {
-        geo = JSON.stringify(ApiService.deriveGpsDetails(data), null, 2);
-      }).catch((data) => console.log(`GPS RESULTS:`, data));
+      testGps();
     } else {
       currentUser.set(defaultHandle);
     }
@@ -65,7 +72,7 @@
   const reserveSize = (displayMode: string) => {
     const ws = get(walletService);
     if (displayMode === "menuMode") {
-      ws.blockInput(0, 0, 100, 100);
+      ws.blockInput(0, 0, 200, 100);
     } else {
       ws.blockInput(0, 0, window.innerWidth, window.innerHeight);
     }
@@ -140,14 +147,14 @@
 
 <section class="menuBox">
   {#if $loggedIn}
-  <div class="menu-button {menuState}" on:click={toggleMenu}>
-    <div class="menu-button_icon" />
-  </div>
-  <div class="menu-profile">
-    <span class="small-caption">{$currentUser}</span>
-    <img class="ico-currency" alt="dollar sign" src="images/ico-dollar.png" />
-    <span class="small-caption">{format($balance).currency.substr(1)}</span>
-  </div>
+    <div class="menu-button {menuState}" on:click={toggleMenu}>
+      <div class="menu-button_icon" />
+    </div>
+    <div class="menu-profile" on:click={toggleMenu}>
+      <span class="small-caption">{$currentUser}</span>
+      <img class="ico-currency" alt="dollar sign" src="images/ico-dollar.png" />
+      <span class="small-caption">{format($balance).currency.substr(1)}</span>
+    </div>
   {/if}
 </section>
 

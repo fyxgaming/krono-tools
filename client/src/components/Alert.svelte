@@ -75,9 +75,9 @@
     }
 
     .alerts li.ok {
-        background-color: rgb(174, 255, 193);
-        border: solid 1px rgb(49, 128, 67);
-        color: rgb(49, 128, 67);
+        background-color: rgb(92, 184, 92);
+        border: solid 1px rgb(57, 114, 57);
+        color: rgb(57, 114, 57);
     }
     .alert-title {
         font-family: "Open Sans", sans-serif;
