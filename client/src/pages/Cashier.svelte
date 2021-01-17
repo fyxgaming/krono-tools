@@ -97,17 +97,47 @@
     position: relative;
     margin-top: 1vw;
     margin-bottom: 1vw;
+    height: 4vh;
   }
-
   .terms input {
-    position: absolute;
+    display: none;
+  }
+  .terms label div {
+    width: 3vh;
+    height: 3vh;
+    display: block;
+    border: 2px solid #999;
+    text-align: center;
+    line-height: 20px;
+    margin-right: 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    float: left;
+    background-color: #cfcfcf;
+    overflow:hidden;
+  }
+  .terms label i {
+    font-size: 1vw;
+    opacity: 0;
+  }
+  .terms label:hover div {
+    background: #fff;
+  }
+  .terms input:checked + label i {
+    opacity: 1;
+    font-size: 3vh;
+    color: #57a95e;
+    background: #fff;
   }
 
   .terms .small-caption {
-    display: block;
-    float: left;
-    padding-left: 23px;
+    margin-top: 0.3vh;
+    line-height: 1vw;
+    letter-spacing: 0.05vw;
+    text-transform: none;
+    display: inline-block;
     text-align: left;
+    position: absolute;
   }
 </style>
 
@@ -156,15 +186,18 @@
           <input
             bind:checked={acceptedTerms}
             type="checkbox"
-            id="checkbox"
+            id="accept_terms"
             name="checkbox"
             data-name="Checkbox"
             required />
-          <span class="small-caption fine-print">I have read the
-            <a href="#eula" class="link">T&amp;C</a>
-            and
-            <a href="#privacy" class="link">Privacy Policy</a>
-            and approve this Transaction</span>
+          <label for="accept_terms">
+            <div><i class="fa fa-check" /></div>
+            <span class="small-caption fine-print">I have read the
+              <a href="#eula" class="link">T&amp;C</a>
+              and
+              <a href="#privacy" class="link">Privacy Policy</a>
+              and approve this Transaction</span>
+          </label>
         </div>
       {/if}
     </div>
@@ -190,4 +223,4 @@
 {/if}
 
 <!-- <div data-gidx-script-loading='true'>Loading...</div><script src='https://ws.gidx-service.in/v3.0/We`bSession/Cashier?sessionid=_7Iq_Ux-h0eQ64L5b-ZYmg' 
-data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->
+data-tsevo-script-tag data-gidx-session-id='_7Iq_Ux-h0eQ64L5b-ZYmg' type='text/javascript' ✂prettier:content✂="" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=" ✂prettier:content✂="e30=">{}</script>-->

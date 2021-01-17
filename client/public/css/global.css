@@ -310,7 +310,7 @@ body {
 
 body {
   color: #333;
-  /* background-color: darkcyan; */
+  background-color: darkcyan;
   margin: 0;
   padding: 0;
   font-size: 24px;
@@ -329,9 +329,9 @@ main {
 .menuBox {
   position: absolute;
   z-index: 100;
-  left: .5vw;
+  left: 1.1vw;
   top: .5vw;
-  height: 25px;
+  height: 3vh;
 }
 
 .panelBox {
@@ -388,9 +388,9 @@ main {
 
 .menu-profile {
   display: flex;
-  height: 30px;
+  height: 100%;
   overflow: hidden;
-  margin-left: 45px;
+  margin-left: 2.5vw;
   position: relative;
   flex-direction: row;
   align-items: center;
@@ -399,7 +399,8 @@ main {
 .menu-profile .ico-currency {
   height: 1.5vw;
   margin-left: 1.5vw;
-  margin-right: .5vw;
+  margin-right: .15vw;
+  margin-top: -1px;
 }
 
 a {
@@ -676,20 +677,20 @@ button:focus {
 }
 
 .action.ico-cashin:before {
-  background-image: url(images/ico-cashin.png);
+  background-image: url(../images/ico-cashin.png);
 }
 
 .action.ico-cashout:before {
-  background-image: url(images/ico-cashout.png);
+  background-image: url(../images/ico-cashout.png);
   width: 1.4vw;
 }
 
 .action.ico-signin:before {
-  background-image: url(images/ico-signout.png);
+  background-image: url(../images/ico-signout.png);
 }
 
 .action.ico-signout:before {
-  background-image: url(images/ico-signout.png);
+  background-image: url(../images/ico-signout.png);
 }
 
 .errorPanel {
@@ -709,10 +710,11 @@ button:focus {
 
 .menu-button {
   position: absolute;
-  width: 30px;
-  height: 24px;
+  width: 3vh;
+  height: 3vh;
   transition: all 0.4s ease-in-out;
   cursor: pointer;
+  margin-top: .2vh;
   /* border: 3px solid #fff; */
 }
 
