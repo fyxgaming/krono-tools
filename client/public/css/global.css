@@ -310,7 +310,7 @@ body {
 
 body {
   color: #333;
-  background-color: darkcyan;
+  /* background-color: darkcyan; */
   margin: 0;
   padding: 0;
   font-size: 24px;
@@ -329,8 +329,8 @@ main {
 .menuBox {
   position: absolute;
   z-index: 100;
-  left: 1.1vw;
-  top: .5vw;
+  left: 1.5vw;
+  top: 1.2vh;
   height: 3vh;
 }
 
