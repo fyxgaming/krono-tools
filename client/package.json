@@ -34,7 +34,9 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
+    "@kronoverse/lib": "^1.0.30",
     "date-fns": "^2.16.1",
+    "isomorphic-fetch": "^3.0.0",
     "run-sdk": "^0.6.10",
     "sirv-cli": "^1.0.0",
     "whatwg-fetch": "^3.5.0"

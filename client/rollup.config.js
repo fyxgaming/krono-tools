@@ -11,6 +11,7 @@ import externalGlobals from "rollup-plugin-external-globals";
 import { wasm } from '@rollup/plugin-wasm';
 import json from '@rollup/plugin-json';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
+import fetch from 'isomorphic-fetch';
 
 //POPULATED WHEN `rollup -c -w` IS RUN (i.e. "-w") 
 const production = !process.env.ROLLUP_WATCH;
