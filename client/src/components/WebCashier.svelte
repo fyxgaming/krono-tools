@@ -69,7 +69,7 @@
         const ws = get(walletService);
         try {
             const data = await ws.getGpsLocation();
-            return ApiService.deriveGpsDetails(data);
+            return ApiService.convertUnityGpsData(data);
         } catch (err) {
             console.error(err);
             raiseDialogEvent("Could not retrieve GPS information.");

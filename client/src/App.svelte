@@ -30,7 +30,7 @@
     const ws = get(walletService);
     ws.getGpsLocation()
       .then((data) => {
-        geo = JSON.stringify(ApiService.deriveGpsDetails(data), null, 2);
+        geo = JSON.stringify(ApiService.convertUnityGpsData(data), null, 2);
       })
       .catch((data) => console.log(`GPS RESULTS:`, data));
   };

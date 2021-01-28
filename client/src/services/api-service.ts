@@ -11,13 +11,12 @@ export class ApiService {
         return ip;
     }
 
-    public static deriveGpsDetails(data: UnityGpsData) : GpsDetails {
+    public static convertUnityGpsData(data: UnityGpsData) : GpsDetails {
         const datePattern = 'MM-dd-yyyy ppp';
         let ts = '';
         try {
             ts = format(data.timestamp, datePattern);
         } catch (err) {
-            console.error(err);
             ts = format(Date.now(), datePattern);
         }
         const geoloc: GpsDetails = {
@@ -60,7 +59,5 @@ export class ApiService {
         });
         return p;
     }
-
-
 
 }
