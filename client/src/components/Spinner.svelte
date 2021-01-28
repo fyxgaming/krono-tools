@@ -23,14 +23,41 @@
   });
 </script>
 
+<div style="display:{visible}" class="spinnerRoot">
+  <div class="kv-spinner">
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+  </div>
+</div>
+
 <style>
   .spinnerRoot {
     position: absolute;
     z-index: 1000;
     width: 100%;
     height: 100%;
-    background: repeating-linear-gradient(0deg, transparent 100%, rgba(255,255,255,.8) 100%, transparent 100%),
-                repeating-linear-gradient(90deg, rgba(255,255,255,.8) 100%, transparent 100%, rgba(255,255,255,.8) 100%);
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 100%,
+        rgba(255, 255, 255, 0.8) 100%,
+        transparent 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.8) 100%,
+        transparent 100%,
+        rgba(255, 255, 255, 0.8) 100%
+      );
     justify-content: center;
     align-items: center;
   }
@@ -115,20 +142,3 @@
     }
   }
 </style>
-
-<div style="display:{visible}" class="spinnerRoot">
-  <div class="kv-spinner">
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-    <div />
-  </div>
-</div>

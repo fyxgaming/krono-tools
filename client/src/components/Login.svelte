@@ -75,18 +75,16 @@
   });
 </script>
 
-<style>
-</style>
-
 {#if $loggedIn}
   <section class="actions">
     <button
       class="action icon ico-signout"
-      on:click|preventDefault={logout}>Logout</button>
+      on:click|preventDefault={logout}
+    >Logout</button>
   </section>
 {:else}
-<h2 hidden={!showReg} class="large-caption">Register</h2>
-<h2 hidden={showReg} class="large-caption">Login</h2>
+  <h2 hidden={!showReg} class="large-caption">Register</h2>
+  <h2 hidden={showReg} class="large-caption">Login</h2>
   {#if errorText}
     <section class="errorPanel">
       <p>{errorText}</p>
@@ -105,7 +103,8 @@
           bind:value={email}
           required
           placeholder="enter your email"
-          type="email" />
+          type="email"
+        />
       </div>
 
       <div class="field large-button">
@@ -119,7 +118,8 @@
           bind:value={handle}
           required
           pattern={handleRegExp}
-          placeholder="enter your gamer handle" />
+          placeholder="enter your gamer handle"
+        />
       </div>
 
       <div class="field">
@@ -135,7 +135,8 @@
           required
           minlength={8}
           placeholder="enter your password"
-          type="password" />
+          type="password"
+        />
       </div>
 
       <div class="actions">
@@ -159,7 +160,8 @@
           bind:value={handle}
           required
           pattern={handleRegExp}
-          placeholder="enter your gamer handle" />
+          placeholder="enter your gamer handle"
+        />
       </div>
 
       <div class="field">
@@ -173,7 +175,8 @@
           required
           minlength={8}
           placeholder="enter your password"
-          type="password" />
+          type="password"
+        />
       </div>
 
       <div class="actions">
@@ -185,3 +188,6 @@
     </p>
   </section>
 {/if}
+
+<style>
+</style>

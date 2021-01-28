@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Panel from '../components/Panel.svelte';
-  import { displayMode, route, balance } from '../services/stores';
+  import Panel from "../components/Panel.svelte";
+  import { displayMode, route, balance } from "../services/stores";
 
   export let visible: boolean = false;
 
@@ -22,9 +22,6 @@
   });
 </script>
 
-<style>
-</style>
-
 {#if visible}
   <!--HOME-->
   <Panel balance={$balance}>
@@ -33,3 +30,6 @@
     </div>
   </Panel>
 {/if}
+
+<style>
+</style>

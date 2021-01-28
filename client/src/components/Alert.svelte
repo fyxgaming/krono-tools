@@ -28,6 +28,20 @@
     const options = {};
 </script>
 
+{#if alerts.length > 0}
+    <ul class="alerts">
+        {#each alerts as alert, index (alert)}
+            <li class={alert.type} animate:flip={options}>
+                <span
+                    class="alert-title"
+                >{alert.type == 'ok' ? 'OK' : 'Warning'}</span>
+                <span class="alert-body">{alert.body}</span>
+                <button on:click={() => close(alert)}>&times;</button>
+            </li>
+        {/each}
+    </ul>
+{/if}
+
 <style>
     .alerts {
         display: block;
@@ -98,15 +112,3 @@
         border-radius: 0 0 8px 8px;
     }
 </style>
-
-{#if alerts.length > 0}
-    <ul class="alerts">
-        {#each alerts as alert, index (alert)}
-            <li class={alert.type} animate:flip={options}>
-                <span class="alert-title">{alert.type=='ok'?'OK':'Warning'}</span>
-                <span class="alert-body">{alert.body}</span>
-                <button on:click={() => close(alert)}>&times;</button>
-            </li>
-        {/each}
-    </ul>
-{/if}

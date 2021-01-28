@@ -97,16 +97,13 @@
   });
 </script>
 
-<style>
-
-</style>
-
 {#if visible}
   <!--CASHIER-->
   <Panel
     bind:this={controlPanel}
     balance={adjustedBalance}
-    hideDefaultActions={hidePanelActions}>
+    hideDefaultActions={hidePanelActions}
+  >
     <div slot="prepend">
       {#if !isCashierShowing}
         <div class="field">
@@ -126,7 +123,8 @@
               max={$balance}
               step="1.00"
               pattern="[0-9]?\.[0-9]{2}"
-              placeholder="0.00" />
+              placeholder="0.00"
+            />
           </div>
         </div>
         <div class="small-caption fine-print">
@@ -135,13 +133,17 @@
         <div class="actions">
           <button
             class="action featured primary"
-            disabled={$balance<=0||paymentAmount<=0}
-            on:click|preventDefault={cashOut}>Submit</button>
+            disabled={$balance <= 0 || paymentAmount <= 0}
+            on:click|preventDefault={cashOut}
+          >Submit</button>
         </div>
       {/if}
     </div>
     <div slot="actions">
-      <button class="action featured" on:click|preventDefault={cancel}>Back</button>
+      <button
+        class="action featured"
+        on:click|preventDefault={cancel}
+      >Back</button>
     </div>
   </Panel>
 
@@ -150,7 +152,11 @@
       <WebCashier
         bind:this={webCashier}
         on:dialog
-        on:complete={onCashierComplete} />
+        on:complete={onCashierComplete}
+      />
     </div>
   </section>
 {/if}
+
+<style>
+</style>

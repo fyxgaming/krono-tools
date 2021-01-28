@@ -126,21 +126,6 @@
   };
 </script>
 
-<style>
-  .geo {
-    width: 340px;
-    background-color: black;
-    color: antiquewhite;
-    font-family: "Courier New", Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 5px;
-    position: absolute;
-    bottom: 5px;
-  }
-</style>
-
 <Alert bind:this={alertDialog} />
 
 <Spinner />
@@ -170,3 +155,18 @@
 
   <Cashout on:dialog={onDialog} />
 </main>
+
+<style>
+  .geo {
+    width: 340px;
+    background-color: black;
+    color: antiquewhite;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 5px;
+    position: absolute;
+    bottom: 5px;
+  }
+</style>
