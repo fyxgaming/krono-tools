@@ -10,7 +10,7 @@ Catalog.realm = 'adhoc.kronoverse.io';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
-    CashierAgent: 'agents/test-cashier-agent.js',
+    CashierAgent: 'agents/cashier-agent.js',
     CashierConfig: 'config/{env}/cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
