@@ -29,7 +29,7 @@
     "mingo": "^3.1.0",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.0",
-    "run-sdk": "^0.6.10",
+    "run-sdk": "0.6.10",
     "simple-git": "^2.11.0",
     "threads": "^1.6.3",
     "ws": "^7.3.1"
