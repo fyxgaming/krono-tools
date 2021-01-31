@@ -130,7 +130,7 @@
         <div class="small-caption fine-print">
           CAUTION: Clicking submit will transfer the game tokens.
         </div>
-        <div class="actions">
+        <div class="wui-actions">
           <button
             class="action featured primary"
             disabled={$balance <= 0 || paymentAmount <= 0}
@@ -139,7 +139,7 @@
         </div>
       {/if}
     </div>
-    <div slot="actions">
+    <div slot="wui-actions">
       <button
         class="action featured"
         on:click|preventDefault={cancel}

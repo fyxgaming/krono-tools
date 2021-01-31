@@ -34,7 +34,7 @@
       <p class="large-caption balance-caption">Your Balance</p>
       <p class="large-caption balance">{format(balance).currency}</p>
       <slot name="prepend" />
-      <section class="actions">
+      <section class="wui-actions">
         {#if !hideDefaultActions}
           <button
             class="action icon ico-cashin"

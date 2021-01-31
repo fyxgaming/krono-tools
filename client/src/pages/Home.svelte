@@ -14,7 +14,7 @@
   };
 
   route.subscribe((r) => {
-    if (r === "home") {
+    if (r === "home" || r === "menu") {
       show();
     } else {
       hide();

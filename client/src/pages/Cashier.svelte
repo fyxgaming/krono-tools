@@ -96,7 +96,7 @@
     <div slot="prepend">
       {#if !isCashierShowing}
         <p class="small-caption">Please select an amount:</p>
-        <div class="actions quick-set">
+        <div class="wui-actions quick-set">
           <button
             class="action"
             value="1.00"

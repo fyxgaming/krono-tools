@@ -76,7 +76,7 @@
 </script>
 
 {#if $loggedIn}
-  <section class="actions">
+  <section class="wui-actions">
     <button
       class="action icon ico-signout"
       on:click|preventDefault={logout}
@@ -92,7 +92,7 @@
   {/if}
   <section hidden={!showReg}>
     <form on:submit|preventDefault={register}>
-      <div class="field">
+      <div class="wui-field">
         <label for="remail">
           <span class="field-label">Email</span>
           <span class="field-hint">Must contain unique email address.</span>
@@ -122,7 +122,7 @@
         />
       </div>
 
-      <div class="field">
+      <div class="wui-field">
         <label for="rpassword">
           <span class="field-label">Password</span>
           <span class="field-hint">Must contain 8+ characters with at least
@@ -139,7 +139,7 @@
         />
       </div>
 
-      <div class="actions">
+      <div class="wui-actions">
         <button class="action featured primary" type="submit">Register</button>
       </div>
     </form>
@@ -150,7 +150,7 @@
 
   <section hidden={showReg}>
     <form on:submit|preventDefault={login}>
-      <div class="field">
+      <div class="wui-field">
         <label for="handle">
           <span class="field-label">Gamer Handle</span>
         </label>
@@ -164,7 +164,7 @@
         />
       </div>
 
-      <div class="field">
+      <div class="wui-field">
         <label for="password">
           <span class="field-label">Password</span>
         </label>
@@ -179,7 +179,7 @@
         />
       </div>
 
-      <div class="actions">
+      <div class="wui-actions">
         <button class="action featured primary" type="submit">Login</button>
       </div>
     </form>
