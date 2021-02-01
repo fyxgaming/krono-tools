@@ -124,7 +124,7 @@ class Agent extends EventEmitter {
 
     async getCoins() {
         return this.wallet.jigIndex(
-            this.ownerScript, 
+            this.coinScript, 
             {criteria: {kind: KronoCoin.origin}},
             'script'
         );
