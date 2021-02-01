@@ -42,11 +42,17 @@
       currentUser.set(ws.handle || ANONYMOUS_HANDLE);
       balance.set(await ws.getBalance());
       testGps();
+      setTimeout(loadBalance, 10000);
     } else {
       currentUser.set(ANONYMOUS_HANDLE);
     }
     console.log(`WUI:Authenticated: ${ws.handle} as ${ws.authenticated}`);
   });
+
+  const loadBalance = async () => {
+    const ws = get(walletService);
+    balance.set(await ws.getBalance());
+  }
 
   const testGps = async () => {
     const ws = get(walletService);
