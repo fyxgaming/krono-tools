@@ -6,7 +6,7 @@ export class ApiService {
         const ip = await fetch('https://api.ipify.org/?format=json');
         return ip;
     }
-    static deriveGpsDetails(data) {
+    static convertUnityGpsData(data) {
         var _a, _b, _c;
         const datePattern = 'MM-dd-yyyy ppp';
         let ts = '';
@@ -14,7 +14,6 @@ export class ApiService {
             ts = format(data.timestamp, datePattern);
         }
         catch (err) {
-            console.error(err);
             ts = format(Date.now(), datePattern);
         }
         const geoloc = {
