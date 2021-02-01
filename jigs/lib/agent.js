@@ -14,7 +14,7 @@ class Agent extends EventEmitter {
         this.address = wallet.address;
 
         // const lock = new CommonLock(wallet.address, this.blockchain.network !== 'main');
-        this.coinScript = bsv.Address.fromString(wallet.address).toTxOutScript().toHex();
+        // this.coinScript = bsv.Address.fromString(wallet.address).toTxOutScript().toHex();
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
         this.paymail = wallet.paymail;
