@@ -1,5 +1,6 @@
 const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
+// const {CommonLock} = require('run-sdk');
 
 /* global KronoCoin, Sha256 */
 class Agent extends EventEmitter {
@@ -11,6 +12,9 @@ class Agent extends EventEmitter {
         this.bsv = bsv;
         this.lib = lib;
         this.address = wallet.address;
+
+        // const lock = new CommonLock(wallet.address, this.blockchain.network !== 'main');
+        this.coinScript = bsv.Address.fromString(wallet.address).toTxOutScript().toHex();
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
         this.paymail = wallet.paymail;
@@ -21,7 +25,6 @@ class Agent extends EventEmitter {
         this.kindSubHandlers = new Map();
         this.originSubHandlers = new Map();
         this.channelSubHandlers = new Map();
-
         this.queue = Promise.resolve();
         this.processCount = 0;
 
@@ -119,17 +122,17 @@ class Agent extends EventEmitter {
         return hashchain;
     }
 
-    async getCoins(ownerScript) {
+    async getCoins() {
         return this.wallet.jigIndex(
-            ownerScript, 
+            this.ownerScript, 
             {criteria: {kind: KronoCoin.origin}},
             'script'
         );
     }
 
-    async getBalance(ownerScript) {
+    async getBalance() {
         console.log('getBalance');
-        const coinIndex = await this.getCoins(ownerScript);
+        const coinIndex = await this.getCoins();
         console.log('INDEX:', JSON.stringify(coinIndex));
         const balance = coinIndex.reduce((acc, coin) => acc + coin.value.amount, 0);
         console.log('Balance', balance);
@@ -188,6 +191,8 @@ class Agent extends EventEmitter {
             
     }
 }
+
+// Agent.deps = {CommonLock};
 
 Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
