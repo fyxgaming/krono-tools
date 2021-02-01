@@ -1,6 +1,6 @@
 const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
-const {CommonLock} = require('run-sdk');
+// const {CommonLock} = require('run-sdk');
 
 /* global KronoCoin, Sha256 */
 class Agent extends EventEmitter {
@@ -12,8 +12,9 @@ class Agent extends EventEmitter {
         this.bsv = bsv;
         this.lib = lib;
         this.address = wallet.address;
-        const lock = new CommonLock(wallet.address, this.blockchain.network !== 'main');
-        this.coinScript = lock.script();
+
+        // const lock = new CommonLock(wallet.address, this.blockchain.network !== 'main');
+        this.coinScript = bsv.Address.fromString(wallet.address).toTxOutScript().toHex();
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
         this.paymail = wallet.paymail;
@@ -191,7 +192,7 @@ class Agent extends EventEmitter {
     }
 }
 
-Agent.deps = {CommonLock};
+// Agent.deps = {CommonLock};
 
 Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
