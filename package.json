@@ -1,6 +1,6 @@
 {
   "name": "@kronoverse/tools",
-  "version": "3.2.60",
+  "version": "3.2.61",
   "description": "Tools for interacting with the Kronoverse Platform",
   "private": false,
   "main": "index.js",
