@@ -121,7 +121,7 @@ class Agent extends EventEmitter {
     }
 
     async getCoins() {
-        return this.wallet.jigIndex(
+        return this.blockchain.jigIndex(
             this.coinScript, 
             {criteria: {kind: KronoCoin.origin}},
             'script'
@@ -131,7 +131,6 @@ class Agent extends EventEmitter {
     async getBalance() {
         console.log('getBalance');
         const coinIndex = await this.getCoins();
-        console.log('INDEX:', JSON.stringify(coinIndex));
         const balance = coinIndex.reduce((acc, coin) => acc + coin.value.amount, 0);
         console.log('Balance', balance);
         return balance;
