@@ -48,7 +48,7 @@
         z-index: 1001;
         position: absolute;
         box-sizing: border-box;
-        top: 0px;
+        top: 5px;
         left: 0px;
         width: 100vw;
         align-content: center;
@@ -56,10 +56,11 @@
     }
 
     .alerts li {
-        width: 50%;
-        font-size: 1.25vw;
+        width: 75%;
+        font-size: clamp(.75rem, 1.25vw, 1rem);
         border-radius: 8px;
-        margin: auto 25%;
+        margin-left: auto;
+        margin-right: auto;
         position: relative;
         margin-bottom: 4px;
         box-sizing: border-box;
@@ -72,7 +73,7 @@
         width: 18px;
         height: 24px;
         font-size: 200%;
-        line-height: 1em;
+        line-height: clamp(.75rem, 1.25vw, 1rem);
         padding: 0;
         margin: 0;
         font-weight: bold;
@@ -96,9 +97,8 @@
     .alert-title {
         font-family: "Open Sans", sans-serif;
         font-weight: 800;
-        padding: 1vw;
-        padding-right: 25px;
-        min-height: 35px;
+        padding: .25rem 25px .25rem 1rem;
+        min-height: .75rem;
         display: block;
     }
 
@@ -106,9 +106,11 @@
         width: 100%;
         display: block;
         background-color: #fff;
-        min-height: 10vh;
-        padding: 1vw;
+        min-height: 3rem;
+        padding: 1rem;
         color: #395070;
         border-radius: 0 0 8px 8px;
+        text-transform: none;
+        line-height: clamp(.75rem, 1.25vw, 1rem);
     }
 </style>

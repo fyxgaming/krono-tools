@@ -106,7 +106,7 @@
   >
     <div slot="prepend">
       {#if !isCashierShowing}
-        <div class="field">
+        <div class="wui-field">
           <label for="amount">
             <span class="field-label">Amount to withdrawal</span>
             <span class="field-hint">Enter amount to withdrawal.</span>
@@ -139,7 +139,7 @@
         </div>
       {/if}
     </div>
-    <div slot="wui-actions">
+    <div slot="actions">
       <button
         class="action featured"
         on:click|preventDefault={cancel}

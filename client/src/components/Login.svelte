@@ -107,7 +107,7 @@
         />
       </div>
 
-      <div class="field large-button">
+      <div class="wui-field large-button">
         <label for="rhandle">
           <span class="field-label">Gamer Handle</span>
           <span class="field-hint">Must contain 4+ characters.</span>
