@@ -42,7 +42,8 @@
       currentUser.set(ws.handle || ANONYMOUS_HANDLE);
       balance.set(await ws.getBalance());
       testGps();
-      setTimeout(loadBalance, 10000);
+      ws.on('BalanceUpdated', loadBalance);
+      setTimeout(loadBalance, 5000);
     } else {
       currentUser.set(ANONYMOUS_HANDLE);
     }

@@ -173,6 +173,7 @@ h2.large-caption {
 }
 
 .small-caption {
+  margin-top: 0.6rem;
   margin-bottom: 0.6rem;
   text-align: center;
   letter-spacing: 1px;
@@ -193,7 +194,7 @@ h2.large-caption {
 
 .small-caption.fine-print {
   margin-bottom: .5rem;
-  font-size: clamp(.75rem, 1vw, 1rem);
+  font-size: clamp(.6rem, 1vw, .75rem);
   text-transform: none;
 }
 

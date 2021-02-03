@@ -393,6 +393,7 @@ export class WalletService extends EventEmitter {
                 payload
             }
         });
+        this.emit(message.name, message.payload);
         this.postMessage(message);
     }
 
