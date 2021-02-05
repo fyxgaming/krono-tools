@@ -21,6 +21,7 @@ export class WalletService extends EventEmitter {
         this.sessionId = `${Date.now()}-${Math.random() * Number.MAX_SAFE_INTEGER}`;
         this.timeLabels = {};
         this.gps = null;
+        this.derivation = 'm';
         this.apiUrl = '';
         this.domain = document.location.hash.slice(1).split('@')[1];
     }
@@ -183,14 +184,16 @@ export class WalletService extends EventEmitter {
             bip32 = Bip32.fromString(xpriv);
         }
         this.authenticated = true;
-        this.initializeWallet(bip32.derive('m/1/0').privKey.toString(), bip32.derive('m/0/0').privKey.toString());
+        this.initializeWallet(bip32.derive(`${this.derivation}/1/0`).privKey.toString(), bip32.derive(`${this.derivation}/0/0`).privKey.toString());
     }
-    async login(handle, password) {
+    async login(handle, password, derivation = 'm') {
+        this.derivation = derivation;
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
         this.show('menu');
     }
-    async register(handle, password, email) {
+    async register(handle, password, email, derivation = 'm') {
+        this.derivation = derivation;
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
         this.show('menu');
@@ -262,6 +265,7 @@ export class WalletService extends EventEmitter {
         });
     }
     async onClientEvent(event) {
+        var _a;
         const message = {};
         if (!this.tryParseMessageData(event.data, message))
             return;
@@ -278,13 +282,16 @@ export class WalletService extends EventEmitter {
             const payload = message.payload && JSON.parse(message.payload);
             switch (message.name) {
                 case 'Register':
-                    await this.register(payload.handle, payload.password, payload.email);
+                    await this.register(payload.handle, payload.password, payload.email, payload.derivation);
                     break;
                 case 'Login':
-                    await this.login(payload.handle, payload.password);
+                    await this.login(payload.handle, payload.password, payload.derivation);
                     break;
                 case 'Logout':
                     await this.logout();
+                    break;
+                case 'GetBalance':
+                    response.payload = await ((_a = this.agent) === null || _a === void 0 ? void 0 : _a.getBalance());
                     break;
                 case 'Cashout':
                     if (!this.wallet)

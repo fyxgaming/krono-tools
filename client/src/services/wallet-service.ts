@@ -28,6 +28,7 @@ export class WalletService extends EventEmitter {
     private agentDef?;
     private timeLabels = {};
     private gps: UnityGpsData = null;
+    private derivation = 'm';
 
     public blockchain?: RestBlockchain;
     public wallet?: Wallet;
@@ -223,18 +224,20 @@ export class WalletService extends EventEmitter {
         }
         this.authenticated = true;
         this.initializeWallet(
-            bip32.derive('m/1/0').privKey.toString(),
-            bip32.derive('m/0/0').privKey.toString()
+            bip32.derive(`${this.derivation}/1/0`).privKey.toString(),
+            bip32.derive(`${this.derivation}/0/0`).privKey.toString()
         );
     }
 
-    async login(handle: string, password: string) {
+    async login(handle: string, password: string, derivation = 'm') {
+        this.derivation = derivation;
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
         this.show('menu');
     }
 
-    async register(handle: string, password: string, email: string) {
+    async register(handle: string, password: string, email: string, derivation = 'm') {
+        this.derivation = derivation;
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
         this.show('menu');
@@ -325,14 +328,17 @@ export class WalletService extends EventEmitter {
             const payload = message.payload && JSON.parse(message.payload);
             switch (message.name) {
                 case 'Register':
-                    await this.register(payload.handle, payload.password, payload.email);
+                    await this.register(payload.handle, payload.password, payload.email, payload.derivation);
                     break;
                 case 'Login':
-                    await this.login(payload.handle, payload.password);
+                    await this.login(payload.handle, payload.password, payload.derivation);
                     break;
                 case 'Logout':
                     await this.logout();
                     break;
+                case 'GetBalance':
+                    response.payload = await this.agent?.getBalance();
+                    break;    
                 case 'Cashout':
                     if (!this.wallet) throw new Error('Wallet not initialized');
                     // await this.wallet.cashout(payload);
