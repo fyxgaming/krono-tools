@@ -10,7 +10,7 @@ Catalog.realm = 'local';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
-    CashierConfig: 'config/{env}/cashier-config.js',
+    CashierConfig: 'config/{env}/test-cashier-config.js',
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
     JigMap: 'models/jig-map.js',
