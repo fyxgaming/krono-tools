@@ -1,7 +1,7 @@
 const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
 
-/* global KronoCoin, Sha256 */
+/* global KronoCoin, KronoError, Sha256 */
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
@@ -120,17 +120,30 @@ class Agent extends EventEmitter {
         return hashchain;
     }
 
-    async getCoins() {
+    async getCoins(ownerScript) {
         return this.blockchain.jigIndex(
-            this.coinScript, 
+            ownerScript, 
             {criteria: {kind: KronoCoin.origin}},
             'script'
         );
     }
 
-    async getBalance() {
+    async selectCoins(amount, ownerScript) {
+        const coins = [];
+        let acc = 0;
+        for(let coinData of await this.getCoins(ownerScript || this.coinScript)) {
+            if(acc >= amount) break;
+            const coin = await this.wallet.loadJig(coinData.location);
+            coins.push(coin);
+            acc += coin.amount;
+        }
+        if (acc < amount) throw new KronoError(402, 'Insufficient balance');
+        return coins;
+    }
+
+    async getBalance(ownerScript) {
         console.log('getBalance');
-        const coinIndex = await this.getCoins();
+        const coinIndex = await this.getCoins(ownerScript || this.coinScript);
         const balance = coinIndex.reduce((acc, coin) => acc + coin.value.amount, 0);
         console.log('Balance', balance);
         return balance;
@@ -193,6 +206,7 @@ Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
     KronoCoin: 'models/krono-coin.js',
+    KronoError: 'lib/krono-error.js',
     Sha256: 'lib/sha256.js'
 };
 
