@@ -92,7 +92,10 @@ export class AuthService {
             headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(message)
         });
-        if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
+        if (!resp.ok) {
+            if(resp.status === 403) throw new Error(`${resp.status} - Invalid Credentials`);
+            throw new Error(`${resp.status} - ${resp.statusText}`);
+        }
         const recovery = await resp.json();
         const recoveryBuf = Ecies.bitcoreDecrypt(
             Buffer.from(recovery, 'base64'),
