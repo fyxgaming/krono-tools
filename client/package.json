@@ -35,7 +35,6 @@
   },
   "dependencies": {
     "date-fns": "^2.16.1",
-    "run-sdk": "^0.6.10",
     "sirv-cli": "^1.0.0",
     "whatwg-fetch": "^3.5.0"
   }
