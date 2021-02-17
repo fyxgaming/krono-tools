@@ -324,6 +324,9 @@ export class WalletService extends EventEmitter {
                 console.log('Showing Cashier');
                 this.show('cashier', { body: 'Insufficient Balance' });
             }
+            else if (e.status === 410) {
+                response.payload = JSON.stringify("App Outdated. Please restart and try again.");
+            }
             else {
                 response.statusCode = e.status || 500;
             }
