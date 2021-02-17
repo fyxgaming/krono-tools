@@ -16,7 +16,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^1.0.32",
+    "@kronoverse/lib": "^1.0.33",
     "bsv": "^2.0.0-beta.41",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
