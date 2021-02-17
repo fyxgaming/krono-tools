@@ -125,7 +125,11 @@ export class WalletService extends EventEmitter {
             network: this.config.network,
             owner,
             blockchain,
-            purse,
+            purse: new Run.plugins.LocalPurse({
+                privkey: purse,
+                blockchain,
+                feePerKb: 250
+            }),
             cache: new RestStateCache(fetch.bind(window), this.apiUrl, cache),
             app: this.config.app || 'kronoverse',
             trust: '*',
