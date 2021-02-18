@@ -128,7 +128,7 @@ export class WalletService extends EventEmitter {
             purse: new Run.plugins.LocalPurse({
                 privkey: purse,
                 blockchain,
-                feePerKb: 250
+                feePerKb: 500
             }),
             cache: new RestStateCache(fetch.bind(window), this.apiUrl, cache),
             app: this.config.app || 'kronoverse',
