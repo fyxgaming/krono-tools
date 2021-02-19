@@ -1,5 +1,6 @@
 const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
+const { Group } = require('run-sdk').extra;
 
 /* global KronoCoin, KronoError, Sha256 */
 class Agent extends EventEmitter {
@@ -11,8 +12,11 @@ class Agent extends EventEmitter {
         this.bsv = bsv;
         this.lib = lib;
         this.address = wallet.address;
-
-        this.coinScript = bsv.Address.fromString(wallet.address).toTxOutScript().toHex();
+        const lock = new Group(
+            [this.wallet.ownerPair.pubKey.toString(), CashierConfig.pubkey],
+            2
+        );
+        this.coinScript = lock.script();
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
         this.paymail = wallet.paymail;

@@ -139,10 +139,8 @@
 
             const ws = get(walletService);
             const message = ws.wallet.buildMessage({
-                subject: "CashInRequest",
                 payload: JSON.stringify({
                     deviceGPS,
-                    owner: ws.wallet.address,
                     paymentAmount,
                 }),
             });
