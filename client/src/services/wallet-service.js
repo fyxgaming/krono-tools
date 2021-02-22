@@ -207,6 +207,15 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
     }
+    async deposit(paymentAmount, deviceGPS) {
+        return this.blockchain.sendMessage(this.wallet.buildMessage({
+            subject: 'Deposit',
+            payload: JSON.stringify({
+                deviceGPS,
+                paymentAmount,
+            }),
+        }), '/cashier');
+    }
     async cashout(paymentAmount, deviceGPS) {
         let { coinIndex, rawtx } = await this.blockchain.sendMessage(this.wallet.buildMessage({
             subject: 'CashOut',
