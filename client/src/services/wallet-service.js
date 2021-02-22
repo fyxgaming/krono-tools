@@ -121,7 +121,7 @@ export class WalletService extends EventEmitter {
     async initializeWallet(owner, purse) {
         const cache = new Run.plugins.BrowserCache({ maxMemorySizeMB: 100 });
         const blockchain = this.blockchain = new RestBlockchain(fetch.bind(window), this.apiUrl, this.config.network, cache);
-        const run = new Run({
+        const run = this.run = new Run({
             network: this.config.network,
             owner,
             blockchain,
@@ -206,6 +206,26 @@ export class WalletService extends EventEmitter {
         this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
+    }
+    async cashout(paymentAmount, deviceGPS) {
+        let { coinIndex, rawtx } = await this.blockchain.sendMessage(this.wallet.buildMessage({
+            subject: 'CashOut',
+            payload: JSON.stringify({
+                paymentAmount,
+            }),
+        }), '/cashier');
+        const t = await this.run.import(rawtx);
+        let coin = t.outputs[coinIndex];
+        await t.publish();
+        await coin.sync();
+        return this.blockchain.sendMessage(this.wallet.buildMessage({
+            subject: 'CashOutCallback',
+            payload: JSON.stringify({
+                coinLocation: coin.location,
+                paymentAmount,
+                deviceGPS
+            }),
+        }), '/cashier');
     }
     async blockInput(x, y, width, height) {
         console.log(`BlockInput`, x, y, width, height);
@@ -296,12 +316,6 @@ export class WalletService extends EventEmitter {
                     break;
                 case 'GetBalance':
                     response.payload = await ((_a = this.agent) === null || _a === void 0 ? void 0 : _a.getBalance());
-                    break;
-                case 'Cashout':
-                    if (!this.wallet)
-                        throw new Error('Wallet not initialized');
-                    // await this.wallet.cashout(payload);
-                    this.clientEmit('BalanceUpdated', 0);
                     break;
                 case 'IsHandleAvailable':
                     response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));

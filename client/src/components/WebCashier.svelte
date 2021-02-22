@@ -89,18 +89,19 @@
             }
 
             const ws = get(walletService);
-            const message = ws.wallet.buildMessage({
-                subject: ws.paymail,
-                payload: JSON.stringify({
-                    deviceGPS,
-                    paymentAmount,
-                }),
-            });
+            const response = await ws.cashout(paymentAmount, deviceGPS);
+            // const message = ws.wallet.buildMessage({
+            //     subject: 'CashOut',
+            //     payload: JSON.stringify({
+            //         deviceGPS,
+            //         amount,
+            //     }),
+            // });
 
-            const response = ((await ws.blockchain.sendMessage(
-                message,
-                "/cashout"
-            )) as unknown) as CashierResponse;
+            // const response = ((await ws.blockchain.sendMessage(
+            //     message,
+            //     "/cashier"
+            // )) as unknown) as CashierResponse;
 
             let sessionId = response.paymentId;
             let script = response.cashierScript;
@@ -138,16 +139,14 @@
             }
 
             const ws = get(walletService);
-            const message = ws.wallet.buildMessage({
-                payload: JSON.stringify({
-                    deviceGPS,
-                    paymentAmount,
-                }),
-            });
-            const response = ((await ws.blockchain.sendMessage(
-                message,
-                "/cashier"
-            )) as unknown) as CashierResponse;
+            // const message = ws.wallet.buildMessage({
+            //     subject: 'Deposit',
+            //     payload: JSON.stringify({
+            //         deviceGPS,
+            //         paymentAmount,
+            //     }),
+            // });
+            const response = await ws.deposit(paymentAmount, deviceGPS);
 
             let sessionId = response.paymentId;
             let script = response.cashierScript;

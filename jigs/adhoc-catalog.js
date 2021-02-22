@@ -2,6 +2,7 @@ class Catalog {
     static async preDeploy() {
         this.agents = {
             cashier: this.deps.CashierAgent,
+            config: this.deps.CashierConfig,
             'krono-coin': this.deps.KronoCoin,
         };
     }

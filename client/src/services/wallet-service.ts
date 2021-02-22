@@ -3,6 +3,7 @@ import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 import type { IMessage } from '../models/imessage';
 import type { IDialog } from '../models/idialog';
 import { UnityGpsData } from '../models/unity-gps-data';
+import { ApiService } from "../services/api-service";
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
@@ -15,6 +16,8 @@ import Run from 'run-sdk';
 
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
+import { GpsDetails } from '../models/gps-details';
+import { CashierResponse } from '../models/cashier-response';
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
@@ -32,6 +35,7 @@ export class WalletService extends EventEmitter {
 
     public blockchain?: RestBlockchain;
     public wallet?: Wallet;
+    private run: any;
     private agent?: any;
 
     private apiUrl = '';
@@ -152,7 +156,7 @@ export class WalletService extends EventEmitter {
             this.config.network,
             cache
         )
-        const run = new Run({
+        const run = this.run = new Run({
             network: this.config.network,
             owner,
             blockchain,
@@ -254,6 +258,47 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('HANDLE');
     }
 
+    async deposit(paymentAmount, deviceGPS): Promise<CashierResponse> {
+        return this.blockchain.sendMessage(
+            this.wallet.buildMessage({
+                subject: 'Deposit',
+                payload: JSON.stringify({
+                    deviceGPS,
+                    paymentAmount,
+                }),
+            }), 
+            '/cashier'
+        )
+    }
+
+    async cashout(paymentAmount: number, deviceGPS: GpsDetails): Promise<CashierResponse> {
+        let { coinIndex, rawtx } = await this.blockchain.sendMessage(
+            this.wallet.buildMessage({
+                subject: 'CashOut',
+                payload: JSON.stringify({
+                    paymentAmount,
+                }),
+            }), 
+            '/cashier'
+        );
+        const t = await this.run.import(rawtx);
+        let coin = t.outputs[coinIndex];
+        await t.publish();
+        await coin.sync();
+
+        return this.blockchain.sendMessage(
+            this.wallet.buildMessage({
+                subject: 'CashOutCallback',
+                payload: JSON.stringify({
+                    coinLocation: coin.location,
+                    paymentAmount,
+                    deviceGPS
+                }),
+            }), 
+            '/cashier'
+        );
+    }
+
     async blockInput(x: number, y: number, width: number, height: number) {
         console.log(`BlockInput`, x, y, width, height);
         this.clientEmit('BlockInput', {
@@ -343,11 +388,6 @@ export class WalletService extends EventEmitter {
                     break;
                 case 'GetBalance':
                     response.payload = await this.agent?.getBalance();
-                    break;    
-                case 'Cashout':
-                    if (!this.wallet) throw new Error('Wallet not initialized');
-                    // await this.wallet.cashout(payload);
-                    this.clientEmit('BalanceUpdated', 0);
                     break;
                 case 'IsHandleAvailable':
                     response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
