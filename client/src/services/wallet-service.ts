@@ -3,7 +3,6 @@ import { Bip32, Constants, KeyPair, PrivKey } from 'bsv';
 import type { IMessage } from '../models/imessage';
 import type { IDialog } from '../models/idialog';
 import { UnityGpsData } from '../models/unity-gps-data';
-import { ApiService } from "../services/api-service";
 import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';

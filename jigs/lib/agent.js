@@ -206,6 +206,10 @@ class Agent extends EventEmitter {
     }
 }
 
+Agent.deps = {
+    Group
+};
+
 Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
