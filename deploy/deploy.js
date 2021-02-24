@@ -109,8 +109,8 @@ function renderUsage() {
 
     const catalog = await deployer.deploy(catalogFile);
 
+    const realm = catalog.realm;
     for (const [agentId, dep] of Object.entries(catalog.agents)) {
-        const realm = catalog.realm;
         const message = new SignedMessage({
             from: keyPair.pubKey.toString(),
             ts: Date.now(),
@@ -118,6 +118,21 @@ function renderUsage() {
         });
         message.sign(keyPair);
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(message)
+        });
+        if(!resp.ok) throw new Error(resp.statusText);
+    }
+
+    if(catalog.fyxId) {
+        const message = new SignedMessage({
+            from: keyPair.pubKey.toString(),
+            ts: Date.now(),
+            payload: JSON.stringify({ location: catalog.location })
+        });
+        message.sign(keyPair);
+        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${catalog.fyxId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(message)
