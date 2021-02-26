@@ -191,12 +191,14 @@ export class WalletService extends EventEmitter {
         this.initializeWallet(bip32.derive(`${this.derivation}/1/0`).privKey.toString(), bip32.derive(`${this.derivation}/0/0`).privKey.toString());
     }
     async login(handle, password, derivation = 'm') {
+        console.log('Login:', handle);
         this.derivation = derivation;
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
         this.show('menu');
     }
     async register(handle, password, email, derivation = 'm') {
+        console.log('Register:', handle);
         this.derivation = derivation;
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);

@@ -238,6 +238,7 @@ export class WalletService extends EventEmitter {
     }
 
     async login(handle: string, password: string, derivation = 'm') {
+        console.log('Login:', handle);
         this.derivation = derivation;
         this.keyPair = await this.auth.login(handle, password);
         await this.initializeUser(handle);
@@ -245,6 +246,7 @@ export class WalletService extends EventEmitter {
     }
 
     async register(handle: string, password: string, email: string, derivation = 'm') {
+        console.log('Register:', handle);
         this.derivation = derivation;
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);

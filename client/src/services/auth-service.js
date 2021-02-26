@@ -69,9 +69,8 @@ export class AuthService {
     }
     async recover(paymail, keyPair) {
         const message = new SignedMessage({
-            from: keyPair.pubKey.toString()
-        });
-        message.sign(keyPair);
+            subject: 'Recover'
+        }, keyPair);
         const url = `${this.apiUrl}/api/accounts/${encodeURIComponent(paymail)}/recover`;
         console.log(url);
         const resp = await fetch(url, {
