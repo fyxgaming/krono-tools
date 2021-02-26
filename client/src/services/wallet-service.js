@@ -154,7 +154,7 @@ export class WalletService extends EventEmitter {
         console.log('AGENT_ID:', this.agentId);
         console.log('LOC:', this.agentDef.location);
         const Agent = await run.load(this.agentDef.location);
-        const agent = this.agent = new Agent(wallet, blockchain, null, bsv, { fetch, Buffer, ws, SignedMessage });
+        const agent = this.agent = new Agent(wallet, blockchain, null, bsv, { fetch: fetch.bind(window), Buffer, ws, SignedMessage });
         agent.on('client', this.clientEmit.bind(this));
         agent.on('subscribe', (channel, lastId) => {
             ws.subscribe(channel, lastId);
