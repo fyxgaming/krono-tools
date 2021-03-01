@@ -18,6 +18,7 @@ import { Buffer } from 'buffer';
 import bsv from 'bsv';
 import { GpsDetails } from '../models/gps-details';
 import { CashierResponse } from '../models/cashier-response';
+import axios from 'axios';
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
@@ -254,16 +255,14 @@ export class WalletService extends EventEmitter {
     }
 
     async deposit(paymentAmount, deviceGPS): Promise<CashierResponse> {
-        return this.blockchain.sendMessage(
-            this.wallet.buildMessage({
-                subject: 'Deposit',
-                payload: JSON.stringify({
-                    deviceGPS,
-                    paymentAmount,
-                }),
-            }), 
-            '/cashier'
-        )
+        const {data} = await axios.post('/cashier', new SignedMessage({
+            subject: 'Deposit',
+            payload: JSON.stringify({
+                deviceGPS,
+                paymentAmount,
+            }),
+        }, this.keyPair));
+        return data;
     }
 
     async cashout(paymentAmount: number, deviceGPS: GpsDetails): Promise<CashierResponse> {
@@ -276,6 +275,7 @@ export class WalletService extends EventEmitter {
             }), 
             '/cashier'
         );
+
         const t = await this.run.import(rawtx);
         let coin = t.outputs[coinIndex];
         await t.publish();
@@ -385,7 +385,7 @@ export class WalletService extends EventEmitter {
                     response.payload = await this.agent?.getBalance();
                     break;
                 case 'IsHandleAvailable':
-                    response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
+                    response.payload = JSON.stringify(await this.auth.isIdAvailable(payload));
                     break;
                 case 'RegisterLocation':
                     this.emit('LocationUpdated', payload);

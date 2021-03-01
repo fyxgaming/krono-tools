@@ -55,9 +55,9 @@ export class AuthService {
             path
         };
     }
-    async isHandleAvailable(handle) {
+    async isIdAvailable(id) {
         try {
-            await axios(`${this.apiUrl}/accounts/${handle}`);
+            await axios(`${this.apiUrl}/accounts/${id}`);
             return false;
         }
         catch (e) {

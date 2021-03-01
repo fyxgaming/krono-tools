@@ -10,6 +10,7 @@ import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from 'run-sdk';
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
+import axios from 'axios';
 bsv.Constants.Default = Constants.Default;
 export class WalletService extends EventEmitter {
     constructor() {
@@ -204,13 +205,14 @@ export class WalletService extends EventEmitter {
         window.localStorage.removeItem('HANDLE');
     }
     async deposit(paymentAmount, deviceGPS) {
-        return this.blockchain.sendMessage(this.wallet.buildMessage({
+        const { data } = await axios.post('/cashier', new SignedMessage({
             subject: 'Deposit',
             payload: JSON.stringify({
                 deviceGPS,
                 paymentAmount,
             }),
-        }), '/cashier');
+        }, this.keyPair));
+        return data;
     }
     async cashout(paymentAmount, deviceGPS) {
         let { coinIndex, rawtx } = await this.blockchain.sendMessage(this.wallet.buildMessage({
@@ -323,7 +325,7 @@ export class WalletService extends EventEmitter {
                     response.payload = await ((_a = this.agent) === null || _a === void 0 ? void 0 : _a.getBalance());
                     break;
                 case 'IsHandleAvailable':
-                    response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
+                    response.payload = JSON.stringify(await this.auth.isIdAvailable(payload));
                     break;
                 case 'RegisterLocation':
                     this.emit('LocationUpdated', payload);
