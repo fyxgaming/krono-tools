@@ -8,8 +8,9 @@ import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
 import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 import { FyxOwner } from '@kronoverse/lib/dist/fyx-owner';
-import { AuthService } from './auth-service';
+import { AuthService } from '@kronoverse/lib/dist/auth-service';
 import { EventEmitter } from 'events';
+import createError from 'http-errors';
 
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from 'run-sdk';
@@ -18,7 +19,6 @@ import { Buffer } from 'buffer';
 import bsv from 'bsv';
 import { GpsDetails } from '../models/gps-details';
 import { CashierResponse } from '../models/cashier-response';
-import axios from 'axios';
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
@@ -255,14 +255,19 @@ export class WalletService extends EventEmitter {
     }
 
     async deposit(paymentAmount, deviceGPS): Promise<CashierResponse> {
-        const {data} = await axios.post('/cashier', new SignedMessage({
-            subject: 'Deposit',
-            payload: JSON.stringify({
-                deviceGPS,
-                paymentAmount,
-            }),
-        }, this.keyPair));
-        return data;
+        const resp = await fetch('/cashier', {
+            method: 'POST',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify(new SignedMessage({
+                subject: 'Deposit',
+                payload: JSON.stringify({
+                    deviceGPS,
+                    paymentAmount,
+                }),
+            }, this.keyPair))
+        });
+        if(!resp.ok) throw createError(resp.status, resp.statusText);
+        return resp.json();
     }
 
     async cashout(paymentAmount: number, deviceGPS: GpsDetails): Promise<CashierResponse> {
