@@ -10,7 +10,7 @@ import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 import { FyxOwner } from '@kronoverse/lib/dist/fyx-owner';
 import { AuthService } from '@kronoverse/lib/dist/auth-service';
 import { EventEmitter } from 'events';
-import createError from 'http-errors';
+import {HttpError} from '@kronoverse/lib/dist/http-error';
 
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from 'run-sdk';
@@ -266,7 +266,7 @@ export class WalletService extends EventEmitter {
                 }),
             }, this.keyPair))
         });
-        if(!resp.ok) throw createError(resp.status, resp.statusText);
+        if(!resp.ok) throw new HttpError(resp.status, resp.statusText);
         return resp.json();
     }
 
