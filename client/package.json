@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "date-fns": "^2.16.1",
+    "http-errors": "^1.8.0",
     "sirv-cli": "^1.0.0",
     "whatwg-fetch": "^3.5.0"
   }
