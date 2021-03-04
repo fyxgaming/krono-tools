@@ -1,14 +1,13 @@
 class Catalog {
     static async preDeploy() {
         this.agents = {
-            cashier: this.deps.CashierAgent,
             config: this.deps.CashierConfig,
-            'krono-coin': this.deps.KronoCoin,
+            coin: this.deps.KronoCoin,
         };
     }
 }
 
-Catalog.realm = 'adhoc.kronoverse.io';
+Catalog.fyxId = 'fyx';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',

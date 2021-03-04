@@ -1,7 +1,6 @@
 const KronoJig = require('../lib/krono-jig');
 
 /* global KronoItem */
-
 class KronoMint extends KronoJig {
     mint(item) {
         return new KronoItem(item);

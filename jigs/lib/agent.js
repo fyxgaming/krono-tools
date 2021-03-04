@@ -12,11 +12,6 @@ class Agent extends EventEmitter {
         this.bsv = bsv;
         this.lib = lib;
         this.address = wallet.address;
-        const lock = new Group(
-            [this.wallet.ownerPair.pubKey.toString(), CashierConfig.pubkey],
-            2
-        );
-        this.coinScript = lock.script();
         this.pubkey = wallet.pubkey;
         this.purse = wallet.purse;
         this.paymail = wallet.paymail;

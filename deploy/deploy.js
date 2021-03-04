@@ -115,8 +115,7 @@ function renderUsage() {
             from: keyPair.pubKey.toString(),
             ts: Date.now(),
             payload: JSON.stringify({ location: dep.location })
-        });
-        message.sign(keyPair);
+        }, 'fyx', keyPair);
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -130,8 +129,7 @@ function renderUsage() {
             from: keyPair.pubKey.toString(),
             ts: Date.now(),
             payload: JSON.stringify({ location: catalog.location })
-        });
-        message.sign(keyPair);
+        }, 'fyx', keyPair);
         const resp = await fetch(`${blockchainUrl}/agents/${realm}/${catalog.fyxId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
