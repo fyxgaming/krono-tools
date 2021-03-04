@@ -23,12 +23,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Deployer = void 0;
+const bsv_1 = require("bsv");
 const crypto_1 = require("crypto");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
 class Deployer {
-    constructor(run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+    constructor(apiUrl, userId, run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+        this.apiUrl = apiUrl;
+        this.userId = userId;
         this.run = run;
         this.rootPath = rootPath;
         this.env = env;
@@ -40,6 +43,7 @@ class Deployer {
         this.path = path;
         this.git = promise_1.default(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
+        this.keyPair = bsv_1.KeyPair.fromPrivKey(bsv_1.PrivKey.fromString(run.owner));
     }
     log(msg) {
         if (this.debug) {

@@ -64,6 +64,7 @@ function renderUsage() {
     const xpriv = process.env.XPRIV;
 
     const network = argv.network || process.env.RUNNETWORK;
+    const userId = argv.userId || process.env.USER_ID;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -105,7 +106,7 @@ function renderUsage() {
 
     const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);
-    const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
+    const deployer = new Deployer(blockchainUrl, userId, run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
     const catalog = await deployer.deploy(catalogFile);
 

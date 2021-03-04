@@ -1,3 +1,4 @@
+import {KeyPair, PrivKey} from 'bsv';
 import { createHash } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -8,10 +9,13 @@ export class Deployer {
     networkKey: string;
     fs = fs;
     path = path;
+    public keyPair
     private git: simpleGit.SimpleGit;
     public blockchain;
     
     constructor(
+        public apiUrl: string,
+        public userId: string,
         public run: any,
         public rootPath: string,
         public env: string,
@@ -21,6 +25,7 @@ export class Deployer {
     ) {
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
+        this.keyPair = KeyPair.fromPrivKey(PrivKey.fromString(run.owner));
     }
 
     private log(msg: any) {

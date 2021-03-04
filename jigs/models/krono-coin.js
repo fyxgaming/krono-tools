@@ -1,5 +1,9 @@
+const axios = require('axios');
 const { Token20 } = require('run-sdk').extra;
 const {Transaction} = require('run-sdk');
+
+const {SignedMessage} = require('@kronoverse/lib/dist/signed-message');
+
 
 /* global KronoClass */
 class KronoCoin extends Token20 {
@@ -15,20 +19,26 @@ class KronoCoin extends Token20 {
 }
 
 KronoCoin.postDeploy = async (deployer) => {
-    const { CashierConfig } = KronoCoin.deps;
-    const [coin] = await deployer.blockchain.jigIndex(
-        CashierConfig.address, 
-        {
+    const { data: [coin]} = await axios.post(`${deployer.apiUrl}/jigs/cashier`, new SignedMessage({
+        payload: JSON.stringify({
             criteria: {kind: KronoCoin.origin},
             project: {value: false}
-        }
-    );
+        })
+    }, deployer.userId, deployer.keyPair));
+
     if(!coin) {
+        const { data: address } = await axios.post(`${deployer.apiUrl}}/accounts`, new SignedMessage({
+            subject: 'RequestPaymentAddress',
+            payload: JSON.stringify({
+                fyxId: 'fyx',
+                userId: 'cashier'
+            })
+        }));
         const t = new Transaction();
         t.update(() => {
             console.log('Minting Coins');
             for(let i = 0; i < 10; i++) {
-                KronoCoin.mint(1000000000000, CashierConfig.address);
+                KronoCoin.mint(1000000000000, address);
             }
         });
         await t.publish();
@@ -37,7 +47,6 @@ KronoCoin.postDeploy = async (deployer) => {
 
 KronoCoin.decimals = 6;
 KronoCoin.asyncDeps = {
-    CashierConfig: 'config/{env}/cashier-config.js',
     KronoClass: 'lib/krono-class.js'
 };
 
