@@ -103,34 +103,33 @@ function renderUsage() {
         // logger: console
     });
 
-    const rootPath = path.dirname(sourcePath)
+    const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
     const catalog = await deployer.deploy(catalogFile);
 
-    const realm = catalog.realm;
-    for (const [agentId, dep] of Object.entries(catalog.agents)) {
-        const message = new SignedMessage({
-            from: keyPair.pubKey.toString(),
-            ts: Date.now(),
-            payload: JSON.stringify({ location: dep.location })
-        }, 'fyx', keyPair);
-        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(message)
-        });
-        if(!resp.ok) throw new Error(resp.statusText);
-    }
-
     if(catalog.fyxId) {
+        for (const [agentId, dep] of Object.entries(catalog.agents)) {
+            const message = new SignedMessage({
+                from: keyPair.pubKey.toString(),
+                ts: Date.now(),
+                payload: JSON.stringify({ location: dep.location })
+            }, 'fyx', keyPair);
+            const resp = await fetch(`${blockchainUrl}/agents/${catalog.fyxId}/${agentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(message)
+            });
+            if(!resp.ok) throw new Error(resp.statusText);
+        }
+
         const message = new SignedMessage({
             from: keyPair.pubKey.toString(),
             ts: Date.now(),
             payload: JSON.stringify({ location: catalog.location })
         }, 'fyx', keyPair);
-        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${catalog.fyxId}`, {
+        const resp = await fetch(`${blockchainUrl}/agents/${catalog.fyxId}/catalog`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(message)
