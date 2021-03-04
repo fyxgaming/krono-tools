@@ -1,8 +1,7 @@
-const CashierConfig = require('../config/dev/cashier-config');
 const EventEmitter = require('./event-emitter');
 const { Group } = require('run-sdk').extra;
 
-/* global KronoCoin, KronoError, Sha256 */
+/* global Sha256 */
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
@@ -107,97 +106,6 @@ class Agent extends EventEmitter {
             bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
         }
         return bytes;
-    }
-
-    generateHashchain(size) {
-        const hashchain = [];
-        // const hashchain = new Array(size);
-        let hash = hashchain[size - 1] = this.wallet.randomBytes(32);
-        for (let i = size - 2; i >= 0; i--) {
-            hash = hashchain[i] = Sha256.hashToHex(Agent.hexToBytes(hash));
-        }
-        return hashchain;
-    }
-
-    async getCoins(ownerScript) {
-        return this.blockchain.jigIndex(
-            ownerScript, 
-            {criteria: {kind: KronoCoin.origin}},
-            'script'
-        );
-    }
-
-    async selectCoins(amount, ownerScript) {
-        const coins = [];
-        let acc = 0;
-        for(let coinData of await this.getCoins(ownerScript || this.coinScript)) {
-            if(acc >= amount) break;
-            const coin = await this.wallet.loadJig(coinData.location);
-            coins.push(coin);
-            acc += coin.amount;
-        }
-        if (acc < amount) throw new KronoError(402, 'Insufficient balance');
-        return coins;
-    }
-
-    async getBalance(ownerScript) {
-        console.log('getBalance');
-        const coinIndex = await this.getCoins(ownerScript || this.coinScript);
-        const balance = coinIndex.reduce((acc, coin) => acc + coin.value.amount, 0);
-        console.log('Balance', balance);
-        return balance;
-    }
-
-    async pickAndLock(jigs, lockSeconds = 120) {
-        const now = this.wallet.now;
-        for(let j of jigs) {
-            console.log('Jig:', j.location);
-            if(await this.storage.exists(`lock:${j.location}`)) {
-                console.log('Locked:', j.location);
-                continue;
-            }
-            await this.storage.pipeline()
-                .set(`lock:${j.location}`, now.toString())
-                .expire(`lock:${j.location}`, lockSeconds)
-                .exec();
-            const jig = await this.wallet.loadJig(j.location);
-            return jig;
-        }
-    }
-
-
-    async cashout(ownerScript, paymentAmount, deviceGPS) {
-        const message = this.wallet.buildMessage({
-            subject: 'CashoutRequest',
-            payload: JSON.stringify({
-                paymentAmount,
-                ownerScript
-            })
-        });
-
-        const cashoutMsg = new this.lib.SignedMessage(
-            await this.blockchain.sendMessage(message, CashierConfig.postTo)
-        );
-        if(cashoutMsg.reply !== message.id ||
-            cashoutMsg.from !== CashierConfig.pubkey ||
-            !cashoutMsg.verify()
-        ) throw new Error('Invalid Response');
-        
-        let {cashoutLoc, rawtx} = cashoutMsg.payloadObj;
-        const t = await this.wallet.loadTransaction(rawtx);
-        rawtx = await t.export({sign: true, pay: false});
-        const txid = await this.blockchain.broadcast(rawtx);
-
-        const paymentMsg = this.wallet.buildMessage({
-            subject: 'CashoutPayment',
-            payload: JSON.stringify({
-                cashoutLoc,
-                txid,
-                deviceGPS
-            })
-        });
-        await this.blockchain.sendMessage(paymentMsg, CashierConfig.postTo);
-            
     }
 }
 

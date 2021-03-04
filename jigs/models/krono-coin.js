@@ -35,7 +35,6 @@ KronoCoin.postDeploy = async (deployer) => {
                 userId: 'cashier'
             })
         }, deployer.userId, deployer.keyPair));
-        console.log('ADDRESSES:', addresses);
         const t = new Transaction();
         t.update(() => {
             console.log('Minting Coins');
