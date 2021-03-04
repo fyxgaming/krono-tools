@@ -27,13 +27,15 @@ KronoCoin.postDeploy = async (deployer) => {
     }, deployer.userId, deployer.keyPair));
 
     if(!coin) {
-        const { data: address } = await axios.post(`${deployer.apiUrl}}/accounts`, new SignedMessage({
+        const { data: {address} } = await axios.post(`${deployer.apiUrl}/accounts`, new SignedMessage({
             subject: 'RequestPaymentAddress',
+            context: ['fyx'],
             payload: JSON.stringify({
                 fyxId: 'fyx',
                 userId: 'cashier'
             })
-        }));
+        }, deployer.userId, deployer.keyPair));
+        console.log('ADDRESSES:', addresses);
         const t = new Transaction();
         t.update(() => {
             console.log('Minting Coins');
