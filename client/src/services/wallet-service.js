@@ -181,7 +181,7 @@ export class WalletService extends EventEmitter {
             bip32 = Bip32.fromString(recovery.xpriv);
             path = recovery.path;
         }
-        const owner = new FyxOwner(this.apiUrl, bip32, this.fyxId, path);
+        const owner = new FyxOwner(this.apiUrl, bip32, this.fyxId);
         this.authenticated = true;
         this.initializeWallet(owner, bip32.derive(`${this.derivation}/0/0`).privKey.toString());
     }
