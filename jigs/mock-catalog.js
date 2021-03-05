@@ -2,11 +2,12 @@ class Catalog {
     static async preDeploy() {
         this.agents = {
             cashier: this.deps.CashierAgent,
+            coin: this.deps.KronoCoin,
         };
     }
 }
 
-Catalog.realm = 'local';
+Catalog.realm = 'fyx';
 
 Catalog.asyncDeps = {
     Agent: 'lib/agent.js',
