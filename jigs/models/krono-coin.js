@@ -19,6 +19,7 @@ class KronoCoin extends Token20 {
 }
 
 KronoCoin.postDeploy = async (deployer) => {
+    const { CashierConfig } = KronoCoin.deps;
     const { data: [coin]} = await axios.post(`${deployer.apiUrl}/jigs/cashier`, new SignedMessage({
         payload: JSON.stringify({
             criteria: {kind: KronoCoin.origin},
@@ -31,7 +32,7 @@ KronoCoin.postDeploy = async (deployer) => {
         t.update(() => {
             console.log('Minting Coins');
             for(let i = 0; i < 10; i++) {
-                KronoCoin.mint(1000000000000, KronoCoin.dep.CashierConfig.address);
+                KronoCoin.mint(1000000000000, CashierConfig.address);
             }
         });
         await t.publish();
