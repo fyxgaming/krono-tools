@@ -130,14 +130,12 @@ export class Deployer {
 
         //Derive the chain file path
         let chainFilePath = this.deriveChainFilePath(sourcePath);
-        let chainData = {};
         let presets: any = {};
 
         //Does the chain file exist; If not, then must deploy
         if (this.useChainFiles && fs.existsSync(chainFilePath)) {
-            //Is there data for this network; If not, then must deploy
-            chainData = fs.readJSONSync(chainFilePath);
-            presets = chainData[this.networkKey];
+            //Is there data for this environment; If not, then must deploy
+            presets = fs.readJSONSync(chainFilePath);
 
             if (presets) {
                 let jigLocation = presets.location;
@@ -240,7 +238,6 @@ export class Deployer {
 
     async loadChainFile(chainFileReference: string): Promise<any> {
         const { run, cache, env, rootPath, modulePath } = this;
-        const network = run.blockchain.network;
         const chainFile = chainFileReference.replace('{env}', env);
         if (cache.has(chainFile)) return cache.get(chainFile);
         let sourcePath = path.join(rootPath, chainFile);
@@ -252,8 +249,8 @@ export class Deployer {
         const chainData = fs.readJSONSync(sourcePath);
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
-        if (!chainData[network]) return;
-        const jig = await run.load(chainData[network].location);
+        if (!chainData) return;
+        const jig = await run.load(chainData.location);
         if (jig) {
             cache.set(chainFile, jig);
         }
@@ -261,13 +258,11 @@ export class Deployer {
     }
 
     async writeChainFile(chainFilePath: string, jig: any) {
-        const { networkKey } = this;
         if (!jig.origin && !jig.location) {
             throw new Error(`Resource didn't have an origin or location`);
         }
         let { origin, location, nonce, owner, satoshis } = jig;
-        let chainData = {};
-        chainData[networkKey] = { origin, location, nonce, owner, satoshis };
+        let chainData = { origin, location, nonce, owner, satoshis };
         await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
     }
 }
