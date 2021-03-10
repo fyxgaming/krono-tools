@@ -108,35 +108,8 @@ function renderUsage() {
     console.log('rootPath:', rootPath);
     const deployer = new Deployer(blockchainUrl, userId, keyPair, run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy(catalogFile);
+    await deployer.deploy(catalogFile);
 
-    if(catalog.fyxId) {
-        for (const [agentId, dep] of Object.entries(catalog.agents)) {
-            const message = new SignedMessage({
-                from: keyPair.pubKey.toString(),
-                ts: Date.now(),
-                payload: JSON.stringify({ location: dep.location })
-            }, 'fyx', keyPair);
-            const resp = await fetch(`${blockchainUrl}/agents/${catalog.fyxId}/${agentId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(message)
-            });
-            if(!resp.ok) throw new Error(resp.statusText);
-        }
-
-        const message = new SignedMessage({
-            from: keyPair.pubKey.toString(),
-            ts: Date.now(),
-            payload: JSON.stringify({ location: catalog.location })
-        }, 'fyx', keyPair);
-        const resp = await fetch(`${blockchainUrl}/agents/${catalog.fyxId}/catalog`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(message)
-        });
-        if(!resp.ok) throw new Error(resp.statusText);
-    }
     console.log('Deployed');
 })().catch(e => {
     console.error(e);
