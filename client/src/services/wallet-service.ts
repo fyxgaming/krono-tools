@@ -7,14 +7,18 @@ import { Wallet } from '@kronoverse/lib/dist/wallet';
 import { RestBlockchain } from '@kronoverse/lib/dist/rest-blockchain';
 import { RestStateCache } from '@kronoverse/lib/dist/rest-state-cache';
 import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
-import { AuthService } from './auth-service';
+import { FyxOwner } from '@kronoverse/lib/dist/fyx-owner';
+import { AuthService } from '@kronoverse/lib/dist/auth-service';
 import { EventEmitter } from 'events';
+import {HttpError} from '@kronoverse/lib/dist/http-error';
 
 import { WSClient } from '@kronoverse/lib/dist/ws-client';
 import Run from 'run-sdk';
 
 import { Buffer } from 'buffer';
 import bsv from 'bsv';
+import { GpsDetails } from '../models/gps-details';
+import { CashierResponse } from '../models/cashier-response';
 bsv.Constants.Default = Constants.Default;
 
 export class WalletService extends EventEmitter {
@@ -32,10 +36,13 @@ export class WalletService extends EventEmitter {
 
     public blockchain?: RestBlockchain;
     public wallet?: Wallet;
+    private run: any;
     private agent?: any;
 
+    public handle?: string;
+
     private apiUrl = '';
-    private domain = document.location.hash.slice(1).split('@')[1];
+    private fyxId = document.location.hash.slice(1).split('@')[1];
     private config: any;
 
     private auth: AuthService;
@@ -62,14 +69,6 @@ export class WalletService extends EventEmitter {
         return ((window as any).vuplex) ? true : false;
     }
 
-    get handle(): string {
-        return window.localStorage.getItem('HANDLE') || '';
-    }
-
-    set handle(value: string) {
-        window.localStorage.setItem('HANDLE', value);
-    }
-
     private get keyPair() {
         const wif = window.localStorage.getItem('WIF');
         if (!wif) return null;
@@ -84,10 +83,6 @@ export class WalletService extends EventEmitter {
         return document.location.hash.slice(1).split('@')[0];
     }
 
-    get paymail(): string {
-        return `${this.handle}@${this.domain}`;
-    }
-
     async init(): Promise<any> {
         let resp = await fetch(`${this.apiUrl}/wallet/config`);
         const config = this.config = await resp.json();
@@ -96,7 +91,7 @@ export class WalletService extends EventEmitter {
         this.overrideConsole();
         console.log('Run:', Run.version);
         Constants.Default = config.network === 'main' ? Constants.Mainnet : Constants.Testnet;
-        this.auth = new AuthService(this.apiUrl, this.domain, config.network);
+        this.auth = new AuthService(this.apiUrl, config.network);
 
         let initialized = false;
         while (config.ephemeral && !initialized) {
@@ -108,7 +103,7 @@ export class WalletService extends EventEmitter {
         this.channel.addEventListener('message', this.onClientEvent.bind(this));
 
         console.log('BLOCKCHAIN:', this.apiUrl);
-        const url = `${this.apiUrl}/agents/${this.domain}/${this.agentId}`;
+        const url = `${this.apiUrl}/agents/${this.fyxId}/${this.agentId}`;
         console.log('fetching:', url);
         resp = await fetch(url);
         if (!resp.ok) throw new Error(`${resp.status} - ${resp.statusText}`);
@@ -144,7 +139,7 @@ export class WalletService extends EventEmitter {
         }
     }
 
-    private async initializeWallet(owner?: string, purse?: string) {
+    private async initializeWallet(owner?, purse?: string) {
         const cache = new Run.plugins.BrowserCache({ maxMemorySizeMB: 100 });
         const blockchain = this.blockchain = new RestBlockchain(
             fetch.bind(window),
@@ -152,7 +147,7 @@ export class WalletService extends EventEmitter {
             this.config.network,
             cache
         )
-        const run = new Run({
+        const run = this.run = new Run({
             network: this.config.network,
             owner,
             blockchain,
@@ -172,7 +167,7 @@ export class WalletService extends EventEmitter {
         });
 
         const wallet = this.wallet = new Wallet(
-            this.paymail,
+            this.handle,
             this.keyPair,
             run
         );
@@ -190,11 +185,11 @@ export class WalletService extends EventEmitter {
             ws = new WSClient(WebSocket, this.config.sockets, channels);
         }
 
-        console.log('DOMAIN:', this.domain);
+        console.log('FYX_IC:', this.fyxId);
         console.log('AGENT_ID:', this.agentId);
         console.log('LOC:', this.agentDef.location);
         const Agent = await run.load(this.agentDef.location);
-        const agent = this.agent = new Agent(wallet, blockchain, null, bsv, { fetch, Buffer, ws, SignedMessage });
+        const agent = this.agent = new Agent(wallet, blockchain, null, bsv, { fetch: fetch.bind(window), Buffer, ws, SignedMessage });
         agent.on('client', this.clientEmit.bind(this));
         agent.on('subscribe', (channel: string, lastId?: number) => {
             ws.subscribe(channel, lastId);
@@ -218,30 +213,35 @@ export class WalletService extends EventEmitter {
     async initializeUser(handle?) {
         console.log('Initializing User');
         if (handle) this.handle = handle;
-        let bip32;
+        let bip32, path;
         if (this.config.ephemeral) {
             bip32 = Bip32.fromRandom();
             this.keyPair = KeyPair.fromPrivKey(bip32.privKey);
         } else {
             console.log('Recovering account');
-            const xpriv = await this.auth.recover(this.paymail, this.keyPair)
-            bip32 = Bip32.fromString(xpriv);
+            const recovery = await this.auth.recover(handle, this.keyPair);
+            bip32 = Bip32.fromString(recovery.xpriv);
+            path = recovery.path;
         }
+
+        const owner = new FyxOwner(this.apiUrl, bip32, this.fyxId)
         this.authenticated = true;
         this.initializeWallet(
-            bip32.derive(`${this.derivation}/1/0`).privKey.toString(),
+            owner,
             bip32.derive(`${this.derivation}/0/0`).privKey.toString()
         );
     }
 
     async login(handle: string, password: string, derivation = 'm') {
+        console.log('Login:', handle);
         this.derivation = derivation;
-        this.keyPair = await this.auth.login(handle, password);
+        this.keyPair = await this.auth.generateKeyPair(handle, password);
         await this.initializeUser(handle);
         this.show('menu');
     }
 
     async register(handle: string, password: string, email: string, derivation = 'm') {
+        console.log('Register:', handle);
         this.derivation = derivation;
         this.keyPair = await this.auth.register(handle, password, email);
         await this.initializeUser(handle);
@@ -252,6 +252,51 @@ export class WalletService extends EventEmitter {
         this.authenticated = false;
         window.localStorage.removeItem('WIF');
         window.localStorage.removeItem('HANDLE');
+    }
+
+    async deposit(paymentAmount, deviceGPS): Promise<CashierResponse> {
+        const resp = await fetch('/cashier', {
+            method: 'POST',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify(new SignedMessage({
+                subject: 'Deposit',
+                payload: JSON.stringify({
+                    deviceGPS,
+                    paymentAmount,
+                }),
+            }, this.keyPair))
+        });
+        if(!resp.ok) throw new HttpError(resp.status, resp.statusText);
+        return resp.json();
+    }
+
+    async cashout(paymentAmount: number, deviceGPS: GpsDetails): Promise<CashierResponse> {
+        let { coinIndex, rawtx } = await this.blockchain.sendMessage(
+            this.wallet.buildMessage({
+                subject: 'CashOut',
+                payload: JSON.stringify({
+                    paymentAmount,
+                }),
+            }), 
+            '/cashier'
+        );
+
+        const t = await this.run.import(rawtx);
+        let coin = t.outputs[coinIndex];
+        await t.publish();
+        await coin.sync();
+
+        return this.blockchain.sendMessage(
+            this.wallet.buildMessage({
+                subject: 'CashOutCallback',
+                payload: JSON.stringify({
+                    coinLocation: coin.location,
+                    paymentAmount,
+                    deviceGPS
+                }),
+            }), 
+            '/cashier'
+        );
     }
 
     async blockInput(x: number, y: number, width: number, height: number) {
@@ -343,14 +388,9 @@ export class WalletService extends EventEmitter {
                     break;
                 case 'GetBalance':
                     response.payload = await this.agent?.getBalance();
-                    break;    
-                case 'Cashout':
-                    if (!this.wallet) throw new Error('Wallet not initialized');
-                    // await this.wallet.cashout(payload);
-                    this.clientEmit('BalanceUpdated', 0);
                     break;
                 case 'IsHandleAvailable':
-                    response.payload = JSON.stringify(await this.auth.isHandleAvailable(payload));
+                    response.payload = JSON.stringify(await this.auth.isIdAvailable(payload));
                     break;
                 case 'RegisterLocation':
                     this.emit('LocationUpdated', payload);
@@ -429,7 +469,7 @@ export class WalletService extends EventEmitter {
             this.logs.push({
                 idx: this.logId++,
                 sessionId: this.sessionId,
-                paymail: this.paymail,
+                handle: this.handle,
                 type: 'log',
                 ts: Date.now(),
                 message
@@ -444,7 +484,7 @@ export class WalletService extends EventEmitter {
             this.logs.push({
                 idx: this.logId++,
                 sessionId: this.sessionId,
-                paymail: this.paymail,
+                handle: this.handle,
                 type: 'error',
                 ts: Date.now(),
                 message

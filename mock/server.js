@@ -1,5 +1,5 @@
 const cors = require('cors');
-const { Address, Br, Tx } = require('bsv');
+const { Address, Tx } = require('bsv');
 const { EventEmitter } = require('events');
 const express = require('express');
 const http = require('http');

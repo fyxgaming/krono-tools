@@ -64,6 +64,7 @@ function renderUsage() {
     const xpriv = process.env.XPRIV;
 
     const network = argv.network || process.env.RUNNETWORK;
+    const userId = argv.userId || process.env.USER_ID;
     const source = argv.src;
     const catalogFile = argv.catalog || 'catalog.js';
     const disableChainFiles = argv.disableChainFiles;
@@ -103,27 +104,12 @@ function renderUsage() {
         // logger: console
     });
 
-    const rootPath = path.dirname(sourcePath)
+    const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);
-    const deployer = new Deployer(run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
+    const deployer = new Deployer(blockchainUrl, userId, keyPair, run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
 
-    const catalog = await deployer.deploy(catalogFile);
+    await deployer.deploy(catalogFile);
 
-    for (const [agentId, dep] of Object.entries(catalog.agents)) {
-        const realm = catalog.realm;
-        const message = new SignedMessage({
-            from: keyPair.pubKey.toString(),
-            ts: Date.now(),
-            payload: JSON.stringify({ location: dep.location })
-        });
-        message.sign(keyPair);
-        const resp = await fetch(`${blockchainUrl}/agents/${realm}/${agentId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(message)
-        });
-        if(!resp.ok) throw new Error(resp.statusText);
-    }
     console.log('Deployed');
 })().catch(e => {
     console.error(e);

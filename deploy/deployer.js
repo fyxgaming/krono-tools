@@ -27,8 +27,13 @@ const crypto_1 = require("crypto");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
+const CHAIN_FOLDER_NAME = 'chains';
 class Deployer {
-    constructor(run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+    //private envRegExp: RegExp;
+    constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+        this.apiUrl = apiUrl;
+        this.userId = userId;
+        this.keyPair = keyPair;
         this.run = run;
         this.rootPath = rootPath;
         this.env = env;
@@ -40,6 +45,8 @@ class Deployer {
         this.path = path;
         this.git = promise_1.default(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
+        this.networkKey = run.blockchain.network;
+        //this.envRegExp = new RegExp(`[\\|\/]{1}${env}[\\|\/]{1}`, 'i');
     }
     log(msg) {
         if (this.debug) {
@@ -50,16 +57,19 @@ class Deployer {
         if (this.cache.has(source))
             return this.cache.get(source);
         const hash = crypto_1.createHash('sha256');
-        // console.log(sourcePath);
+        // this.log(sourcePath);
         depth = (depth || 0);
         let sourcePath = path.isAbsolute(source) ? source : path.join(this.rootPath, source);
-        this.log(source);
         crumbs = `${crumbs} > ${source.split(path.sep).pop()}`;
         this.log(crumbs);
-        //Load the code file
-        let chainData = {};
+        //Load the code from the blockchain
         if (source.endsWith('.chain.json')) {
-            const deployed = await this.loadChain(source);
+            this.log(`HAS CHAIN DEPENDENCY`);
+            //if (!this.envRegExp.test(source)) throw `Mismatched environments in dependency.`;
+            const deployed = await this.loadChainFile(source);
+            //deployed could be null or undefined
+            if (!deployed)
+                throw new Error('Chain dependency could not be found.');
             this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
             return deployed;
         }
@@ -119,16 +129,17 @@ class Deployer {
         let mustDeploy = true;
         //Derive the chain file path
         let chainFilePath = this.deriveChainFilePath(sourcePath);
+        let presets = {};
         //Does the chain file exist; If not, then must deploy
         if (this.useChainFiles && fs.existsSync(chainFilePath)) {
-            //Is there data for this network; If not, then must deploy
-            chainData = require(chainFilePath);
-            if (chainData[this.env]) {
-                let jigLocation = chainData[this.env];
+            //Is there data for this environment; If not, then must deploy
+            presets = fs.readJSONSync(chainFilePath);
+            if (presets) {
+                let jigLocation = presets.location;
                 //Download artifact from chain based on location in chain file
                 //If this fails, then either Run is not compatible or the chainfile
                 //  is bad and so we will just deploy it again.
-                this.log(`RUN.LOAD ${jigLocation}`);
+                this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
                 let chainArtifact = await this.run.load(jigLocation).catch((ex) => {
                     // if (ex.statusCode === 404) {
                     this.log(`Error: ${ex.message}`);
@@ -178,31 +189,20 @@ class Deployer {
                     this.log(`RUN.POST-DEPLOY ${deployed.name}`);
                     await postDeploy.bind(deployed)(this);
                 }
-                //Put the artifact location into the chain file
-                if (deployed.origin || deployed.location) {
-                    chainData[this.env] = (deployed.origin || deployed.location);
-                }
-                else {
-                    throw new Error('Chain resource didn\'t have an origin or location after upload');
+                //Put the artifact presets into the chain file
+                if (this.useChainFiles) {
+                    this.log(`WRITE: ${chainFilePath}`);
+                    await this.writeChainFile(chainFilePath, deployed);
                 }
             }
             catch (ex) {
-                console.error(ex);
+                console.error(`ERROR: `, ex);
                 throw ex;
-            }
-            //Write out the chain file
-            if (this.useChainFiles) {
-                await fs.writeFile(chainFilePath, JSON.stringify(chainData, null, 4));
             }
         }
         this.cache.set(source, deployed);
-        this.log(`${deployed.name}: ${deployed.location}: ${deployed.hash}`);
+        this.log(`READY: ${deployed.name}: ${deployed.location}: ${deployed.hash}`);
         return deployed;
-    }
-    deriveChainFilePath(sourcePath) {
-        let chainFilePath = path.parse(sourcePath);
-        chainFilePath.base = `${chainFilePath.name}.chain.json`;
-        return path.format(chainFilePath);
     }
     async getLastCommitId(filePath) {
         if (!fs.existsSync(filePath)) {
@@ -217,33 +217,44 @@ class Deployer {
         }
         return Promise.reject(new Error('Source file is not under source control.'));
     }
-    async loadChain(chainFile) {
-        if (this.cache.has(chainFile))
-            return this.cache.get(chainFile);
-        let sourcePath;
-        if (fs.pathExistsSync(path.join(this.rootPath, chainFile))) {
-            sourcePath = path.join(this.rootPath, chainFile);
+    deriveChainFilePath(sourcePath) {
+        const { rootPath, env } = this;
+        const chainFilePath = path.parse(sourcePath);
+        let relativePath = chainFilePath.dir.replace(rootPath, '');
+        chainFilePath.base = `${chainFilePath.name}.chain.json`;
+        chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
+        return path.format(chainFilePath);
+    }
+    async loadChainFile(chainFileReference) {
+        const { run, cache, env, rootPath, modulePath } = this;
+        const chainFile = chainFileReference.replace('{env}', env);
+        if (cache.has(chainFile))
+            return cache.get(chainFile);
+        let sourcePath = path.join(rootPath, chainFile);
+        //Don't know if it is relative to the root or a node_modules dependency
+        if (!fs.pathExistsSync(sourcePath)) {
+            sourcePath = path.join(modulePath, chainFile);
+            if (!fs.pathExistsSync(sourcePath))
+                return;
         }
-        else {
-            sourcePath = path.join(this.modulePath, chainFile);
-        }
-        if (!fs.pathExistsSync(sourcePath))
-            return;
         const chainData = fs.readJSONSync(sourcePath);
-        if (!chainData[this.env])
+        //chainData must match current run environment in order to be relevant
+        //you can't mix main(net) jigs with test(net) jigs
+        if (!chainData)
             return;
-        const jig = await this.run.load(chainData[this.env]);
+        const jig = await run.load(chainData.location);
         if (jig) {
-            this.cache.set(chainFile, jig);
+            cache.set(chainFile, jig);
         }
         return jig;
     }
-    async writeChain(chainFile, jig) {
-        const chainPath = path.join(this.rootPath, chainFile);
-        const chainData = fs.pathExistsSync(chainPath) ? fs.readJSONSync(chainPath) : {};
-        chainData[this.env] = jig.location;
-        this.cache.set(chainFile, jig);
-        await fs.outputFile(chainPath, JSON.stringify(chainData, null, 4));
+    async writeChainFile(chainFilePath, jig) {
+        if (!jig.origin && !jig.location) {
+            throw new Error(`Resource didn't have an origin or location`);
+        }
+        let { origin, location, nonce, owner, satoshis } = jig;
+        let chainData = { origin, location, nonce, owner, satoshis };
+        await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
     }
 }
 exports.Deployer = Deployer;

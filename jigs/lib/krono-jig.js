@@ -2,6 +2,10 @@ const { Jig } = require('run-sdk');
 const KronoClass = require('./krono-class');
 
 class KronoJig extends Jig {
+    send(owner) {
+        this.owner = owner;
+    }
+
     toObject(skipKeys = [], visited = new Set()) {
         if(visited.has(this)) return;
         visited.add(this);
@@ -17,7 +21,7 @@ class KronoJig extends Jig {
 
 KronoJig.asyncDeps = {
     KronoClass: 'lib/krono-class.js'
-}
+};
 
 KronoJig.sealed = false;
 module.exports = KronoJig;

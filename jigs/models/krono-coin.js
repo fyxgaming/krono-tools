@@ -1,5 +1,9 @@
+const axios = require('axios');
 const { Token20 } = require('run-sdk').extra;
 const {Transaction} = require('run-sdk');
+
+const {SignedMessage} = require('@kronoverse/lib/dist/signed-message');
+
 
 /* global KronoClass */
 class KronoCoin extends Token20 {
@@ -16,13 +20,13 @@ class KronoCoin extends Token20 {
 
 KronoCoin.postDeploy = async (deployer) => {
     const { CashierConfig } = KronoCoin.deps;
-    const [coin] = await deployer.blockchain.jigIndex(
-        CashierConfig.address, 
-        {
+    const { data: [coin]} = await axios.post(`${deployer.apiUrl}/jigs/cashier`, new SignedMessage({
+        payload: JSON.stringify({
             criteria: {kind: KronoCoin.origin},
             project: {value: false}
-        }
-    );
+        })
+    }, deployer.userId, deployer.keyPair));
+
     if(!coin) {
         const t = new Transaction();
         t.update(() => {

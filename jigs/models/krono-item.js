@@ -5,7 +5,7 @@ class KronoItem extends KronoJig {
     init(item, owner) {
         this.item = item;
 
-        this.mint = caller;
+        // this.mint = caller;
         this.minter = caller && caller.owner;
 
         this.owner = owner;
