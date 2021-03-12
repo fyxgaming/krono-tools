@@ -1,5 +1,5 @@
 class CashierConfig {}
-CashierConfig.pubkey = '03c7d207ebe630ed72f2c6b123f9e2e41b5f6ee7c79c5c038cbe18f172b5ea78a0';
+CashierConfig.pubkey = '03247c78d66af372b00107f23a1c80f47ec9179f1cfb840c64e848c135661f42fc';
 CashierConfig.address = 'mzQt5KjzadHd2tD3K3wuMJzRBe2EFrNVcQ';
 CashierConfig.postTo = 'https://adhoc.aws.kronoverse.io/payment';
 CashierConfig.baseUrl = 'https://adhoc.aws.kronoverse.io';
