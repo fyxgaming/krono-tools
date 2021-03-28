@@ -5,7 +5,7 @@
   "private": false,
   "main": "index.js",
   "scripts": {
-    "build": "./build.sh",
+    "build": "tsc -p .",
     "prepare": "npm run build",
     "deploy": "./deploy-jigs.sh"
   },
@@ -16,7 +16,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^3.0.1",
+    "@kronoverse/lib": "^4.0.0",
     "axios": "^0.21.1",
     "bsv": "^2.0.0-beta.41",
     "cors": "^2.8.5",
