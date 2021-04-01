@@ -1,6 +1,6 @@
 {
   "name": "@kronoverse/tools",
-  "version": "5.0.2",
+  "version": "6.0.2",
   "description": "Tools for interacting with the Kronoverse Platform",
   "private": false,
   "main": "index.js",
@@ -16,9 +16,9 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^3.0.1",
+    "@kronoverse/lib": "^5.0.3",
     "axios": "^0.21.1",
-    "bsv": "^2.0.0-beta.41",
+    "bsv": "^2.0.7",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",

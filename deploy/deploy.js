@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
+const axios = require('@kronoverse/lib/dist/fyx-axios');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
 const fs = require('fs-extra');
 const Redis = require('ioredis-mock');
 const minimist = require('minimist');
@@ -87,7 +87,6 @@ function renderUsage() {
     // console.log('PURSE:', purse);
 
     const blockchain = new RestBlockchain(
-        fetch,
         blockchainUrl, 
         network, 
         new Run.LocalCache(),
