@@ -1,6 +1,6 @@
-const KronoJig = require('../lib/krono-jig');
+const FyxJig = require('../lib/fyx-jig');
 
-class JigMap extends KronoJig {
+class JigMap extends FyxJig {
     init(map) {
         this.map = map || {};
     }
@@ -19,7 +19,7 @@ class JigMap extends KronoJig {
 }
 
 JigMap.asyncDeps = {
-    KronoJig: 'lib/krono-jig.js'
+    FyxJig: 'lib/fyx-jig.js'
 };
 
 module.exports = JigMap;

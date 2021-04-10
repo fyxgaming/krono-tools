@@ -1,6 +1,6 @@
-const KronoJig = require('../lib/krono-jig');
+const FyxJig = require('../lib/fyx-jig');
 
-class JigStack extends KronoJig {
+class JigStack extends FyxJig {
     init(stack) {
         this.stack = stack || [];
     }
@@ -15,7 +15,7 @@ class JigStack extends KronoJig {
 }
 
 JigStack.asyncDeps = {
-    KronoJig: 'lib/krono-jig.js'
+    FyxJig: 'lib/fyx-jig.js'
 };
 
 module.exports = JigStack;

@@ -5,8 +5,8 @@ const {Transaction} = require('run-sdk');
 const {SignedMessage} = require('@kronoverse/lib/dist/signed-message');
 
 
-/* global KronoClass */
-class KronoCoin extends Token20 {
+/* global FyxClass */
+class FyxCoin extends Token20 {
     setPaymentId(paymentId) {
         this.paymentId = paymentId;
     }
@@ -14,15 +14,15 @@ class KronoCoin extends Token20 {
     toObject(skipKeys = [], visited = new Set()) {
         if(visited.has(this)) return;
         visited.add(this);
-        return KronoClass.cloneChildren(this, skipKeys, visited);
+        return FyxClass.cloneChildren(this, skipKeys, visited);
     }
 }
 
-KronoCoin.postDeploy = async (deployer) => {
-    const { CashierConfig } = KronoCoin.deps;
+FyxCoin.postDeploy = async (deployer) => {
+    const { CashierConfig } = FyxCoin.deps;
     const { data: [coin]} = await axios.post(`${deployer.apiUrl}/jigs/cashier`, new SignedMessage({
         payload: JSON.stringify({
-            criteria: {kind: KronoCoin.origin},
+            criteria: {kind: FyxCoin.origin},
             project: {value: false}
         })
     }, deployer.userId, deployer.keyPair));
@@ -32,17 +32,17 @@ KronoCoin.postDeploy = async (deployer) => {
         t.update(() => {
             console.log('Minting Coins');
             for(let i = 0; i < 10; i++) {
-                KronoCoin.mint(1000000000000, CashierConfig.address);
+                FyxCoin.mint(1000000000000, CashierConfig.address);
             }
         });
         await t.publish();
     }
 };
 
-KronoCoin.decimals = 6;
-KronoCoin.asyncDeps = {
+FyxCoin.decimals = 6;
+FyxCoin.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
-    KronoClass: 'lib/krono-class.js'
+    FyxClass: 'lib/fyx-class.js'
 };
 
-module.exports = KronoCoin;
+module.exports = FyxCoin;

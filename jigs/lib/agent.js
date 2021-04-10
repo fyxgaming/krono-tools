@@ -116,8 +116,8 @@ Agent.deps = {
 Agent.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
-    KronoCoin: 'models/krono-coin.js',
-    KronoError: 'lib/krono-error.js',
+    FyxCoin: 'models/fyx-coin.js',
+    FyxError: 'lib/fyx-error.js',
     Sha256: 'lib/sha256.js'
 };
 

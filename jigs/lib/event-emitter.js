@@ -1,6 +1,6 @@
-const KronoClass = require("./krono-class");
+const FyxClass = require("./fyx-class");
 
-class EventEmitter extends KronoClass {
+class EventEmitter extends FyxClass {
     constructor() {
         super();
         this.listeners = new Map();
@@ -32,6 +32,6 @@ class EventEmitter extends KronoClass {
 EventEmitter.sealed = false;
 
 EventEmitter.asyncDeps = {
-    KronoClass: 'lib/krono-class.js'
+    FyxClass: 'lib/fyx-class.js'
 }
 module.exports = EventEmitter;

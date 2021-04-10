@@ -30,7 +30,7 @@ const promise_1 = __importDefault(require("simple-git/promise"));
 const CHAIN_FOLDER_NAME = 'chains';
 class Deployer {
     //private envRegExp: RegExp;
-    constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+    constructor(apiUrl, /* see fyx-coin postDeploy */ userId, /* see fyx-coin postDeploy */ keyPair, /* see fyx-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
         this.apiUrl = apiUrl;
         this.userId = userId;
         this.keyPair = keyPair;

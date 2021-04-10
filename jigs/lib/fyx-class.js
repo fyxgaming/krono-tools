@@ -1,4 +1,4 @@
-class KronoClass {
+class FyxClass {
     static toObject(skipKeys = [], visited = new Set()) {
         if(visited.has(this)) return;
         visited.add(this);
@@ -21,5 +21,5 @@ class KronoClass {
         }, Array.isArray(obj) ? [] : {})
     }
 }
-KronoClass.sealed = false;
-module.exports = KronoClass;
+FyxClass.sealed = false;
+module.exports = FyxClass;

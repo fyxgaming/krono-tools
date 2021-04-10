@@ -11,7 +11,7 @@ class TestCashierAgent extends CashierAgent {
 
 TestCashierAgent.asyncDeps = {
     CashierAgent: 'agents/cashier-agent.js',
-    KronoCoin: 'models/krono-coin.js',
+    FyxCoin: 'models/fyx-coin.js',
 };
 
 module.exports = TestCashierAgent;

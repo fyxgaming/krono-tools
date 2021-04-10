@@ -1,7 +1,7 @@
 const Agent = require('../lib/agent');
 const CashOut = require('../models/cash-out');
 
-/* global CashierConfig, KronoCoin */
+/* global CashierConfig, FyxCoin */
 class CashierAgent extends Agent {
     async init() {
         this.messageHandlers.set('CashInRequest', this.onCashInRequest);
@@ -53,7 +53,7 @@ class CashierAgent extends Agent {
     async sendCoin(to, amount) {
         const coins = await this.wallet.loadJigIndex({
             criteria: {
-                kind: KronoCoin.origin
+                kind: FyxCoin.origin
             },
             project: {value: false}
         });
@@ -114,7 +114,7 @@ CashierAgent.sealed = false;
 CashierAgent.asyncDeps = {
     Agent: 'lib/agent.js',
     CashOut: 'models/cash-out.js',
-    KronoCoin: 'models/krono-coin.js'
+    FyxCoin: 'models/fyx-coin.js'
 };
 
 module.exports = CashierAgent;

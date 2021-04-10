@@ -1,4 +1,4 @@
-const KronoJig = require('../lib/krono-jig');
+const FyxJig = require('../lib/fyx-jig');
 
 /**
  * token2.js
@@ -97,7 +97,7 @@ Token2.symbol = null
 Token2.supply = 0
 
 Token2.asyncDeps = {
-    KronoJig: 'lib/krono-jig.js'
+    FyxJig: 'lib/fyx-jig.js'
 }
 
 module.exports = Token2;

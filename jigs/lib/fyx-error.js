@@ -1,4 +1,4 @@
-class KronoError {
+class FyxError {
     constructor(status, message, attributes) {
         const error = new Error(message);
         error.status = status;
@@ -8,4 +8,4 @@ class KronoError {
     }
 }
 
-module.exports = KronoError;
+module.exports = FyxError;

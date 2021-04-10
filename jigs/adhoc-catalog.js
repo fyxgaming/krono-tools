@@ -2,7 +2,7 @@ class Catalog {
     static async preDeploy() {
         this.agents = {
             config: this.deps.CashierConfig,
-            coin: this.deps.KronoCoin,
+            coin: this.deps.FyxCoin,
         };
     }
 }
@@ -17,12 +17,12 @@ Catalog.asyncDeps = {
     EventEmitter: 'lib/event-emitter.js',
     JigMap: 'models/jig-map.js',
     JigSet: 'models/jig-set.js',
-    KronoCoin: 'models/krono-coin.js',
-    KronoClass: 'lib/krono-class.js',
-    KronoError: 'lib/krono-error.js',
-    KronoItem: 'models/krono-item.js',
-    KronoMint: 'models/krono-mint.js',
-    KronoJig: 'lib/krono-jig.js',
+    FyxCoin: 'models/fyx-coin.js',
+    FyxClass: 'lib/fyx-class.js',
+    FyxError: 'lib/fyx-error.js',
+    FyxItem: 'models/fyx-item.js',
+    FyxMint: 'models/fyx-mint.js',
+    FyxJig: 'lib/fyx-jig.js',
     MockDice: 'lib/mock-dice.js',
     Sha256: 'lib/sha256.js',
 };

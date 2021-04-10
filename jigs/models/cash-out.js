@@ -1,8 +1,8 @@
 const CashierConfig = require('../config/dev/cashier-config');
-const KronoJig = require('../lib/krono-jig');
+const FyxJig = require('../lib/fyx-jig');
 
-/* global CashierConfig, KronoCoin */
-class CashOut extends KronoJig {
+/* global CashierConfig, FyxCoin */
+class CashOut extends FyxJig {
     init(coins, paymentAmount) {
         const total = coins.reduce((acc, coin) => acc + coin.amount, 0);
         if(total < amount) throw new Error('Inadequate Balance');
@@ -14,7 +14,7 @@ class CashOut extends KronoJig {
         if(this.coins.length == 1) {
             this.coin = coins[0];
         } else {
-            this.coin = new KronoCoin(coins);
+            this.coin = new FyxCoin(coins);
         }
         delete this.coins;
         this.coin.send(CashierConfig.address, this.paymentAmount);
@@ -24,8 +24,8 @@ class CashOut extends KronoJig {
 
 CashOut.asyncDeps = {
     CashierConfig: 'config/{env}/cashier-config.js',
-    KronoJig: 'lib/krono-jig.js',
-    KronoCoin: 'models/krono-coin.js'
+    FyxJig: 'lib/fyx-jig.js',
+    FyxCoin: 'models/fyx-coin.js'
 }
 
 module.exports = CashOut;
