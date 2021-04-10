@@ -7,7 +7,7 @@ class KronoItem extends KronoJig {
         this.mint = caller;
         this.minter = caller && caller.owner;
         this.metadata = metadata;
-        this.satoshis = satoshis;
+        this.satoshis = satoshis || this.satoshis;
         this.owner = owner;
     }
 
