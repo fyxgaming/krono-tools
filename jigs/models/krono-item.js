@@ -1,13 +1,17 @@
+const Config = require('../config/config');
 const KronoJig = require('../lib/krono-jig');
 
 /* global caller */
 class KronoItem extends KronoJig {
-    init(item, owner, metadata = {}, satoshis) {
+    init(item, owner, metadata = {}, satoshis = Config.satoshis) {
         this.item = item;
         this.mint = caller;
         this.minter = caller && caller.owner;
-        this.metadata = metadata;
-        this.satoshis = satoshis || this.satoshis;
+        this.metadata = {
+            ...metadata,
+            ...Config.defaultMetadata
+        };
+        this.satoshis = satoshis;
         this.owner = owner;
     }
 
@@ -16,7 +20,9 @@ class KronoItem extends KronoJig {
     }
 }
 
+KronoItem.transferrable = true;
 KronoItem.asyncDeps = {
+    Config: 'config/config.js',
     KronoJig: 'lib/krono-jig.js'
 };
 

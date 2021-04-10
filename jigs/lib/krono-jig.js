@@ -3,6 +3,7 @@ const KronoClass = require('./krono-class');
 
 class KronoJig extends Jig {
     send(owner) {
+        if(!this.constructor.transferrable) throw new Error('Jig not transferrable');
         this.owner = owner;
     }
 
@@ -23,5 +24,6 @@ KronoJig.asyncDeps = {
     KronoClass: 'lib/krono-class.js'
 };
 
+KronoJig.transferrable = false;
 KronoJig.sealed = false;
 module.exports = KronoJig;
