@@ -14,10 +14,6 @@ class KronoItem extends KronoJig {
         this.satoshis = satoshis;
         this.owner = owner;
     }
-
-    transfer(recipient) {
-        this.owner = recipient;
-    }
 }
 
 KronoItem.transferrable = true;
