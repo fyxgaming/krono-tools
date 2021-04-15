@@ -1,5 +1,5 @@
 class Config {}
-Config.defaultSatoshis = 273;
+Config.minSatoshis = 273;
 Config.defaultMetadata = {
     publisher: 'FYX'
 };
