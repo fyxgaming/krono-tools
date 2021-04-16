@@ -1,11 +1,4 @@
-class Catalog {
-    static async preDeploy() {
-        this.agents = {
-            config: this.deps.CashierConfig,
-            coin: this.deps.FyxCoin,
-        };
-    }
-}
+class Catalog {}
 
 Catalog.fyxId = 'fyx';
 
