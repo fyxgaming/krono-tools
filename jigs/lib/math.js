@@ -13,30 +13,12 @@ class Math {
         return op;
     }
 
-    static max(a, b) {
-        if (a === null || b === null) return NaN;
-        let an = Number(a);
-        let bn = Number(b);
-        let op = NaN;
-        if (Number.isNaN(an) || Number.isNaN(bn)) {
-            op = NaN;
-        } else {
-            op = an > bn ? an : bn;
-        }
-        return op;
+    static max(...values) {
+        return values.reduce((a, v) => a > v ? a : v, Number.MIN_SAFE_INTEGER);
     }
 
-    static min(a, b) {
-        if (a === null || b === null) return NaN;
-        let an = Number(a);
-        let bn = Number(b);
-        let op = NaN;
-        if (Number.isNaN(an) || Number.isNaN(bn)) {
-            op = NaN;
-        } else {
-            op = an < bn ? an : bn;
-        }
-        return op;
+    static min(...values) {
+        return values.reduce((a, v) => a < v ? a : v, Number.MAX_SAFE_INTEGER);
     }
 
     //ln(x) = log(x) ÷ log(2.71828)
