@@ -5,8 +5,15 @@ const FyxJig = require('../lib/fyx-jig');
 class FyxItem extends FyxJig {
     init(owner, metadata = {}, item, satoshis = Config.minSatoshis) {
         this.item = item;
-        this.mint = caller;
-        this.minter = caller && caller.owner;
+
+        this.mint = {
+            location: caller && caller.location,
+            origin: caller && caller.origin,
+            kind: caller && caller.constructor && caller.constructor.location,
+            owner: caller && caller.owner,
+            nonce: caller && caller.nonce
+        };
+
         this.metadata = {
             ...metadata,
             ...Config.defaultMetadata
