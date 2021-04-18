@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -p .",
     "prepare": "npm run build",
-    "deploy": "./deploy-jigs.sh"
+    "deploy": "./deploy-jigs.sh",
+    "test": "echo no tests"
   },
   "bin": {
     "krono-deploy": "./deploy/deploy.js"
