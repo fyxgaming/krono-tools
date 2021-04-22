@@ -3,12 +3,12 @@ const FyxJig = require('../lib/fyx-jig');
 
 /* global caller */
 class FyxItem extends FyxJig {
-    init(owner, metadata = {}, item, satoshis = Config.minSatoshis) {
+    init(owner, metadata = {}, item, satoshis) {
         this.item = item;
 
         this.mint = {
             origin: caller && caller.origin,
-            kind: caller && caller.constructor && caller.constructor.origin,
+            type: caller && caller.constructor,
             owner: caller && caller.owner
         };
 
