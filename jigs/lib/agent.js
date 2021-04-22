@@ -114,7 +114,6 @@ Agent.deps = {
 };
 
 Agent.asyncDeps = {
-    CashierConfig: 'config/{env}/cashier-config.js',
     EventEmitter: 'lib/event-emitter.js',
     FyxCoin: 'models/fyx-coin.js',
     FyxError: 'lib/fyx-error.js',
