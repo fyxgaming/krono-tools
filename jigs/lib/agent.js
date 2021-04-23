@@ -1,7 +1,6 @@
 const EventEmitter = require('./event-emitter');
 const { Group } = require('run-sdk').extra;
 
-/* global Sha256 */
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
         super();
@@ -115,7 +114,6 @@ Agent.deps = {
 
 Agent.asyncDeps = {
     EventEmitter: 'lib/event-emitter.js',
-    FyxCoin: 'models/fyx-coin.js',
     FyxError: 'lib/fyx-error.js',
     Sha256: 'lib/sha256.js'
 };
