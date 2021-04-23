@@ -16,7 +16,7 @@ class FyxItem extends FyxJig {
             ...metadata,
             ...Config.defaultMetadata
         };
-        this.satoshis = satoshis;
+        if(satoshis) this.satoshis = satoshis;
         this.owner = owner;
     }
 }
