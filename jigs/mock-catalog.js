@@ -7,7 +7,6 @@ Catalog.asyncDeps = {
     Dice: 'lib/dice.js',
     EventEmitter: 'lib/event-emitter.js',
     FyxClass: 'lib/fyx-class.js',
-    FyxCoin: 'models/fyx-coin.js',
     FyxCollection: 'models/fyx-collection.js',
     FyxError: 'lib/fyx-error.js',
     FyxItem: 'models/fyx-item.js',

@@ -18,7 +18,7 @@ class FyxClass {
             if([...skipKeys, 'deps', 'presets'].includes(key)) return clone;
             clone[key] = this.deepClone(value, [], new Set(visited));
             return clone;
-        }, Array.isArray(obj) ? [] : {})
+        }, Array.isArray(obj) ? [] : {});
     }
 }
 FyxClass.sealed = false;

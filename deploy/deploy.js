@@ -16,10 +16,8 @@ dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 const { LockingPurse } = require('@kronoverse/lib/dist/locking-purse');
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
-const { Bip32, KeyPair } = require('bsv');
+const { Address, Bip32, KeyPair } = require('bsv');
 const Run = require('run-sdk');
-const { SignedMessage } = require('@kronoverse/lib/dist/signed-message');
-
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
@@ -84,7 +82,7 @@ function renderUsage() {
     const purseKeyPair = KeyPair.fromPrivKey(bip32.derive('m/0/0').privKey);
     console.log('OWNER:', keyPair.pubKey.toString());
     // console.log('OWNER:', owner);
-    // console.log('PURSE:', purse);
+
 
     const blockchain = new RestBlockchain(
         blockchainUrl, 
@@ -99,9 +97,10 @@ function renderUsage() {
         purse: new LockingPurse(purseKeyPair, blockchain, new Redis()),
         app: argv.app,
         timeout: 30000,
-        trust: '*'
-        // logger: console
+        trust: '*',
     });
+    
+    console.log('PURSE:', run.purse.address);
 
     const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);

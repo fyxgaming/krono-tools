@@ -17,9 +17,9 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^5.2.3",
+    "@kronoverse/lib": "^5.3.7",
     "axios": "^0.21.1",
-    "bsv": "^2.0.7",
+    "bsv": "^2.0.8",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",
@@ -31,7 +31,7 @@
     "mingo": "^3.1.0",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.0",
-    "run-sdk": "~0.6.14",
+    "run-sdk": "^0.6.20",
     "simple-git": "^2.11.0",
     "threads": "^1.6.3",
     "ws": "^7.3.1"
