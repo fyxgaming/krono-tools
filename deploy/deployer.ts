@@ -250,11 +250,17 @@ export class Deployer {
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
         if (!chainData) return;
-        const jig = await run.load(chainData.location);
-        if (jig) {
-            cache.set(chainFile, jig);
+
+        try{
+            const jig = await run.load(chainData.location);
+            if (jig) {
+                cache.set(chainFile, jig);
+            }
+            return jig;
+        } catch (e) {
+            console.error('CHAIN LOAD ERROR:', e);
+            throw e;
         }
-        return jig;
     }
 
     async writeChainFile(chainFilePath: string, jig: any) {

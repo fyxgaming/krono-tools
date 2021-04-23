@@ -242,11 +242,17 @@ class Deployer {
         //you can't mix main(net) jigs with test(net) jigs
         if (!chainData)
             return;
-        const jig = await run.load(chainData.location);
-        if (jig) {
-            cache.set(chainFile, jig);
+        try {
+            const jig = await run.load(chainData.location);
+            if (jig) {
+                cache.set(chainFile, jig);
+            }
+            return jig;
         }
-        return jig;
+        catch (e) {
+            console.error('CHAIN LOAD ERROR:', e);
+            throw e;
+        }
     }
     async writeChainFile(chainFilePath, jig) {
         if (!jig.origin && !jig.location) {
