@@ -1,5 +1,4 @@
 const EventEmitter = require('./event-emitter');
-const { Group } = require('run-sdk').extra;
 
 class Agent extends EventEmitter {
     constructor(wallet, blockchain, storage, bsv, lib) {
@@ -107,10 +106,6 @@ class Agent extends EventEmitter {
         return bytes;
     }
 }
-
-Agent.deps = {
-    Group
-};
 
 Agent.asyncDeps = {
     EventEmitter: 'lib/event-emitter.js',

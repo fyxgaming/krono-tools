@@ -84,10 +84,11 @@ function renderUsage() {
     // console.log('OWNER:', owner);
 
 
+    const cache = new Run.LocalCache();
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 
-        new Run.LocalCache(),
+        cache
     );
 
     const run = new Run({
@@ -95,6 +96,7 @@ function renderUsage() {
         network,
         owner,
         purse: new LockingPurse(purseKeyPair, blockchain, new Redis()),
+        cache,
         app: argv.app,
         timeout: 30000,
         trust: '*',
