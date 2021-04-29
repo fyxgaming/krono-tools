@@ -5,6 +5,10 @@ class KVStore extends FyxClass {
         this.map.set(key, value);
     }
 
+    static get(key) {
+        return this.map.get(key);
+    }
+
     static toObject(skipKeys = [], visited = new Set()) {
         if(visited.has(this)) return;
         const output = {};
