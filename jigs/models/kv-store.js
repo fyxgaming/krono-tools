@@ -1,14 +1,12 @@
-const FyxClass = require('../lib/fyx-class');
-
-class KVStore extends FyxClass {
-    static setValue(key, value) {
-        this.data[key] = value;
+const FyxJig = require('../lib/fyx-jig');
+class KVStore extends FyxJig {
+    static set(key, value) {
+        this[key] = value;
     }
 }
 
-KVStore.data = {};
 KVStore.asyncDeps = {
-    FyxClass: 'lib/fyx-class.js'
+    FyxJig: 'lib/fyx-jig.js'
 };
 
 KVStore.transferrable = false;
