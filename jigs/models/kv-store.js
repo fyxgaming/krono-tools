@@ -1,7 +1,7 @@
 const FyxClass = require('../lib/fyx-class');
 
 class KVStore extends FyxClass {
-    static set(key, value) {
+    static setValue(key, value) {
         this.data[key] = value;
     }
 }
