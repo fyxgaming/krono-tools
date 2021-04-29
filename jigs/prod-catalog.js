@@ -14,6 +14,7 @@ Catalog.asyncDeps = {
     FyxJig: 'lib/fyx-jig.js',
     JigMap: 'models/jig-map.js',
     JigSet: 'models/jig-set.js',
+    KVStore: 'models/kv-store.js',
     OrderLock: 'lib/{env}/order-lock.chain.json',
     Math: 'lib/math.js',
     MockDice: 'lib/mock-dice.js',
