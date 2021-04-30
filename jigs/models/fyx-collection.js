@@ -12,7 +12,7 @@ class FyxCollection extends FyxJig {
     }
 
     mint(owner, metadata = {}, item, satoshis) {
-        new FyxItem(owner, metadata, item, satoshis);
+        return new FyxItem(owner, metadata, item, satoshis);
     }
 }
 
