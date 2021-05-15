@@ -17,7 +17,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^5.3.7",
+    "@kronoverse/lib": "^6.3.3",
     "axios": "^0.21.1",
     "bsv": "^2.0.8",
     "cors": "^2.8.5",
