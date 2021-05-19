@@ -11,8 +11,12 @@ class FyxCollection extends FyxJig {
         this.owner = owner;
     }
 
-    mint(owner, metadata = {}, item, satoshis) {
-        return new FyxItem(owner, metadata, item, satoshis);
+    mint(supply, owner, metadata = {}, item, satoshis) {
+        metadata.supply = supply;
+        for(let i = 0; i < supply; i++) {
+            metadata.index = i + 1;
+            new FyxItem(owner, metadata, item, satoshis);
+        }
     }
 }
 
