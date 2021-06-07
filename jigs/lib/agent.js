@@ -38,10 +38,16 @@ class Agent extends EventEmitter {
 
     init() { }
     async onJig(jigData) {
-        if(this.handled.has(jigData.location)) return;
+        if(this.handled.has(jigData.location)) {
+            console.log('Already handled', jigData.location);
+            return;
+        }
         this.handled.add(jigData.location);
         let handler = this.jigHandlers.get(jigData.kind);
-        if (!handler) return;
+        if (!handler) {
+            console.log('No handler:', jigData.kind);
+            return;
+        }
         const label = `${this.processCount++}-jig-${jigData.type}-${jigData.location}`;
         try {
             console.time(label);
