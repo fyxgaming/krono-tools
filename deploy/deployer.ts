@@ -131,6 +131,7 @@ export class Deployer {
         //Derive the chain file path
         let chainFilePath = this.deriveChainFilePath(sourcePath);
         let presets: any = {};
+        let chainArtifact;
 
         //Does the chain file exist; If not, then must deploy
         if (this.useChainFiles && fs.existsSync(chainFilePath)) {
@@ -143,7 +144,7 @@ export class Deployer {
                 //If this fails, then either Run is not compatible or the chainfile
                 //  is bad and so we will just deploy it again.
                 this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
-                let chainArtifact = await this.run.load(jigLocation).catch((ex) => {
+                chainArtifact = await this.run.load(jigLocation).catch((ex) => {
                     // if (ex.statusCode === 404) {
                     this.log(`Error: ${ex.message}`);
                     this.log(`## Jig could not be loaded from ${jigLocation}`);
@@ -179,14 +180,17 @@ export class Deployer {
                     postDeploy = deployed.postDeploy;
                     //Remove preDeploy before putting on chain
                     delete deployed.postDeploy;
-
                 }
                 //Upload the resource to the chain
                 this.log(`RUN.DEPLOY ${deployed.name}`);
                 if (!deployed.name) {
                     this.log(chainFilePath);
                 }
-                deployed = this.run.deploy(deployed);
+                if (deployed.hasOwnProperty('deploy')) {
+                    deployed = await deployed.deploy(this, chainArtifact);
+                } else {
+                    deployed = this.run.deploy(deployed);
+                }
                 //Wait for the transaction to be accepted
                 this.log(`RUN.SYNC`);
                 await this.run.sync();
