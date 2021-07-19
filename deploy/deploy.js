@@ -95,7 +95,7 @@ function renderUsage() {
         blockchain,
         network,
         owner,
-        purse: new LockingPurse(purseKeyPair, blockchain, new Redis()),
+        purse: new LockingPurse(purseKeyPair, blockchain, new Redis(), 50, 0.25),
         cache,
         app: argv.app,
         timeout: 30000,
