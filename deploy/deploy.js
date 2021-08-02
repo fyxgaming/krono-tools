@@ -16,17 +16,17 @@ dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 const { LockingPurse } = require('@kronoverse/lib/dist/locking-purse');
 const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
-const { Address, Bip32, KeyPair } = require('bsv');
+const { Bip32, KeyPair } = require('bsv');
 const Run = require('run-sdk');
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     infra: 'https://kronoverse-infra.appspot.com',
     // dev: 'https://kronoverse-dev.appspot.com',
-    adhoc: 'https://adhoc.aws.kronoverse.io',
-    dev: 'https://dev.aws.kronoverse.io',
-    test: 'https://test.aws.kronoverse.io',
-    prod: 'https://prod.aws.kronoverse.io'
+    adhoc: 'https://adhoc.api.fyxgaming.com',
+    dev: 'https://dev.api.fyxgaming.com',
+    test: 'https://test.api.fyxgaming.com',
+    prod: 'https://api.fyxgaming.com'
 };
 
 function renderUsage() {
