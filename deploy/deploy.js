@@ -22,7 +22,6 @@ const Run = require('run-sdk');
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     infra: 'https://kronoverse-infra.appspot.com',
-    // dev: 'https://kronoverse-dev.appspot.com',
     adhoc: 'https://adhoc.api.fyxgaming.com',
     dev: 'https://dev.api.fyxgaming.com',
     test: 'https://test.api.fyxgaming.com',
