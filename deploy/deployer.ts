@@ -13,6 +13,7 @@ export class Deployer {
     path = path;
     public blockchain;
     private git: simpleGit.SimpleGit;
+    public appId: string;
     //private envRegExp: RegExp;
 
     constructor(
@@ -29,6 +30,7 @@ export class Deployer {
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
         this.networkKey = run.blockchain.network;
+        this.appId = this.run.app;        
         //this.envRegExp = new RegExp(`[\\|\/]{1}${env}[\\|\/]{1}`, 'i');
     }
 
@@ -39,6 +41,7 @@ export class Deployer {
     }
 
     async deploy(source: string, crumbs = 'root', depth = 0): Promise<any> {
+
         if (this.cache.has(source)) return this.cache.get(source);
         const hash = createHash('sha256');
 
@@ -237,7 +240,7 @@ export class Deployer {
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
                     if(chainFilePath.startsWith(FYX_USER)) await this.writeChainFile(chainFilePath, deployed);
-                    else await this.writeChainFile(`${this.userId}/${chainFilePath}`, deployed);
+                    else await this.writeChainFile(`${this.appId}/${chainFilePath}`, deployed);
                 }
 
             } catch (ex) {
@@ -273,7 +276,7 @@ export class Deployer {
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
         // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
         // return path.format(chainFilePath);
-        return `${this.userId}/${relativePath}/${chainFilePath.base}`;  // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
+        return `${this.appId}/${relativePath}/${chainFilePath.base}`;  // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
 
     async loadChainFile(chainFileReference: string): Promise<any> {
