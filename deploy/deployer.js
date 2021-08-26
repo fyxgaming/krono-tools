@@ -27,6 +27,7 @@ const crypto_1 = require("crypto");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
+const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
 const CHAIN_FOLDER_NAME = 'chains';
 class Deployer {
     //private envRegExp: RegExp;
@@ -81,9 +82,10 @@ class Deployer {
         //     return deployed;
         // }
         const resource = require(sourcePath);
-        const commitId = this.useChainFiles ?
-            await this.getLastCommitId(sourcePath) :
-            sourcePath;
+        // const commitId = this.useChainFiles ?
+        //     await this.getLastCommitId(sourcePath) :
+        //     sourcePath;
+        const commitId = sourcePath;
         //Add the last git commit hash for this file to the hash buffer
         //Git root is the repo this is running in
         hash.update(commitId);
@@ -132,9 +134,37 @@ class Deployer {
         let presets = {};
         let chainArtifact;
         //Does the chain file exist; If not, then must deploy
-        if (this.useChainFiles && fs.existsSync(chainFilePath)) {
+        // if (this.useChainFiles && fs.existsSync(chainFilePath)) {
+        //     //Is there data for this environment; If not, then must deploy
+        //     presets = fs.readJSONSync(chainFilePath);
+        //     if (presets) {
+        //         let jigLocation = presets.location;
+        //         //Download artifact from chain based on location in chain file
+        //         //If this fails, then either Run is not compatible or the chainfile
+        //         //  is bad and so we will just deploy it again.
+        //         this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
+        //         chainArtifact = await this.run.load(jigLocation).catch((ex) => {
+        //             // if (ex.statusCode === 404) {
+        //             this.log(`Error: ${ex.message}`);
+        //             this.log(`## Jig could not be loaded from ${jigLocation}`);
+        //             return { hash: 'DEPLOY_AGAIN' };
+        //             // }
+        //             // throw (ex);
+        //         });
+        //         //If the hashes match then there is no need to deploy
+        //         if (resource.hash === chainArtifact.hash) {
+        //             //Can use the previously deployed artifact
+        //             mustDeploy = false;
+        //             //We can use the artifact from the chain for this resource
+        //             deployed = chainArtifact;
+        //         }
+        //     }
+        // }
+        if (this.useChainFiles) {
             //Is there data for this environment; If not, then must deploy
-            presets = fs.readJSONSync(chainFilePath);
+            const { data: presets } = await fyx_axios_1.default.post(`${this.apiUrl}/chains/getchain`, {
+                id: chainFilePath
+            });
             if (presets) {
                 let jigLocation = presets.location;
                 //Download artifact from chain based on location in chain file
@@ -227,23 +257,29 @@ class Deployer {
         const { rootPath, env } = this;
         const chainFilePath = path.parse(sourcePath);
         let relativePath = chainFilePath.dir.replace(rootPath, '');
+        relativePath = relativePath.slice(relativePath.indexOf(path.sep) + 1);
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
-        chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
-        return path.format(chainFilePath);
+        // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
+        // return path.format(chainFilePath);
+        return `${relativePath}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
     async loadChainFile(chainFileReference) {
         const { run, cache, env, rootPath, modulePath } = this;
-        const chainFile = chainFileReference.replace('{env}', env);
+        //const chainFile = chainFileReference.replace('{env}', env);
+        const chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
         if (cache.has(chainFile))
             return cache.get(chainFile);
-        let sourcePath = path.join(rootPath, chainFile);
-        //Don't know if it is relative to the root or a node_modules dependency
-        if (!fs.pathExistsSync(sourcePath)) {
-            sourcePath = path.join(modulePath, chainFile);
-            if (!fs.pathExistsSync(sourcePath))
-                return;
-        }
-        const chainData = fs.readJSONSync(sourcePath);
+        // let sourcePath = path.join(rootPath, chainFile);
+        // //Don't know if it is relative to the root or a node_modules dependency
+        // if (!fs.pathExistsSync(sourcePath)) {
+        //     sourcePath = path.join(modulePath, chainFile)
+        //     if (!fs.pathExistsSync(sourcePath)) return;
+        // }
+        // const chainData = fs.readJSONSync(sourcePath);
+        const { data } = await fyx_axios_1.default.post(`${this.apiUrl}/chains/getchain`, {
+            id: chainFile
+        });
+        const chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
         if (!chainData)
@@ -265,8 +301,9 @@ class Deployer {
             throw new Error(`Resource didn't have an origin or location`);
         }
         let { origin, location, nonce, owner, satoshis } = jig;
-        let chainData = { origin, location, nonce, owner, satoshis };
-        await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
+        let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
+        //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
+        await fyx_axios_1.default.post(`${this.apiUrl}/chains`, chainData);
     }
 }
 exports.Deployer = Deployer;
