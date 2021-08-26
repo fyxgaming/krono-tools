@@ -273,7 +273,7 @@ export class Deployer {
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
         // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
         // return path.format(chainFilePath);
-        return `${relativePath}/${chainFilePath.base}`;  // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
+        return `${this.userId}/${relativePath}/${chainFilePath.base}`;  // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
 
     async loadChainFile(chainFileReference: string): Promise<any> {
