@@ -29,6 +29,7 @@ const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
 const CHAIN_FOLDER_NAME = 'chains';
+const FYX_USER = 'fyx';
 class Deployer {
     //private envRegExp: RegExp;
     constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
@@ -228,7 +229,10 @@ class Deployer {
                 //Put the artifact presets into the chain file
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
-                    await this.writeChainFile(chainFilePath, deployed);
+                    if (chainFilePath.startsWith(FYX_USER))
+                        await this.writeChainFile(chainFilePath, deployed);
+                    else
+                        await this.writeChainFile(`${this.userId}/${chainFilePath}`, deployed);
                 }
             }
             catch (ex) {
@@ -264,9 +268,13 @@ class Deployer {
         return `${relativePath}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
     async loadChainFile(chainFileReference) {
+        let chainFile;
         const { run, cache, env, rootPath, modulePath } = this;
         //const chainFile = chainFileReference.replace('{env}', env);
-        const chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
+        if (chainFileReference.startsWith(FYX_USER))
+            chainFile = chainFileReference.replace(`${FYX_USER}/chains/`, '');
+        else
+            chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
         if (cache.has(chainFile))
             return cache.get(chainFile);
         // let sourcePath = path.join(rootPath, chainFile);
