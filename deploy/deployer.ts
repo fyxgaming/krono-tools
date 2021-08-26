@@ -239,8 +239,7 @@ export class Deployer {
                 //Put the artifact presets into the chain file
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
-                    if(chainFilePath.startsWith(FYX_USER)) await this.writeChainFile(chainFilePath, deployed);
-                    else await this.writeChainFile(`${this.appId}/${chainFilePath}`, deployed);
+                    await this.writeChainFile(chainFilePath, deployed);                    
                 }
 
             } catch (ex) {
