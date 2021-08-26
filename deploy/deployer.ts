@@ -4,6 +4,7 @@ import * as fs from 'fs-extra';
 import simpleGit from 'simple-git/promise';
 import axios from '@kronoverse/lib/dist/fyx-axios';
 const CHAIN_FOLDER_NAME = 'chains';
+const FYX_USER = 'fyx';
 
 export class Deployer {
     cache = new Map<string, any>()
@@ -235,7 +236,8 @@ export class Deployer {
                 //Put the artifact presets into the chain file
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
-                    await this.writeChainFile(chainFilePath, deployed);
+                    if(chainFilePath.startsWith(FYX_USER)) await this.writeChainFile(chainFilePath, deployed);
+                    else await this.writeChainFile(`${this.userId}/${chainFilePath}`, deployed);
                 }
 
             } catch (ex) {
@@ -275,9 +277,11 @@ export class Deployer {
     }
 
     async loadChainFile(chainFileReference: string): Promise<any> {
+        let chainFile;
         const { run, cache, env, rootPath, modulePath } = this;
         //const chainFile = chainFileReference.replace('{env}', env);
-        const chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
+        if(chainFileReference.startsWith(FYX_USER)) chainFile = chainFileReference.replace(`${FYX_USER}/chains/`,'');
+        else chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
         if (cache.has(chainFile)) return cache.get(chainFile);
         // let sourcePath = path.join(rootPath, chainFile);
         // //Don't know if it is relative to the root or a node_modules dependency
