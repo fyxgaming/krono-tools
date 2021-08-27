@@ -287,6 +287,7 @@ class Deployer {
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
         // First time load logic
+        let bFoundInS3 = chainData ? true : false;
         if (!chainData && INIT_LOAD) {
             const chainFile = chainFileReference.replace(`${FYX_USER}/`, '');
             let sourcePath = path.join(rootPath, chainFile);
@@ -305,7 +306,7 @@ class Deployer {
             if (jig) {
                 cache.set(chainFileReference, jig);
                 // Initial load processing - we save this to S3 since we do not have this data there yet
-                if (INIT_LOAD)
+                if (INIT_LOAD && !bFoundInS3)
                     await this.writeChainFile(chainFileReference, jig);
             }
             return jig;
