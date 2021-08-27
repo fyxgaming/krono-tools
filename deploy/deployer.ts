@@ -45,10 +45,10 @@ export class Deployer {
         if (this.cache.has(source)) return this.cache.get(source);
         const hash = createHash('sha256');
 
-        // this.log(sourcePath);
         depth = (depth || 0);
 
         let sourcePath = path.isAbsolute(source) ? source : path.join(this.rootPath, source);
+        this.log(`SourcePath: ${sourcePath}`);
 
         crumbs = `${crumbs} > ${source.split(path.sep).pop()}`;
         this.log(crumbs);
