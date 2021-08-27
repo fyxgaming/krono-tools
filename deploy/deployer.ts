@@ -5,6 +5,7 @@ import simpleGit from 'simple-git/promise';
 import axios from '@kronoverse/lib/dist/fyx-axios';
 const CHAIN_FOLDER_NAME = 'chains';
 const FYX_USER = 'fyx';
+const INIT_LOAD = true;
 
 export class Deployer {
     cache = new Map<string, any>()
@@ -30,7 +31,7 @@ export class Deployer {
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
         this.networkKey = run.blockchain.network;
-        this.appId = this.run.app;        
+        this.appId = this.run.app;
         //this.envRegExp = new RegExp(`[\\|\/]{1}${env}[\\|\/]{1}`, 'i');
     }
 
@@ -239,7 +240,7 @@ export class Deployer {
                 //Put the artifact presets into the chain file
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
-                    await this.writeChainFile(chainFilePath, deployed);                    
+                    await this.writeChainFile(chainFilePath, deployed);
                 }
 
             } catch (ex) {
@@ -279,12 +280,10 @@ export class Deployer {
     }
 
     async loadChainFile(chainFileReference: string): Promise<any> {
-        let chainFile;
+        let chainData;
         const { run, cache, env, rootPath, modulePath } = this;
         //const chainFile = chainFileReference.replace('{env}', env);
-        if(chainFileReference.startsWith(FYX_USER)) chainFile = chainFileReference.replace(`${FYX_USER}/chains/`,'');
-        else chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
-        if (cache.has(chainFile)) return cache.get(chainFile);
+        if (cache.has(chainFileReference)) return cache.get(chainFileReference);
         // let sourcePath = path.join(rootPath, chainFile);
         // //Don't know if it is relative to the root or a node_modules dependency
         // if (!fs.pathExistsSync(sourcePath)) {
@@ -293,17 +292,29 @@ export class Deployer {
         // }
         // const chainData = fs.readJSONSync(sourcePath);
         const { data } = await axios.post(`${this.apiUrl}/chains/getchain`, {
-            id: chainFile
+            id: chainFileReference
         });
-        const chainData = data;
+        chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
-        if (!chainData) return;
+
+        // First time load logic
+        if (!chainData && INIT_LOAD) {
+            const chainFile = chainFileReference.replace(`${FYX_USER}/`, '');
+            let sourcePath = path.join(rootPath, chainFile);
+            //Don't know if it is relative to the root or a node_modules dependency
+            if (!fs.pathExistsSync(sourcePath)) {
+                sourcePath = path.join(modulePath, chainFile)
+                if (!fs.pathExistsSync(sourcePath)) return;
+            }
+            chainData = fs.readJSONSync(sourcePath);
+        }
+        else if (!chainData) return;
 
         try {
             const jig = await run.load(chainData.location);
             if (jig) {
-                cache.set(chainFile, jig);
+                cache.set(chainFileReference, jig);
             }
             return jig;
         } catch (e) {
