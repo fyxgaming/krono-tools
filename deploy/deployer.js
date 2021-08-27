@@ -28,10 +28,7 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
-const CHAIN_FOLDER_NAME = 'chains';
 const FYX_USER = 'fyx';
-const FYX_CHAIN_FOLDER_NAME = '@kronoverse/tools/chains';
-const INIT_LOAD = true;
 class Deployer {
     //private envRegExp: RegExp;
     constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
@@ -262,10 +259,13 @@ class Deployer {
         const chainFilePath = path.parse(sourcePath);
         let relativePath = chainFilePath.dir.replace(rootPath, '');
         relativePath = relativePath.slice(relativePath.indexOf(path.sep) + 1);
+        console.log(`relativePath: ${relativePath}`);
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
         // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
         // return path.format(chainFilePath);
-        return `${this.appId}/${relativePath}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
+        return relativePath ?
+            `${this.appId}/${relativePath}/${chainFilePath.base}` :
+            `${this.appId}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
     async loadChainFile(chainFileReference) {
         let chainData;
@@ -286,28 +286,12 @@ class Deployer {
         chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
-        // First time load logic
-        let bFoundInS3 = chainData ? true : false;
-        if (!chainData && INIT_LOAD) {
-            const chainFile = chainFileReference.replace(`${FYX_USER}/`, '');
-            let sourcePath = path.join(rootPath, chainFile);
-            //Don't know if it is relative to the root or a node_modules dependency
-            if (!fs.pathExistsSync(sourcePath)) {
-                sourcePath = path.join(modulePath, FYX_CHAIN_FOLDER_NAME, env, chainFile);
-                if (!fs.pathExistsSync(sourcePath))
-                    return;
-            }
-            chainData = fs.readJSONSync(sourcePath);
-        }
-        else if (!chainData)
+        if (!chainData)
             return;
         try {
             const jig = await run.load(chainData.location);
             if (jig) {
                 cache.set(chainFileReference, jig);
-                // Initial load processing - we save this to S3 since we do not have this data there yet
-                if (INIT_LOAD && !bFoundInS3)
-                    await this.writeChainFile(chainFileReference, jig);
             }
             return jig;
         }
