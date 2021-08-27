@@ -5,6 +5,7 @@ import simpleGit from 'simple-git/promise';
 import axios from '@kronoverse/lib/dist/fyx-axios';
 const CHAIN_FOLDER_NAME = 'chains';
 const FYX_USER = 'fyx';
+const FYX_CHAIN_FOLDER_NAME = '@kronoverse/tools/chains';
 const INIT_LOAD = true;
 
 export class Deployer {
@@ -304,7 +305,7 @@ export class Deployer {
             let sourcePath = path.join(rootPath, chainFile);
             //Don't know if it is relative to the root or a node_modules dependency
             if (!fs.pathExistsSync(sourcePath)) {
-                sourcePath = path.join(modulePath, chainFile)
+                sourcePath = path.join(modulePath, FYX_CHAIN_FOLDER_NAME, env, chainFile);
                 if (!fs.pathExistsSync(sourcePath)) return;
             }
             chainData = fs.readJSONSync(sourcePath);

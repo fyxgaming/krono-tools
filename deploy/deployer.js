@@ -30,6 +30,7 @@ const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
 const CHAIN_FOLDER_NAME = 'chains';
 const FYX_USER = 'fyx';
+const FYX_CHAIN_FOLDER_NAME = '@kronoverse/tools/chains';
 const INIT_LOAD = true;
 class Deployer {
     //private envRegExp: RegExp;
@@ -291,7 +292,7 @@ class Deployer {
             let sourcePath = path.join(rootPath, chainFile);
             //Don't know if it is relative to the root or a node_modules dependency
             if (!fs.pathExistsSync(sourcePath)) {
-                sourcePath = path.join(modulePath, chainFile);
+                sourcePath = path.join(modulePath, FYX_CHAIN_FOLDER_NAME, env, chainFile);
                 if (!fs.pathExistsSync(sourcePath))
                     return;
             }
