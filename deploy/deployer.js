@@ -304,6 +304,9 @@ class Deployer {
             const jig = await run.load(chainData.location);
             if (jig) {
                 cache.set(chainFileReference, jig);
+                // Initial load processing - we save this to S3 since we do not have this data there yet
+                if (INIT_LOAD)
+                    await this.writeChainFile(chainFileReference, jig);
             }
             return jig;
         }
