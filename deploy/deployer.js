@@ -30,6 +30,7 @@ const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
 const CHAIN_FOLDER_NAME = 'chains';
 const FYX_USER = 'fyx';
+const INIT_LOAD = true;
 class Deployer {
     //private envRegExp: RegExp;
     constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
@@ -48,6 +49,7 @@ class Deployer {
         this.git = promise_1.default(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
         this.networkKey = run.blockchain.network;
+        this.appId = this.run.app;
         //this.envRegExp = new RegExp(`[\\|\/]{1}${env}[\\|\/]{1}`, 'i');
     }
     log(msg) {
@@ -229,10 +231,7 @@ class Deployer {
                 //Put the artifact presets into the chain file
                 if (this.useChainFiles) {
                     this.log(`WRITE: ${chainFilePath}`);
-                    if (chainFilePath.startsWith(FYX_USER))
-                        await this.writeChainFile(chainFilePath, deployed);
-                    else
-                        await this.writeChainFile(`${this.userId}/${chainFilePath}`, deployed);
+                    await this.writeChainFile(chainFilePath, deployed);
                 }
             }
             catch (ex) {
@@ -265,18 +264,14 @@ class Deployer {
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
         // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
         // return path.format(chainFilePath);
-        return `${relativePath}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
+        return `${this.appId}/${relativePath}/${chainFilePath.base}`; // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
     }
     async loadChainFile(chainFileReference) {
-        let chainFile;
+        let chainData;
         const { run, cache, env, rootPath, modulePath } = this;
         //const chainFile = chainFileReference.replace('{env}', env);
-        if (chainFileReference.startsWith(FYX_USER))
-            chainFile = chainFileReference.replace(`${FYX_USER}/chains/`, '');
-        else
-            chainFile = chainFileReference.split(`/{env}/`)[1].replace(/.chain.json/g, '');
-        if (cache.has(chainFile))
-            return cache.get(chainFile);
+        if (cache.has(chainFileReference))
+            return cache.get(chainFileReference);
         // let sourcePath = path.join(rootPath, chainFile);
         // //Don't know if it is relative to the root or a node_modules dependency
         // if (!fs.pathExistsSync(sourcePath)) {
@@ -285,17 +280,29 @@ class Deployer {
         // }
         // const chainData = fs.readJSONSync(sourcePath);
         const { data } = await fyx_axios_1.default.post(`${this.apiUrl}/chains/getchain`, {
-            id: chainFile
+            id: chainFileReference
         });
-        const chainData = data;
+        chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
-        if (!chainData)
+        // First time load logic
+        if (!chainData && INIT_LOAD) {
+            const chainFile = chainFileReference.replace(`${FYX_USER}/`, '');
+            let sourcePath = path.join(rootPath, chainFile);
+            //Don't know if it is relative to the root or a node_modules dependency
+            if (!fs.pathExistsSync(sourcePath)) {
+                sourcePath = path.join(modulePath, chainFile);
+                if (!fs.pathExistsSync(sourcePath))
+                    return;
+            }
+            chainData = fs.readJSONSync(sourcePath);
+        }
+        else if (!chainData)
             return;
         try {
             const jig = await run.load(chainData.location);
             if (jig) {
-                cache.set(chainFile, jig);
+                cache.set(chainFileReference, jig);
             }
             return jig;
         }
