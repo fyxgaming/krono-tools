@@ -164,7 +164,7 @@ class Deployer {
         // }
         if (this.useChainFiles) {
             //Is there data for this environment; If not, then must deploy
-            const { data: presets } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/getchain/${chainFilePath}`);
+            const { data: presets } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFilePath}`);
             if (presets) {
                 let jigLocation = presets.location;
                 //Download artifact from chain based on location in chain file
@@ -279,7 +279,7 @@ class Deployer {
         //     if (!fs.pathExistsSync(sourcePath)) return;
         // }
         // const chainData = fs.readJSONSync(sourcePath);
-        const { data } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/getchain/${chainFileReference}`);
+        const { data } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFileReference}`);
         chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
