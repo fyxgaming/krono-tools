@@ -28,7 +28,7 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
-const { SignedMessage } = require('@kronoverse/lib/dist/rest-blockchain');
+const signed_message_1 = require("@kronoverse/lib/dist/signed-message");
 const FYX_USER = 'fyx';
 class Deployer {
     //private envRegExp: RegExp;
@@ -304,9 +304,9 @@ class Deployer {
         let { origin, location, nonce, owner, satoshis } = jig;
         let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
         //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
-        let signedMessage = new SignedMessage({
+        let signedMessage = new signed_message_1.SignedMessage({
             subject: `Jigs Deployment`,
-            payload: chainData
+            payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
         await fyx_axios_1.default.post(`${this.apiUrl}/chains`, signedMessage);
     }
