@@ -74,10 +74,10 @@ export class Deployer {
         // }
 
         const resource = require(sourcePath);
-        // const commitId = this.useChainFiles ?
-        //     await this.getLastCommitId(sourcePath) :
-        //     sourcePath;
-        const commitId = sourcePath;
+        const commitId = this.useChainFiles ?
+            await this.getLastCommitId(sourcePath) :
+            sourcePath;
+        // const commitId = sourcePath;
 
         //Add the last git commit hash for this file to the hash buffer
         //Git root is the repo this is running in
