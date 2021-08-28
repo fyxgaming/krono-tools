@@ -322,6 +322,6 @@ export class Deployer {
             subject: `Jigs Deployment`,
             payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
-        await axios.post(`${this.apiUrl}/chains`, signedMessage);
+        await axios.post(`${this.apiUrl}/chains/${chainFilePath}`, signedMessage);
     }
 }
