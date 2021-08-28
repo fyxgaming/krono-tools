@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import simpleGit from 'simple-git/promise';
 import axios from '@kronoverse/lib/dist/fyx-axios';
-const { SignedMessage } = require('@kronoverse/lib/dist/rest-blockchain');
+import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
 
 const FYX_USER = 'fyx';
 
@@ -320,7 +320,7 @@ export class Deployer {
         //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
         let signedMessage = new SignedMessage({
             subject: `Jigs Deployment`,
-            payload: chainData
+            payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
         await axios.post(`${this.apiUrl}/chains`, signedMessage);
     }
