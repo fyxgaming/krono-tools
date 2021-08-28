@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import simpleGit from 'simple-git/promise';
 import axios from '@kronoverse/lib/dist/fyx-axios';
+const { SignedMessage } = require('@kronoverse/lib/dist/rest-blockchain');
 
 const FYX_USER = 'fyx';
 
@@ -170,9 +171,7 @@ export class Deployer {
 
         if (this.useChainFiles) {
             //Is there data for this environment; If not, then must deploy
-            const { data: presets } = await axios.post(`${this.apiUrl}/chains/getchain`, {
-                id: chainFilePath
-            });
+            const { data: presets } = await axios.get(`${this.apiUrl}/chains/getchain/${chainFilePath}`);
 
             if (presets) {
                 let jigLocation = presets.location;
@@ -293,9 +292,7 @@ export class Deployer {
         //     if (!fs.pathExistsSync(sourcePath)) return;
         // }
         // const chainData = fs.readJSONSync(sourcePath);
-        const { data } = await axios.post(`${this.apiUrl}/chains/getchain`, {
-            id: chainFileReference
-        });
+        const { data } = await axios.get(`${this.apiUrl}/chains/getchain/${chainFileReference}`);
         chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
@@ -321,6 +318,10 @@ export class Deployer {
         let { origin, location, nonce, owner, satoshis } = jig;
         let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
         //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
-        await axios.post(`${this.apiUrl}/chains`, chainData);
+        let signedMessage = new SignedMessage({
+            subject: `Jigs Deployment`,
+            payload: chainData
+        }, this.userId, this.keyPair);
+        await axios.post(`${this.apiUrl}/chains`, signedMessage);
     }
 }

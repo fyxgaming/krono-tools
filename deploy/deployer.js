@@ -28,6 +28,7 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
 const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
+const { SignedMessage } = require('@kronoverse/lib/dist/rest-blockchain');
 const FYX_USER = 'fyx';
 class Deployer {
     //private envRegExp: RegExp;
@@ -163,9 +164,7 @@ class Deployer {
         // }
         if (this.useChainFiles) {
             //Is there data for this environment; If not, then must deploy
-            const { data: presets } = await fyx_axios_1.default.post(`${this.apiUrl}/chains/getchain`, {
-                id: chainFilePath
-            });
+            const { data: presets } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/getchain/${chainFilePath}`);
             if (presets) {
                 let jigLocation = presets.location;
                 //Download artifact from chain based on location in chain file
@@ -280,9 +279,7 @@ class Deployer {
         //     if (!fs.pathExistsSync(sourcePath)) return;
         // }
         // const chainData = fs.readJSONSync(sourcePath);
-        const { data } = await fyx_axios_1.default.post(`${this.apiUrl}/chains/getchain`, {
-            id: chainFileReference
-        });
+        const { data } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/getchain/${chainFileReference}`);
         chainData = data;
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
@@ -307,7 +304,11 @@ class Deployer {
         let { origin, location, nonce, owner, satoshis } = jig;
         let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
         //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
-        await fyx_axios_1.default.post(`${this.apiUrl}/chains`, chainData);
+        let signedMessage = new SignedMessage({
+            subject: `Jigs Deployment`,
+            payload: chainData
+        }, this.userId, this.keyPair);
+        await fyx_axios_1.default.post(`${this.apiUrl}/chains`, signedMessage);
     }
 }
 exports.Deployer = Deployer;
