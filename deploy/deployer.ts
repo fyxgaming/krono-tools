@@ -26,7 +26,8 @@ export class Deployer {
         public env: string,
         public useChainFiles: boolean = false,
         private modulePath: string = path.join(rootPath, 'node_modules'),
-        private debug: boolean = true
+        private debug: boolean = true,
+        private skipGit: boolean = false
     ) {
         this.git = simpleGit(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
@@ -74,7 +75,7 @@ export class Deployer {
         // }
 
         const resource = require(sourcePath);
-        const commitId = this.useChainFiles ?
+        const commitId = this.skipGit ?
             await this.getLastCommitId(sourcePath) :
             sourcePath;
         // const commitId = sourcePath;

@@ -32,7 +32,7 @@ const signed_message_1 = require("@kronoverse/lib/dist/signed-message");
 const FYX_USER = 'fyx';
 class Deployer {
     //private envRegExp: RegExp;
-    constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true) {
+    constructor(apiUrl, /* see krono-coin postDeploy */ userId, /* see krono-coin postDeploy */ keyPair, /* see krono-coin postDeploy */ run, rootPath, env, useChainFiles = false, modulePath = path.join(rootPath, 'node_modules'), debug = true, skipGit = false) {
         this.apiUrl = apiUrl;
         this.userId = userId;
         this.keyPair = keyPair;
@@ -42,6 +42,7 @@ class Deployer {
         this.useChainFiles = useChainFiles;
         this.modulePath = modulePath;
         this.debug = debug;
+        this.skipGit = skipGit;
         this.cache = new Map();
         this.fs = fs;
         this.path = path;
@@ -84,7 +85,7 @@ class Deployer {
         //     return deployed;
         // }
         const resource = require(sourcePath);
-        const commitId = this.useChainFiles ?
+        const commitId = this.skipGit ?
             await this.getLastCommitId(sourcePath) :
             sourcePath;
         // const commitId = sourcePath;
