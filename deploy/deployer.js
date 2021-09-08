@@ -308,6 +308,7 @@ class Deployer {
             payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
         await fyx_axios_1.default.post(`${this.apiUrl}/chains/${chainFilePath}`, signedMessage);
+        this.cache.set(chainFilePath, jig);
     }
 }
 exports.Deployer = Deployer;

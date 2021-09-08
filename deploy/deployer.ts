@@ -322,5 +322,6 @@ export class Deployer {
             payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
         await axios.post(`${this.apiUrl}/chains/${chainFilePath}`, signedMessage);
+        this.cache.set(chainFilePath,jig);
     }
 }
