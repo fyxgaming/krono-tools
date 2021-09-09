@@ -33,7 +33,6 @@ export class Deployer {
         this.blockchain = run.blockchain;
         this.networkKey = run.blockchain.network;
         this.appId = this.run.app;
-        //this.envRegExp = new RegExp(`[\\|\/]{1}${env}[\\|\/]{1}`, 'i');
     }
 
     private log(msg: any) {
@@ -58,7 +57,6 @@ export class Deployer {
         //Load the code from the blockchain
         if (source.endsWith('.chain.json')) {
             this.log(`HAS CHAIN DEPENDENCY`);
-            //if (!this.envRegExp.test(source)) throw `Mismatched environments in dependency.`;
             const deployed: any = await this.loadChainFile(source);
             //deployed could be null or undefined
             if (!deployed) throw new Error('Chain dependency could not be found.');
@@ -66,17 +64,8 @@ export class Deployer {
             return deployed;
         }
 
-        // if (!await fs.pathExists(sourcePath)) {
-        //     const dep = require(source);
-        //     if (!dep[`location${this.networkKey}`]) throw new Error(`${source} not deployed`);
-        //     const deployed = this.run.load(dep[`location${this.networkKey}`]);
-        //     this.cache.set(source, deployed);
-        //     return deployed;
-        // }
-
         const resource = require(sourcePath);
         const commitId = this.skipGit ? sourcePath : await this.getLastCommitId(sourcePath);
-        // const commitId = sourcePath;
 
         //Add the last git commit hash for this file to the hash buffer
         //Git root is the repo this is running in
@@ -139,35 +128,6 @@ export class Deployer {
         let presets: any = {};
         let chainArtifact;
 
-        //Does the chain file exist; If not, then must deploy
-        // if (this.useChainFiles && fs.existsSync(chainFilePath)) {
-        //     //Is there data for this environment; If not, then must deploy
-        //     presets = fs.readJSONSync(chainFilePath);
-
-        //     if (presets) {
-        //         let jigLocation = presets.location;
-        //         //Download artifact from chain based on location in chain file
-        //         //If this fails, then either Run is not compatible or the chainfile
-        //         //  is bad and so we will just deploy it again.
-        //         this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
-        //         chainArtifact = await this.run.load(jigLocation).catch((ex) => {
-        //             // if (ex.statusCode === 404) {
-        //             this.log(`Error: ${ex.message}`);
-        //             this.log(`## Jig could not be loaded from ${jigLocation}`);
-        //             return { hash: 'DEPLOY_AGAIN' };
-        //             // }
-        //             // throw (ex);
-        //         });
-        //         //If the hashes match then there is no need to deploy
-        //         if (resource.hash === chainArtifact.hash) {
-        //             //Can use the previously deployed artifact
-        //             mustDeploy = false;
-        //             //We can use the artifact from the chain for this resource
-        //             deployed = chainArtifact;
-        //         }
-        //     }
-        // }
-
         if (this.useChainFiles) {
             //Is there data for this environment; If not, then must deploy
             const { data: presets } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
@@ -179,12 +139,9 @@ export class Deployer {
                 //  is bad and so we will just deploy it again.
                 this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
                 chainArtifact = await this.run.load(jigLocation).catch((ex) => {
-                    // if (ex.statusCode === 404) {
                     this.log(`Error: ${ex.message}`);
                     this.log(`## Jig could not be loaded from ${jigLocation}`);
                     return { hash: 'DEPLOY_AGAIN' };
-                    // }
-                    // throw (ex);
                 });
                 //If the hashes match then there is no need to deploy
                 if (resource.hash === chainArtifact.hash) {
@@ -272,8 +229,6 @@ export class Deployer {
         relativePath = relativePath.slice(relativePath.indexOf(path.sep) + 1);
         console.log(`relativePath: ${relativePath}`);
         chainFilePath.base = `${chainFilePath.name}.chain.json`;
-        // chainFilePath.dir = rootPath.slice(0, rootPath.lastIndexOf(path.sep)) + `/${CHAIN_FOLDER_NAME}/${env}${relativePath}`;
-        // return path.format(chainFilePath);
         return relativePath ?
             `${this.appId}/${relativePath}/${chainFilePath.base}` :
             `${this.appId}/${chainFilePath.base}` // we are returning in a new format e.g. items/armory/common/eyepatch.chain.json
@@ -282,15 +237,8 @@ export class Deployer {
     async loadChainFile(chainFileReference: string): Promise<any> {
         let chainData;
         const { run, cache, env, rootPath, modulePath } = this;
-        //const chainFile = chainFileReference.replace('{env}', env);
+        
         if (cache.has(chainFileReference)) return cache.get(chainFileReference);
-        // let sourcePath = path.join(rootPath, chainFile);
-        // //Don't know if it is relative to the root or a node_modules dependency
-        // if (!fs.pathExistsSync(sourcePath)) {
-        //     sourcePath = path.join(modulePath, chainFile)
-        //     if (!fs.pathExistsSync(sourcePath)) return;
-        // }
-        // const chainData = fs.readJSONSync(sourcePath);
         const { data } = await axios.get(`${this.apiUrl}/chains/${chainFileReference}`);
         chainData = data;
         //chainData must match current run environment in order to be relevant
@@ -316,7 +264,7 @@ export class Deployer {
         }
         let { origin, location, nonce, owner, satoshis } = jig;
         let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
-        //await fs.outputFileSync(chainFilePath, JSON.stringify(chainData, null, 4));
+        
         let signedMessage = new SignedMessage({
             subject: `Jigs Deployment`,
             payload: JSON.stringify(chainData)
