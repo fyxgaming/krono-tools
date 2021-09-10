@@ -24,7 +24,6 @@ export class Deployer {
         public run: any,
         public rootPath: string,
         public env: string,
-        public useChainFiles: boolean = false,
         private modulePath: string = path.join(rootPath, 'node_modules'),
         private debug: boolean = true,
         private skipGit: boolean = false
@@ -125,33 +124,34 @@ export class Deployer {
 
         //Derive the chain file path
         let chainFilePath = this.deriveChainFilePath(sourcePath);
-        let presets: any = {};
         let chainArtifact;
 
-        if (this.useChainFiles) {
-            //Is there data for this environment; If not, then must deploy
-            const { data: presets } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
+        //Is there data for this environment; If not, then must deploy
+        const { data: presets } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
 
-            if (presets) {
-                let jigLocation = presets.location;
-                //Download artifact from chain based on location in chain file
-                //If this fails, then either Run is not compatible or the chainfile
-                //  is bad and so we will just deploy it again.
-                this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
-                chainArtifact = await this.run.load(jigLocation).catch((ex) => {
+        if (presets) {
+            let jigLocation = presets.location;
+            //Download artifact from chain based on location in chain file
+            //If this fails, then either Run is not compatible or the chainfile
+            //  is bad and so we will just deploy it again.
+            this.log(`RUN.LOAD ${jigLocation} ${chainFilePath}`);
+            chainArtifact = await this.run.load(jigLocation).catch((ex) => {
+                if (ex.statusCode === 400) {
                     this.log(`Error: ${ex.message}`);
                     this.log(`## Jig could not be loaded from ${jigLocation}`);
                     return { hash: 'DEPLOY_AGAIN' };
-                });
-                //If the hashes match then there is no need to deploy
-                if (resource.hash === chainArtifact.hash) {
-                    //Can use the previously deployed artifact
-                    mustDeploy = false;
-                    //We can use the artifact from the chain for this resource
-                    deployed = chainArtifact;
                 }
+                throw (ex);
+            });
+            //If the hashes match then there is no need to deploy
+            if (resource.hash === chainArtifact.hash) {
+                //Can use the previously deployed artifact
+                mustDeploy = false;
+                //We can use the artifact from the chain for this resource
+                deployed = chainArtifact;
             }
         }
+
 
         if (mustDeploy) {
             try {
@@ -192,10 +192,9 @@ export class Deployer {
                 }
 
                 //Put the artifact presets into the chain file
-                if (this.useChainFiles) {
-                    this.log(`WRITE: ${chainFilePath}`);
-                    await this.writeChainFile(chainFilePath, deployed);
-                }
+                this.log(`WRITE: ${chainFilePath}`);
+                await this.writeChainFile(chainFilePath, deployed);
+
 
             } catch (ex) {
                 console.error(`ERROR: `, ex);
@@ -237,7 +236,7 @@ export class Deployer {
     async loadChainFile(chainFileReference: string): Promise<any> {
         let chainData;
         const { run, cache, env, rootPath, modulePath } = this;
-        
+
         if (cache.has(chainFileReference)) return cache.get(chainFileReference);
         const { data } = await axios.get(`${this.apiUrl}/chains/${chainFileReference}`);
         chainData = data;
@@ -264,12 +263,12 @@ export class Deployer {
         }
         let { origin, location, nonce, owner, satoshis } = jig;
         let chainData = { id: chainFilePath, origin, location, nonce, owner, satoshis };
-        
+
         let signedMessage = new SignedMessage({
             subject: `Jigs Deployment`,
             payload: JSON.stringify(chainData)
         }, this.userId, this.keyPair);
         await axios.post(`${this.apiUrl}/chains/${chainFilePath}`, signedMessage);
-        this.cache.set(chainFilePath,jig);
+        this.cache.set(chainFilePath, jig);
     }
 }

@@ -105,7 +105,7 @@ function renderUsage() {
 
     const rootPath = path.dirname(sourcePath);
     console.log('rootPath:', rootPath);
-    const deployer = new Deployer(blockchainUrl, userId, keyPair, run, rootPath, env, !disableChainFiles, path.join(process.cwd(), 'node_modules'));
+    const deployer = new Deployer(blockchainUrl, userId, keyPair, run, rootPath, env, path.join(process.cwd(), 'node_modules'));
 
     await deployer.deploy(catalogFile);
 
