@@ -127,13 +127,7 @@ export class Deployer {
         let chainArtifact;
 
         //Is there data for this environment; If not, then must deploy
-        let presets;
-        try {
-            const { data } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
-            presets = data
-        } catch (e: any) {
-            if(e.status !== 404) throw e;
-        }
+        const { data: presets } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
 
         if (presets) {
             let jigLocation = presets.location;
