@@ -17,24 +17,14 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^8.0.7",
-    "axios": "^0.21.1",
+    "@kronoverse/lib": "^8.0.34",
     "bsv": "^2.0.8",
-    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",
-    "express": "^4.17.1",
     "fs-extra": "^9.0.1",
-    "ioredis": "^4.19.4",
-    "ioredis-mock": "^4.21.8",
-    "mime-types": "^2.1.27",
-    "mingo": "^3.1.0",
     "minimist": "^1.2.0",
-    "node-fetch": "^2.6.0",
     "run-sdk": "0.6.28",
-    "simple-git": "^2.11.0",
-    "threads": "^1.6.3",
-    "ws": "^7.3.1"
+    "simple-git": "^2.11.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.8",

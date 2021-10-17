@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-const axios = require('@kronoverse/lib/dist/fyx-axios');
 const dotenv = require('dotenv');
 const fs = require('fs-extra');
-const Redis = require('ioredis-mock');
 const minimist = require('minimist');
 const path = require('path');
 
