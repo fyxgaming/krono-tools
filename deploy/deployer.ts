@@ -2,8 +2,8 @@ import { createHash } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import simpleGit from 'simple-git/promise';
-import axios from '@kronoverse/lib/dist/fyx-axios';
-import { SignedMessage } from '@kronoverse/lib/dist/signed-message';
+import axios from '@fyxgaming/lib/dist/fyx-axios';
+import { SignedMessage } from '@fyxgaming/lib/dist/signed-message';
 
 const FYX_USER = 'fyx';
 

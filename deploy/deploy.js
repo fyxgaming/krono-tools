@@ -11,8 +11,8 @@ console.log('ARGV:', argv);
 dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 // console.log('ENV:', process.env);
 
-const { LockingPurse } = require('@kronoverse/lib/dist/locking-purse');
-const { RestBlockchain } = require('@kronoverse/lib/dist/rest-blockchain');
+const { LockingPurse } = require('@fyxgaming/lib/dist/locking-purse');
+const { RestBlockchain } = require('@fyxgaming/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
 const { Bip32, KeyPair } = require('bsv');
 const Run = require('run-sdk');
@@ -78,10 +78,10 @@ function renderUsage() {
     const keyPair = KeyPair.fromPrivKey(bip32.derive('m/1/0').privKey);
     const purseKeyPair = KeyPair.fromPrivKey(bip32.derive('m/0/0').privKey);
     console.log('OWNER:', keyPair.pubKey.toString());
-    // console.log('OWNER:', owner);
+    
 
 
-    const cache = new Run.LocalCache();
+    const cache = new Run.plugins.LocalCache();
     const blockchain = new RestBlockchain(
         blockchainUrl, 
         network, 

@@ -17,7 +17,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@kronoverse/lib": "^9.0.24",
+    "@fyxgaming/lib": "^1.0.3",
     "bsv": "^2.0.8",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",
