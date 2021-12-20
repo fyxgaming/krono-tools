@@ -2,7 +2,7 @@ const axios = require('axios');
 const { Token20 } = require('run-sdk').extra;
 const {Transaction} = require('run-sdk');
 
-const {SignedMessage} = require('@kronoverse/lib/dist/signed-message');
+const {SignedMessage} = require('@fyxgaming/lib/dist/signed-message');
 
 
 /* global FyxClass */

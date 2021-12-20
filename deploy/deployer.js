@@ -27,8 +27,8 @@ const crypto_1 = require("crypto");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs-extra"));
 const promise_1 = __importDefault(require("simple-git/promise"));
-const fyx_axios_1 = __importDefault(require("@kronoverse/lib/dist/fyx-axios"));
-const signed_message_1 = require("@kronoverse/lib/dist/signed-message");
+const fyx_axios_1 = __importDefault(require("@fyxgaming/lib/dist/fyx-axios"));
+const signed_message_1 = require("@fyxgaming/lib/dist/signed-message");
 const FYX_USER = 'fyx';
 class Deployer {
     //private envRegExp: RegExp;
