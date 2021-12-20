@@ -18,6 +18,18 @@ class FyxCollection extends FyxJig {
             new FyxItem(owner, metadata, item, satoshis);
         }
     }
+
+    static async deploy (deployer, prev) {
+        if(!prev) {
+            console.log('Deploying');
+            return deployer.run.deploy(Fighter);
+        } else {
+            console.log('Upgrading');
+            prev.upgrade(Fighter);
+            await prev.sync();
+            return prev;
+        }
+    }
 }
 
 FyxCollection.metadata = {

@@ -19,6 +19,18 @@ class FyxItem extends FyxJig {
         if(satoshis) this.satoshis = satoshis;
         this.owner = owner;
     }
+    
+    static async deploy (deployer, prev) {
+        if(!prev) {
+            console.log('Deploying');
+            return deployer.run.deploy(Fighter);
+        } else {
+            console.log('Upgrading');
+            prev.upgrade(Fighter);
+            await prev.sync();
+            return prev;
+        }
+    }
 }
 
 FyxItem.metadata = {
