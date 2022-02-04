@@ -23,7 +23,8 @@ const blockchainUrls = {
     adhoc: 'https://adhoc.api.fyxgaming.com',
     dev: 'https://dev.api.fyxgaming.com',
     test: 'https://test.api.fyxgaming.com',
-    prod: 'https://api.fyxgaming.com'
+    prod: 'https://api.fyxgaming.com',
+    prod2: 'https://prod2.aws.kronoverse.io'
 };
 
 function renderUsage() {
