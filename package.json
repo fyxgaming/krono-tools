@@ -17,7 +17,7 @@
     "**/*"
   ],
   "dependencies": {
-    "@fyxgaming/lib": "^1.0.4",
+    "@fyxgaming/lib": "^1.0.6",
     "bsv": "^2.0.8",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",
