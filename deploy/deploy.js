@@ -20,10 +20,10 @@ const Run = require('run-sdk');
 const blockchainUrls = {
     mock: 'http://localhost:8080',
     infra: 'https://kronoverse-infra.appspot.com',
-    adhoc: 'https://adhoc.api.fyxgaming.com',
-    dev: 'https://dev.api.fyxgaming.com',
+    adhoc: 'https://adhoc.api.cryptofights.io',
+    dev: 'https://dev.api.cryptofights.io',
     test: 'https://test.api.fyxgaming.com',
-    prod: 'https://api.fyxgaming.com',
+    prod: 'https://api.cryptofights.io',
     prod2: 'https://prod2.aws.kronoverse.io',
     perf: 'https://perf.aws.kronoverse.io'
 };
