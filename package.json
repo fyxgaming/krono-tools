@@ -17,13 +17,13 @@
     "**/*"
   ],
   "dependencies": {
-    "@fyxgaming/lib": "^1.0.6",
-    "bsv": "^2.0.8",
+    "@fyxgaming/lib": "^1.0.11",
+    "bsv": "^2.0.10",
     "dotenv": "^8.2.0",
     "events": "^3.2.0",
     "fs-extra": "^9.0.1",
     "minimist": "^1.2.0",
-    "run-sdk": "^0.6.28",
+    "run-sdk": "0.6.36",
     "simple-git": "^2.11.0"
   },
   "devDependencies": {
