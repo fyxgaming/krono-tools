@@ -127,7 +127,14 @@ export class Deployer {
         let chainArtifact;
 
         //Is there data for this environment; If not, then must deploy
-        const { data: presets } = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
+        let presets;
+        try {
+            const resp = await axios.get(`${this.apiUrl}/chains/${chainFilePath}`);
+            presets = resp.data
+        } catch (e: any) {
+            // console.error(e);
+            if(e.status !== 404) throw e;
+        }
 
         if (presets) {
             let jigLocation = presets.location;
@@ -237,8 +244,13 @@ export class Deployer {
         const { run, cache, env, rootPath, modulePath } = this;
 
         if (cache.has(chainFileReference)) return cache.get(chainFileReference);
-        const { data } = await axios.get(`${this.apiUrl}/chains/${chainFileReference}`);
-        chainData = data;
+        try {
+            const { data } = await axios.get(`${this.apiUrl}/chains/${chainFileReference}`);
+            chainData = data;
+        } catch (e: any) {
+            if(e.status === 404) return;
+            throw e;
+        }
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
 

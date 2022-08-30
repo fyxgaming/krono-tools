@@ -14,7 +14,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -45,7 +45,7 @@ class Deployer {
         this.cache = new Map();
         this.fs = fs;
         this.path = path;
-        this.git = promise_1.default(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
+        this.git = (0, promise_1.default)(rootPath.split(path.sep).reduce((s, c, i, a) => c && i < a.length - 1 ? `${s}${path.sep}${c}` : s));
         this.blockchain = run.blockchain;
         this.networkKey = run.blockchain.network;
         this.appId = this.run.app;
@@ -58,7 +58,7 @@ class Deployer {
     async deploy(source, crumbs = 'root', depth = 0) {
         if (this.cache.has(source))
             return this.cache.get(source);
-        const hash = crypto_1.createHash('sha256');
+        const hash = (0, crypto_1.createHash)('sha256');
         depth = (depth || 0);
         let sourcePath = path.isAbsolute(source) ? source : path.join(this.rootPath, source);
         this.log(`SourcePath: ${sourcePath}`);
@@ -123,7 +123,16 @@ class Deployer {
         let chainFilePath = this.deriveChainFilePath(sourcePath);
         let chainArtifact;
         //Is there data for this environment; If not, then must deploy
-        const { data: presets } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFilePath}`);
+        let presets;
+        try {
+            const resp = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFilePath}`);
+            presets = resp.data;
+        }
+        catch (e) {
+            // console.error(e);
+            if (e.status !== 404)
+                throw e;
+        }
         if (presets) {
             let jigLocation = presets.location;
             //Download artifact from chain based on location in chain file
@@ -225,8 +234,15 @@ class Deployer {
         const { run, cache, env, rootPath, modulePath } = this;
         if (cache.has(chainFileReference))
             return cache.get(chainFileReference);
-        const { data } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFileReference}`);
-        chainData = data;
+        try {
+            const { data } = await fyx_axios_1.default.get(`${this.apiUrl}/chains/${chainFileReference}`);
+            chainData = data;
+        }
+        catch (e) {
+            if (e.status === 404)
+                return;
+            throw e;
+        }
         //chainData must match current run environment in order to be relevant
         //you can't mix main(net) jigs with test(net) jigs
         if (!chainData)
