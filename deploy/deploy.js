@@ -97,8 +97,9 @@ function renderUsage() {
         purse: new LockingPurse(purseKeyPair, blockchain, 100000),
         cache,
         app: argv.app,
-        timeout: 30000,
+        timeout: 120000,
         trust: '*',
+        state: new Run.plugins.LocalState(),
     });
     
     console.log('PURSE:', run.purse.address);
