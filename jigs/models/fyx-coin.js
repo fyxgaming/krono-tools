@@ -1,6 +1,6 @@
 const axios = require('axios');
-const { Token20 } = require('run-sdk').extra;
-const {Transaction} = require('run-sdk');
+const { Token20 } = require('@fyxgaming/run').extra;
+const {Transaction} = require('@fyxgaming/run');
 
 const {SignedMessage} = require('@fyxgaming/lib/dist/signed-message');
 

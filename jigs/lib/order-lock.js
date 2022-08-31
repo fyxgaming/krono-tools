@@ -1,4 +1,4 @@
-const { asm, Base58, Hex, sha256 } = require('run-sdk').extra;
+const { asm, Base58, Hex, sha256 } = require('@fyxgaming/run').extra;
 
 class OrderLock {
     constructor(address, satoshis) {

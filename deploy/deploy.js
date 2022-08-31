@@ -15,7 +15,7 @@ const { LockingPurse } = require('@fyxgaming/lib/dist/locking-purse');
 const { RestBlockchain } = require('@fyxgaming/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
 const { Bip32, KeyPair } = require('bsv');
-const Run = require('run-sdk');
+const Run = require('@fyxgaming/run');
 
 const blockchainUrls = {
     mock: 'http://localhost:8080',

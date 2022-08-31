@@ -1,4 +1,4 @@
-const { Jig } = require('run-sdk');
+const { Jig } = require('@fyxgaming/run');
 const FyxClass = require('./fyx-class');
 
 class FyxJig extends Jig {
