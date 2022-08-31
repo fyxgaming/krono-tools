@@ -14,7 +14,7 @@ dotenv.config({ path: path.join(process.cwd(), `${argv.env}.env`) });
 const { LockingPurse } = require('@fyxgaming/lib/dist/locking-purse');
 const { RestBlockchain } = require('@fyxgaming/lib/dist/rest-blockchain');
 const { Deployer } = require('./deployer');
-const { Bip32, KeyPair } = require('bsv');
+const { Bip32, KeyPair } = require('bsv2');
 const Run = require('@fyxgaming/run');
 
 const blockchainUrls = {
